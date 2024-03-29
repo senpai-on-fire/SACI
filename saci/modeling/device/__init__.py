@@ -1,5 +1,5 @@
-from .component import Component
-from .motor import Motor
-from .telemetry import Telemetry
-from .controller import Controller
+from .component import ComponentHigh, ComponentAlgorithmic, ComponentSourceCode, ComponentBinary, ComponentBase
+from .telemetry import TelemetryHigh, TelemetryAlgorithmic
+from .controller import ControllerHigh
+from .motor import MotorHigh, MotorAlgorithmic, MultiMotorHigh, MultiMotorAlgo, MultiCopterMotorHigh, MultiCopterMotorAlgo
 from .device import Device

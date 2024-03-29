@@ -1,2 +1,2 @@
-from .device import Component, Motor, Telemetry, Controller, Device
+from .vulnerability import Vulnerability
 from .cpv import CPV

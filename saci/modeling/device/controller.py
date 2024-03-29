@@ -1,6 +1,6 @@
-from .component import Component
+from .component import ComponentHigh
 
 
-class Controller(Component):
+class ControllerHigh(ComponentHigh):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

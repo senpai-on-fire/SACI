@@ -1,39 +1,45 @@
-import networkx as nx
+from saci.modeling import CPV
+from saci.modeling.device import TelemetryHigh, ControllerHigh, MultiCopterMotorHigh, MultiCopterMotorAlgo
+from saci.modeling.state import GlobalState
 
-from saci.modeling import Device, Motor, Controller, Telemetry, CPV
-from .px4_quadcopter import GCSTelemetry, PX4Controller
+from .vuln import MavlinkVuln01
 
-cpv = CPV(
-    required_components=[
-        Motor,
-        Controller,
-        Telemetry,
-    ],
-    observations=[
-        Controller(is_powered=True),
-        Telemetry(is_powered=True),
-        Motor(is_powered=False),
-    ],
-    transitions={
-        # overall transitions of the full system
-        # telemetry -> controller -> motor
-        Device: nx.from_edgelist([
-            (Telemetry, Controller),
-            (Controller, Motor),
-        ], create_using=nx.DiGraph),
 
-        # transitions of the telemetry component:
-        # recv -> processing -> notify
-        GCSTelemetry: nx.from_edgelist([
-            (GCSTelemetry.S_RECV, GCSTelemetry.S_PROCESSING),
-            (GCSTelemetry.S_PROCESSING, GCSTelemetry.S_NOTIFY),
-        ], create_using=nx.DiGraph),
+class MavlinkCPV(CPV):
+    def __init__(self):
+        mavlink_vuln = MavlinkVuln01()
+        super().__init__(
+            required_components=[
+                mavlink_vuln.component,
+                TelemetryHigh,
+                ControllerHigh,
+                MultiCopterMotorHigh,
+                MultiCopterMotorAlgo,
+            ],
+            # TODO: how to describe what kind of input is needed
+            entry_component=TelemetryHigh(powered=True),
+            vulnerabilities=[mavlink_vuln]
+        )
 
-        # transitions of the controller component
-        # accept_notif -> process_notif -> disarm
-        PX4Controller: nx.from_edgelist([
-            (PX4Controller.S_ACCCEPT_NOTIF, PX4Controller.S_PROCESS_NOTIF),
-            (PX4Controller.S_PROCESS_NOTIF, PX4Controller.S_DISARM),
-        ], create_using=nx.DiGraph),
-    }
-)
+        # We want the motor to be powered, but to be doing nothing. This can be described as neither
+        # having lift, pitch, or yaw.
+        gms = MultiCopterMotorAlgo()
+        gms.conditions = [
+            gms.v["yaw"] == 0,
+            gms.v["pitch"] == 0,
+            gms.v["lift"] == 0,
+        ]
+        self.goal_motor_state = gms
+
+    def in_goal_state(self, state: GlobalState):
+        for component in state.components:
+            if isinstance(component, MultiCopterMotorHigh):
+                if not component.powered:
+                    return False
+            elif isinstance(component, MultiCopterMotorAlgo):
+                if component != self.goal_motor_state:
+                    return False
+            elif isinstance(component, TelemetryHigh) and not component.powered:
+                return False
+            elif isinstance(component, ControllerHigh) and not component.powered:
+                return False
