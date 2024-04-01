@@ -2,8 +2,9 @@
 SACI - Software-Aware CPV Identifier
 
 ## Installation
+Install `SACI` and the `saci-db` (located in the same GitHub group) together: 
 ```bash
-pip install -e .
+pip install -e . ../saci-database
 ```
 
 ## Background
