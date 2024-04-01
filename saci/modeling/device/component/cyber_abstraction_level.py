@@ -8,3 +8,11 @@ class CyberAbstractionLevel(IntEnum):
     BINARY = 3
     FUNCTION = 4
     UNKNOWN = 5
+
+
+ABSTRACTION_LEVELS = [
+    CyberAbstractionLevel.HIGH,
+    CyberAbstractionLevel.ALGORITHMIC,
+    CyberAbstractionLevel.SOURCE,
+    CyberAbstractionLevel.BINARY
+]
