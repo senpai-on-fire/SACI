@@ -1,12 +1,16 @@
 from typing import Optional
 
 
+class CPVPath:
+    pass
+
+
 def identify(cps, cpv_model) -> Optional:
     """
-    Identify if the given CPV model exists in the CPS model. Return a CPV description if it exists, otherwise return
+    Identify if the given CPV model may exist in the CPS model. Return a CPV description if it exists, otherwise return
     None.
     """
-    return None
+    return [CPVPath()]
 
 
 def desc_to_input(cps, cpv_model, cpv_desc) -> Optional:
@@ -62,6 +66,7 @@ def main():
     }
 
     all_cpvs = process(cps, database)
+    print(all_cpvs)
 
 
 if __name__ == "__main__":
