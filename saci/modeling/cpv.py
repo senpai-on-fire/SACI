@@ -7,7 +7,7 @@ from .vulnerability import Vulnerability
 
 class CPV:
     """
-    A Cyber-Physical Vulnerability (CPV) is a representation of a vulnerability in a cyber-physical system.
+    A Cyber-Physical BaseVulnerability (CPV) is a representation of a vulnerability in a cyber-physical system.
     A CPV consists of a set of goal states, an entry state, and an attack. The attack is a directed graph that
 
     """
