@@ -3,10 +3,9 @@ from ..communication import BaseCommunication
 
 
 class CameraHigh(ComponentHigh):
-    def __init__(self, powered=False, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.powered = powered
-        
+
 
 # class LocalizationAlgorithm(ComponentAlgorithmic):
 #     def __init__(self, enable=False, camera_prioritized=True, **kwargs):

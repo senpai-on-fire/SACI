@@ -3,14 +3,14 @@ from ..communication import BaseCommunication
 
 from claripy import BVS
 
+
 class GPSReceiver(ComponentHigh):
-    def __init__(self, protocol_name=None, signals_authenticated=False, 
-                 signal_strength_threshold=-100, is_spoofable=True, **kwargs):
+    __slots__ = ComponentHigh.__slots__ + ("protocol_name", "authenticated", "signal_strength_threshold")
+    def __init__(self, protocol_name=None, authenticated=False, signal_strength_threshold=-100, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
         self.protocol_name = protocol_name
-        self.signals_authenticated = signals_authenticated
+        self.authenticated = authenticated
         self.signal_strength_threshold = signal_strength_threshold
-        self.is_spoofable = is_spoofable
 
     def is_signal_valid(self, signal_strength):
         # Determines if the received GPS signal meets the strength threshold.

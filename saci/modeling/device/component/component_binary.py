@@ -6,7 +6,8 @@ from .cyber_abstraction_level import CyberAbstractionLevel
 
 
 class ComponentBinary(ComponentBase):
-    STATE_ATTR = ("pc", )
+    __state_slots__ = ComponentBase.__state_slots__ + ("pc", )
+    __slots__ = ComponentBase.__slots__ + ("binary_path", "pc", )
 
     def __init__(
         self,

@@ -9,7 +9,8 @@ class ComponentBase:
     A ComponentBase is the base class for all components in the system. A component, at a high-level, is any device
     in the full system that can talk to at least one other device.
     """
-    STATE_ATTR = ()
+    __state_slots__ = ()
+    __slots__ = ("name", "abstraction_level")
 
     def __init__(self, name=None, abstraction=CyberAbstractionLevel.UNKNOWN):
         self.name = name
@@ -40,3 +41,13 @@ class ComponentBase:
         :return:
         """
         raise NotImplementedError
+
+    def copy(self) -> "ComponentBase":
+        """
+        Copy the component
+        """
+        new_comp = self.__class__()
+        for attr in self.__slots__:
+            setattr(new_comp, attr.copy() if attr else None, getattr(self, attr))
+
+        return new_comp

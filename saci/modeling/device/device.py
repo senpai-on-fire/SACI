@@ -8,8 +8,6 @@ from ..state import GlobalState
 
 
 class Device:
-    STATE_ATTR = ("state", )
-
     def __init__(
         self,
         name: str,
@@ -35,3 +33,10 @@ class Device:
 
         # state of the device (for Identifier)
         self.state = state
+
+    def update_state(self, state: GlobalState) -> GlobalState:
+        new_state: GlobalState = state.copy()
+        for component in self.components:
+            new_state = component.update_state(new_state)
+
+

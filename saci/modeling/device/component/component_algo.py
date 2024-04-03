@@ -8,7 +8,8 @@ import claripy
 
 
 class ComponentAlgorithmic(ComponentBase):
-    STATE_ATTR = ("conditions", )
+    __state_slots__ = ComponentBase.__state_slots__ + ("conditions",)
+    __slots__ = ComponentBase.__slots__ + ("conditions", "variables",)
 
     def __init__(
         self,

@@ -6,7 +6,8 @@ from .cyber_abstraction_level import CyberAbstractionLevel
 
 
 class ComponentSourceCode(ComponentBase):
-    STATE_ATTR = ("current_line", )
+    __state_slots__ = ComponentBase.__state_slots__ + ("current_line", )
+    __slots__ = ComponentBase.__slots__ + ("source_root", "current_line", )
 
     def __init__(
         self,
