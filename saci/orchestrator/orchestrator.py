@@ -1,23 +1,74 @@
-from typing import Optional
+from typing import Optional, List
+
+from ..constrainers import get_constrainer
+
+
+class BaseComponent:
+    """
+    The base class for all components. Should be replaced by classes in saci.modeling once Zion finishes his job.
+    """
+
+    def __init__(self, name, component_type, abstraction_layer):
+        self.name = name
+        self.type = component_type
+        self.abstraction_layer = abstraction_layer
+
+    def __repr__(self):
+        return f"<Component {self.name} | {self.type}>"
+
+
+class Behaviors:
+    """
+    Describes a list of behaviors.
+    """
+
+    def __init__(self):
+        pass
 
 
 class CPVPath:
-    pass
+    def __init__(self, path, behaviors):
+        self.path: List[BaseComponent] = path
+        self.final_behaviors: Behaviors = behaviors
 
 
-def identify(cps, cpv_model) -> Optional:
+def identify(cps, cpv_model) -> List[CPVPath]:
     """
     Identify if the given CPV model may exist in the CPS model. Return a CPV description if it exists, otherwise return
     None.
     """
-    return [CPVPath()]
+    # TODO: Adam's identifier will be invoked
+    return [CPVPath([BaseComponent("prog", "cyber", "binary")], Behaviors())]
 
 
-def desc_to_input(cps, cpv_model, cpv_desc) -> Optional:
+def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
     """
-    Convert a CPV description to some input.
+    Constrain a CPV path on a CPV model with the goal of generating
     """
-    return None
+    behaviors = cpv_path.final_behaviors
+    state = None  # TODO:
+    constraints = set()  # TODO:
+
+    inputs = [ ]
+    for component in cpv_path.path:
+        constrainer_cls = get_constrainer(component)
+        if constrainer_cls is None:
+            raise TypeError(f"No constrainer found for {component}")
+
+        constrainer = constrainer_cls()
+        r, info = constrainer.solve(state, behaviors, constraints)
+        if r is False:
+            # unsat
+            return None
+        # sat!
+        behaviors = info["behaviors"]
+        state = info["input_state"]
+        input = info["input"]
+        constraints = info["constraints"]
+
+        inputs.append(input)
+
+    return inputs
 
 
 def verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input) -> bool:
@@ -30,22 +81,23 @@ def verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input) -> bool:
 def process(cps, database):
 
     # identify potential CPV in CPS
-    identified_cpvs = [ ]
+    identified_cpv_and_paths = [ ]
     for cpv_model in database["cpv_model"]:
-        cpv_desc = identify(cps, cpv_model)
-        if cpv_desc is not None:
-            identified_cpvs.append((cpv_model, cpv_desc))
+        cpv_paths = identify(cps, cpv_model)
+        if cpv_paths is not None:
+            identified_cpv_and_paths.append((cpv_model, cpv_paths))
 
-    # for each identified CPV, find input
-    cpv_input = [ ]
-    for cpv_model, cpv_desc in identified_cpvs:
-        cpv_input = desc_to_input(cps, cpv_model, cpv_desc)
-        if cpv_input is not None:
-            cpv_input.append((cpv_model, cpv_desc, cpv_input))
+    # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
+    cpv_inputs = [ ]
+    for cpv_model, cpv_paths in identified_cpv_and_paths:
+        for cpv_path in cpv_paths:
+            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path)
+            if cpv_input is not None:
+                cpv_inputs.append((cpv_model, cpv_path, cpv_input))
 
     # verify each CPV input in customized simulation
     all_cpvs = []
-    for cpv_model, cpv_desc, cpv_input in cpv_input:
+    for cpv_model, cpv_desc, cpv_input in cpv_inputs:
         verified = verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input)
         all_cpvs.append((cps, cpv_model, cpv_desc, cpv_input, verified))
 
@@ -61,7 +113,7 @@ def main():
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
-        "cpv_model": [],
+        "cpv_model": ["buggy"],
         "cps_vuln": [],
     }
 
