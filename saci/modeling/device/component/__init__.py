@@ -5,8 +5,7 @@ from .component_high import CyberComponentHigh
 from .component_algo import CyberComponentAlgorithmic
 from .component_src import CyberComponentSourceCode
 from .component_binary import CyberComponentBinary
-from .component_base import ComponentBase
-from .hardware_component_base import HardwareComponentBase
+from .component_hw_high import ComponentHWHigh
 from .component_hw_high import HardwareHigh
 from .component_hw_package import HardwarePackage
 from .component_hw_technology import HardwareTechnology

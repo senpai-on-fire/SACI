@@ -1,6 +1,6 @@
 import logging
 
-from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentSourceCode
+from .component import CyberComponentHigh, CyberComponentAlgorithmic
 from .component import HardwareHigh, HardwarePackage, HardwareTechnology
 _l = logging.getLogger(__name__)
 
