@@ -1,21 +1,7 @@
 from typing import Optional, List
 
 from ..constrainers import get_constrainer
-from ..modeling.device import CyberComponentBase
-
-
-class BaseComponent:
-    """
-    The base class for all components. Should be replaced by classes in saci.modeling once Zion finishes his job.
-    """
-
-    def __init__(self, name, component_type, abstraction_layer):
-        self.name = name
-        self.type = component_type
-        self.abstraction_layer = abstraction_layer
-
-    def __repr__(self):
-        return f"<Component {self.name} | {self.type}>"
+from ..modeling.device import ComponentBase, CyberComponentBinary
 
 
 class Behaviors:
@@ -29,7 +15,7 @@ class Behaviors:
 
 class CPVPath:
     def __init__(self, path, behaviors):
-        self.path: List[BaseComponent] = path
+        self.path: List[ComponentBase] = path
         self.final_behaviors: Behaviors = behaviors
 
 
@@ -39,7 +25,7 @@ def identify(cps, cpv_model) -> List[CPVPath]:
     None.
     """
     # TODO: Adam's identifier will be invoked
-    return [CPVPath([BaseComponent("prog", "cyber", "binary")], Behaviors())]
+    return [CPVPath([CyberComponentBinary("my_awesome_binary")], Behaviors())]
 
 
 def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
@@ -52,11 +38,12 @@ def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
 
     inputs = [ ]
     for component in cpv_path.path:
-        constrainer_cls = get_constrainer(component)
-        if constrainer_cls is None:
+        constrainer_clses = list(get_constrainer(component))
+        if not constrainer_clses:
             raise TypeError(f"No constrainer found for {component}")
 
-        constrainer = constrainer_cls()
+        # FIXME: We are taking the last class
+        constrainer = constrainer_clses[-1]()
         r, info = constrainer.solve(state, behaviors, constraints)
         if r is False:
             # unsat

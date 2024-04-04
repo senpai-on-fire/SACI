@@ -13,7 +13,7 @@ class CyberComponentBinary(CyberComponentBase):
         self,
         binary_path: Path = None,
         pc: Optional[int] = None,
-        abstraction=CyberAbstractionLevel.SOURCE,
+        abstraction=CyberAbstractionLevel.BINARY,
         **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)

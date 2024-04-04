@@ -5,3 +5,5 @@ from .component_high import CyberComponentHigh
 from .component_algo import CyberComponentAlgorithmic
 from .component_src import CyberComponentSourceCode
 from .component_binary import CyberComponentBinary
+from .component_base import ComponentBase
+from .hardware_component_base import HardwareComponentBase

@@ -1,18 +1,20 @@
-
 from .base_constrainer import BaseConstrainer
 from ..modeling import ComponentBase
-from ..modeling.device import CyberComponentBinary
 
 
-class BinaryConstrainer(BaseConstrainer):
+class BruteforceConstrainer(BaseConstrainer):
+    def __init__(self):
+        super().__init__()
+
     @classmethod
     def supports(cls, component: ComponentBase) -> bool:
-        return isinstance(component, CyberComponentBinary)
+        # the bruteforce constrainer supports everything
+        return True
 
     def solve(self, out_state, behaviors, constraints):
         return True, {
-            "input": None,
+            "behaviors": [],
             "input_state": None,
-            "behaviors": None,
-            "constraints": None,
+            "input": None,
+            "constraints": [],
         }
