@@ -7,6 +7,8 @@ from .motor import MotorHigh, MotorAlgorithmic
 
 
 class MultiMotorHigh(MotorHigh):
+    __slots__ = MotorHigh.__slots__ + ("motors",)
+
     def __init__(self, motors=None, **kwargs):
         super().__init__(**kwargs)
         self.motors: List[MotorHigh] = motors or []
@@ -17,6 +19,8 @@ class MultiMotorHigh(MotorHigh):
 
 
 class MultiMotorAlgo(MotorAlgorithmic):
+    __slots__ = MotorAlgorithmic.__slots__ + ("motors",)
+
     def __init__(self, motors=None, **kwargs):
         super().__init__(**kwargs)
         self.motors: List[MotorAlgorithmic] = motors or []

@@ -1,11 +1,9 @@
 from .component import ComponentHigh, ComponentAlgorithmic
-from ..communication import BaseCommunication
-
-from claripy import BVS
 
 
 class GPSReceiver(ComponentHigh):
     __slots__ = ComponentHigh.__slots__ + ("protocol_name", "authenticated", "signal_strength_threshold")
+
     def __init__(self, protocol_name=None, authenticated=False, signal_strength_threshold=-100, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
         self.protocol_name = protocol_name

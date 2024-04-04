@@ -3,6 +3,8 @@ from ..communication import BaseCommunication
 
 
 class CameraHigh(ComponentHigh):
+    __slots__ = ComponentHigh.__slots__
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
