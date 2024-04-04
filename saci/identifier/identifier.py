@@ -69,7 +69,6 @@ class Identifier:
             visited = set()
             while stack:
                 (vertex, path) = stack.pop()
-                print(vertex, path)
                 if vertex not in visited:
                     if cpv.is_possible_path(path):
                         to_return.append(path)
