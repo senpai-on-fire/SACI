@@ -2,7 +2,7 @@ from typing import List, Optional, Dict, Type
 
 from .device import Device, ComponentBase
 from .state import GlobalState
-from .vulnerability import Vulnerability
+from .vulnerability import BaseVulnerability
 
 
 class CPV:
@@ -16,7 +16,7 @@ class CPV:
         required_components: Optional[List[Type[ComponentBase]]] = None,
         entry_component: ComponentBase = None,
         goals: List[ComponentBase] = None,
-        vulnerabilities: List[Vulnerability] = None
+        vulnerabilities: List[BaseVulnerability] = None
     ):
         self.required_components = required_components or []
         self.entry_component = entry_component
