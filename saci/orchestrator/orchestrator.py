@@ -2,6 +2,11 @@ from typing import Optional, List
 
 from ..constrainers import get_constrainer
 from ..modeling.device import ComponentBase, CyberComponentBinary
+from ..modeling.state import GlobalState
+from ..identifier import Identifier
+
+from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
+from saci_db.cpvs import MavlinkCPV
 
 
 class Behaviors:
@@ -19,13 +24,16 @@ class CPVPath:
         self.final_behaviors: Behaviors = behaviors
 
 
-def identify(cps, cpv_model) -> List[CPVPath]:
+def identify(cps, cpv_model, initial_state) -> List[CPVPath]:
     """
     Identify if the given CPV model may exist in the CPS model. Return a CPV description if it exists, otherwise return
     None.
     """
-    # TODO: Adam's identifier will be invoked
-    return [CPVPath([CyberComponentBinary("my_awesome_binary")], Behaviors())]
+    identifier = Identifier(cps, initial_state)
+    to_return = []
+    for path in identifier.identify(cpv_model):
+        to_return.append(CPVPath(path, Behaviors()))
+    return to_return
 
 
 def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
@@ -66,12 +74,12 @@ def verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input) -> bool:
     return False
 
 
-def process(cps, database):
+def process(cps, database, initial_state):
 
     # identify potential CPV in CPS
     identified_cpv_and_paths = [ ]
     for cpv_model in database["cpv_model"]:
-        cpv_paths = identify(cps, cpv_model)
+        cpv_paths = identify(cps, cpv_model, initial_state)
         if cpv_paths is not None:
             identified_cpv_and_paths.append((cpv_model, cpv_paths))
 
@@ -95,17 +103,18 @@ def process(cps, database):
 def main():
     # input: the CPS model
     cps_components = ...
-    cps = {
-        "components": cps_components,
-    }
+
+    cps = PX4Quadcopter()
+    components = [c() for c in cps.components]
+    initial_state = GlobalState(components=components)
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
-        "cpv_model": ["buggy"],
+        "cpv_model": [MavlinkCPV()],
         "cps_vuln": [],
     }
 
-    all_cpvs = process(cps, database)
+    all_cpvs = process(cps, database, initial_state)
     print(all_cpvs)
 
 
