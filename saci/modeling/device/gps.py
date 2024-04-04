@@ -1,8 +1,8 @@
-from .component import ComponentHigh, ComponentAlgorithmic
+from .component import CyberComponentHigh, CyberComponentAlgorithmic
 
 
-class GPSReceiver(ComponentHigh):
-    __slots__ = ComponentHigh.__slots__ + ("protocol_name", "authenticated", "signal_strength_threshold")
+class GPSReceiver(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__ + ("protocol_name", "authenticated", "signal_strength_threshold")
 
     def __init__(self, protocol_name=None, authenticated=False, signal_strength_threshold=-100, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
@@ -15,7 +15,7 @@ class GPSReceiver(ComponentHigh):
         return signal_strength >= self.signal_strength_threshold
 
 
-# class GPSReceiverAlgorithm(ComponentAlgorithmic):
+# class GPSReceiverAlgorithm(CyberComponentAlgorithmic):
 #     def __init__(self, signal_strength_threshold=-100, has_anomaly_detection=False, **kwargs):
 #         super().__init__(**kwargs)
 #         # there exists a symbolic variable, and it is constrained by the components initialization

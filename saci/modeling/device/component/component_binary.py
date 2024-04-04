@@ -1,13 +1,13 @@
 from typing import List, Optional
 from pathlib import Path
 
-from .component_base import ComponentBase
+from .cyber_component_base import CyberComponentBase
 from .cyber_abstraction_level import CyberAbstractionLevel
 
 
-class ComponentBinary(ComponentBase):
-    __state_slots__ = ComponentBase.__state_slots__ + ("pc", )
-    __slots__ = ComponentBase.__slots__ + ("binary_path", "pc", )
+class CyberComponentBinary(CyberComponentBase):
+    __state_slots__ = CyberComponentBase.__state_slots__ + ("pc",)
+    __slots__ = CyberComponentBase.__slots__ + ("binary_path", "pc",)
 
     def __init__(
         self,

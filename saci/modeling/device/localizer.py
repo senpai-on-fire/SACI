@@ -1,22 +1,22 @@
-from .component import ComponentHigh, ComponentAlgorithmic, ComponentBase
+from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase
 from ..communication import BaseCommunication
 
 from typing import List
 
 
-class LocalizerHigh(ComponentHigh):
-    __slots__ = ComponentHigh.__slots__
+class LocalizerHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__
 
     def __init__(self, enable=False, **kwargs):
         super().__init__(**kwargs)
         self.enable = enable
 
 
-class LocalizerAlgorithm(ComponentAlgorithmic):
-    __slots__ = ComponentAlgorithmic.__slots__
+class LocalizerAlgorithm(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def position(self, localization_components: List[ComponentBase]) -> bool:
+    def position(self, localization_components: List[CyberComponentBase]) -> bool:
         raise NotImplementedError

@@ -1,17 +1,17 @@
-from saci.modeling.device.component import ComponentHigh, ComponentAlgorithmic
+from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic
 
 from claripy import BVS
 
 
-class MotorHigh(ComponentHigh):
-    __slots__ = ComponentHigh.__slots__
+class MotorHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
-class MotorAlgorithmic(ComponentAlgorithmic):
-    __slots__ = ComponentAlgorithmic.__slots__
+class MotorAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

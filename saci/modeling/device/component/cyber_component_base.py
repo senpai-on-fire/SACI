@@ -1,26 +1,28 @@
 from typing import Tuple, List
 
+from .cyber_abstraction_level import CyberAbstractionLevel
+from .component_base import ComponentBase
 from .component_type import ComponentType
 from ...communication.base_comm import BaseCommunication
 
 
-class ComponentBase:
+class CyberComponentBase(ComponentBase):
     """
     A CyberComponentBase is the base class for all components in the system. A component, at a high-level, is any device
     in the full system that can talk to at least one other device.
     """
-    __state_slots__ = ()
-    __slots__ = ("name", "type")
+    __state_slots__ = ComponentBase.__state_slots__ + ()
+    __slots__ = ComponentBase.__slots__ + ("abstraction_level",)
 
-    def __init__(self, name=None, _type=None):
-        self.name = name
-        self.type = _type
+    def __init__(self, name=None, _type=ComponentType.CYBER, abstraction=CyberAbstractionLevel.UNKNOWN):
+        super().__init__(nam=name, _type=_type)
+        self.abstraction_level = abstraction
 
     #
     # Simulation Useful Functions
     #
 
-    def state_update(self, source: "ComponentBase", data: BaseCommunication) -> List["ComponentBase"]:
+    def state_update(self, source: "CyberComponentBase", data: BaseCommunication) -> List["CyberComponentBase"]:
         """
         A State Update function describes how a component's state changes when it receives data from another component.
         Given a source component and data, the function should return a new component (of the same type as self) with
@@ -42,7 +44,7 @@ class ComponentBase:
         """
         raise NotImplementedError
 
-    def copy(self) -> "ComponentBase":
+    def copy(self) -> "CyberComponentBase":
         """
         Copy the component
         """

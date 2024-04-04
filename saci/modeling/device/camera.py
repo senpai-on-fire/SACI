@@ -1,15 +1,15 @@
-from .component import ComponentHigh, ComponentAlgorithmic
+from .component import CyberComponentHigh, CyberComponentAlgorithmic
 from ..communication import BaseCommunication
 
 
-class CameraHigh(ComponentHigh):
-    __slots__ = ComponentHigh.__slots__
+class CameraHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
-# class LocalizationAlgorithm(ComponentAlgorithmic):
+# class LocalizationAlgorithm(CyberComponentAlgorithmic):
 #     def __init__(self, enable=False, camera_prioritized=True, **kwargs):
 #         super().__init__(**kwargs)
 #         self.enable = enable

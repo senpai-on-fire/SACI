@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from ..constrainers import get_constrainer
-from ..modeling.device import ComponentBase
+from ..modeling.device import CyberComponentBase
 
 
 class BaseComponent:

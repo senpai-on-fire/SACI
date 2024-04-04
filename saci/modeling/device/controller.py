@@ -1,9 +1,9 @@
-from .component import ComponentHigh
+from .component import CyberComponentHigh
 
 
-class ControllerHigh(ComponentHigh):
-    __state_slots__ = ComponentHigh.__state_slots__ + ("emergency_state", )
-    __slots__ = ComponentHigh.__slots__ + ("emergency_state", )
+class ControllerHigh(CyberComponentHigh):
+    __state_slots__ = CyberComponentHigh.__state_slots__ + ("emergency_state",)
+    __slots__ = CyberComponentHigh.__slots__ + ("emergency_state",)
 
     def __init__(self, emergency_state=False, **kwargs):
         super().__init__(**kwargs)

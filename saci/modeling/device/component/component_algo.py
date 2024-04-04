@@ -1,15 +1,15 @@
 from typing import List, Dict
 
-from .component_base import ComponentBase
+from .cyber_component_base import CyberComponentBase
 from .cyber_abstraction_level import CyberAbstractionLevel
 
 # TODO: maybe dont bind to z3
 import claripy
 
 
-class ComponentAlgorithmic(ComponentBase):
-    __state_slots__ = ComponentBase.__state_slots__ + ("conditions",)
-    __slots__ = ComponentBase.__slots__ + ("conditions", "variables",)
+class CyberComponentAlgorithmic(CyberComponentBase):
+    __state_slots__ = CyberComponentBase.__state_slots__ + ("conditions",)
+    __slots__ = CyberComponentBase.__slots__ + ("conditions", "variables",)
 
     def __init__(
         self,

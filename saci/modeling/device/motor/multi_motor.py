@@ -2,7 +2,7 @@ from typing import List
 
 from claripy import BVS
 
-from ..component import ComponentAlgorithmic
+from ..component import CyberComponentAlgorithmic
 from .motor import MotorHigh, MotorAlgorithmic
 
 

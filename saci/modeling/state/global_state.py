@@ -1,10 +1,10 @@
 from typing import List
 
-from ..device import ComponentBase
+from ..device import CyberComponentBase
 
 
 class GlobalState:
-    def __init__(self, components: List[ComponentBase], time=0):
+    def __init__(self, components: List[CyberComponentBase], time=0):
         self.components = components
         self.time = time
 

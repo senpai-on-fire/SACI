@@ -1,4 +1,4 @@
-from .component import ComponentHigh, ComponentAlgorithmic, ComponentSourceCode, ComponentBinary, ComponentBase
+from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentSourceCode, CyberComponentBinary, CyberComponentBase
 from .telemetry import TelemetryHigh, TelemetryAlgorithmic
 from .controller import ControllerHigh
 from .motor import MotorHigh, MotorAlgorithmic, MultiMotorHigh, MultiMotorAlgo, MultiCopterMotorHigh, MultiCopterMotorAlgo
