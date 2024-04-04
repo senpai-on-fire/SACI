@@ -1,5 +1,6 @@
 from typing import Optional, Type
 
+from ..modeling import CyberAbstractionLevel, ComponentType
 from .base_constrainer import BaseConstrainer
 from .binary_constrainer import BinaryConstrainer
 from .c_constrainer import CConstrainer
