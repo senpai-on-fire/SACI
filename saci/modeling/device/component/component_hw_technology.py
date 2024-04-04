@@ -1,15 +1,15 @@
 from typing import List, Dict
 
 
-from .component_base import ComponentBase
+from .hardware_component_base import HardwareComponentBase
 from .hardware_abstraction_level import HardwareAbstractionLevel
 
 import claripy
 
 
-class HardwareTechnology(ComponentBase):
-    ComponentBase.__state_slots__ = ComponentBase.__state_slots__ + ("reading", )
-    ComponentBase.__slots__ = ComponentBase.__slots__ + ("technology", "reading",)
+class HardwareTechnology(HardwareComponentBase):
+    __state_slots__ = HardwareComponentBase.__state_slots__ + ("reading", )
+    __slots__ = HardwareComponentBase.__slots__ + ("technology", "reading",)
 
     def __init__(
         self,

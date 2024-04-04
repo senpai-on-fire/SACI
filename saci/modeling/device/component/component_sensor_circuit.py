@@ -1,13 +1,13 @@
 from typing import Optional, Dict
 
-from .component_base import ComponentBase
+from .hardware_component_base import HardwareComponentBase
 from .hardware_abstraction_level import HardwareAbstractionLevel
 
 import claripy
 
-class SensorCircuit(ComponentBase):
-    ComponentBase.__state_slots__ = ComponentBase.__state_slots__ + ("internal_voltages", )
-    ComponentBase.__slots__ = ComponentBase.__slots__ + ("PhysicalSensorDesign", "SignalProcessingChain", "ADC", "internal_voltages",)
+class SensorCircuit(HardwareComponentBase):
+    __state_slots__ = HardwareComponentBase.__state_slots__ + ("internal_voltages", )
+    __slots__ = HardwareComponentBase.__slots__ + ("PhysicalSensorDesign", "SignalProcessingChain", "ADC", "internal_voltages",)
 
     def __init__(
         self,

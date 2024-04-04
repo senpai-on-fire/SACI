@@ -1,7 +1,7 @@
 import logging
 
 from .component import CyberComponentHigh, CyberComponentAlgorithmic
-from .component import HardwareHigh, HardwarePackage, HardwareTechnology
+#from .component import HardwareHigh, HardwarePackage, HardwareTechnology
 _l = logging.getLogger(__name__)
 
 import claripy
@@ -26,25 +26,25 @@ class GyroscopeAlgorithmic(CyberComponentAlgorithmic):
         self.v["readings"] = claripy.BVS("readings", precision_bits * 6) # More general and probably more efficient
 
 
-class GyroscopeHWHigh(HardwareHigh):
-    def __init__(self, **kwargs):
-        super().__init__(modality="gyroscope", **kwargs)
-
-class GyroscopeHWPackage(HardwarePackage):
-    KNOWN_CHIP_NAMES = [
-        'L3G4200D', 'L3GD20', 'LSM330', 'LPR5150AL', 'LPY503AL', 'MPU3050', 'MPU6000', 'MPU6050', 'MPU6500', 'MPU9150',
-        'MPU9250', 'IMU3000', 'ITG3200', 'IXZ650', 'ADXRS610', 'ENC-03MB'
-    ]
-    def __init__(self, gyro_name, gyro_vendor, **kwargs):
-        super().__init__(chip_name = gyro_name, chip_vendor = gyro_vendor, **kwargs)
-        if gyro_name not in self.KNOWN_CHIP_NAMES:
-            _l.warning(f"Unknown gyroscope chip name: {gyro_name}. Please add it to the list in GyroscopeHWPackage")
-
-class GyroscopeHWTechnology(HardwareTechnology):
-    KNOWN_TECHNOLOGIES = [
-        'MEMS', 'Fiber Optic', 'Inertial'
-    ]
-    def __init__(self, technology, **kwargs):
-        super().__init__(technology = technology, **kwargs)
-        if technology not in self.KNOWN_TECHNOLOGIES:
-            _l.warning(f"Unknown gyroscope technology: {technology}. Please add it to the list in GyroscopeHWTechnology")
+#class GyroscopeHWHigh(HardwareHigh):
+#    def __init__(self, **kwargs):
+#        super().__init__(modality="gyroscope", **kwargs)
+#
+#class GyroscopeHWPackage(HardwarePackage):
+#    KNOWN_CHIP_NAMES = [
+#        'L3G4200D', 'L3GD20', 'LSM330', 'LPR5150AL', 'LPY503AL', 'MPU3050', 'MPU6000', 'MPU6050', 'MPU6500', 'MPU9150',
+#        'MPU9250', 'IMU3000', 'ITG3200', 'IXZ650', 'ADXRS610', 'ENC-03MB'
+#    ]
+#    def __init__(self, gyro_name, gyro_vendor, **kwargs):
+#        super().__init__(chip_name = gyro_name, chip_vendor = gyro_vendor, **kwargs)
+#        if gyro_name not in self.KNOWN_CHIP_NAMES:
+#            _l.warning(f"Unknown gyroscope chip name: {gyro_name}. Please add it to the list in GyroscopeHWPackage")
+#
+#class GyroscopeHWTechnology(HardwareTechnology):
+#    KNOWN_TECHNOLOGIES = [
+#        'MEMS', 'Fiber Optic', 'Inertial'
+#    ]
+#    def __init__(self, technology, **kwargs):
+#        super().__init__(technology = technology, **kwargs)
+#        if technology not in self.KNOWN_TECHNOLOGIES:
+#            _l.warning(f"Unknown gyroscope technology: {technology}. Please add it to the list in GyroscopeHWTechnology")

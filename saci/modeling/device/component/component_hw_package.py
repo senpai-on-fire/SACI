@@ -1,13 +1,13 @@
 from typing import Optional, Dict
 
-from .component_base import ComponentBase
+from .hardware_component_base import HardwareComponentBase
 from .hardware_abstraction_level import HardwareAbstractionLevel
 
 import claripy
 
-class HardwarePackage(ComponentBase):
-    ComponentBase.__state_slots__ = ComponentBase.__state_slots__ + ("pin_state", )
-    ComponentBase.__slots__ = ComponentBase.__slots__ + ("chip_name", "chip_vendor", "pin_state",)
+class HardwarePackage(HardwareComponentBase):
+    __state_slots__ = HardwareComponentBase.__state_slots__ + ("pin_state", )
+    __slots__ = HardwareComponentBase.__slots__ + ("chip_name", "chip_vendor", "pin_state",)
 
     def __init__(
         self,

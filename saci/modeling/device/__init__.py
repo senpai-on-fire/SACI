@@ -6,4 +6,4 @@ from .device import Device
 from .gps import GPSReceiver
 from .camera import CameraHigh
 from .localizer import LocalizerHigh, LocalizerAlgorithm 
-from .gyroscope import GyroscopeHigh, GyroscopeAlgorithmic, GyroscopeSource
+from .gyroscope import GyroscopeHigh, GyroscopeAlgorithmic
