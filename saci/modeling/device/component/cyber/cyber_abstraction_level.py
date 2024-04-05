@@ -10,7 +10,7 @@ class CyberAbstractionLevel(IntEnum):
     UNKNOWN = 5
 
 
-ABSTRACTION_LEVELS = [
+CYBER_ABSTRACTION_LEVELS = [
     CyberAbstractionLevel.HIGH,
     CyberAbstractionLevel.ALGORITHMIC,
     CyberAbstractionLevel.SOURCE,

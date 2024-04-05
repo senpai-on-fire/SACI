@@ -3,7 +3,7 @@ from typing import List, Type, Optional, Dict, Tuple
 import networkx as nx
 
 from .component import CyberComponentBase
-from .component.cyber_abstraction_level import ABSTRACTION_LEVELS
+from saci.modeling.device.component.cyber.cyber_abstraction_level import CYBER_ABSTRACTION_LEVELS
 from ..state import GlobalState
 
 
@@ -22,13 +22,13 @@ class Device:
 
         # communication and mappings between components
         self.component_graphs = component_graphs or {
-            lvl: nx.DiGraph() for lvl in ABSTRACTION_LEVELS
+            lvl: nx.DiGraph() for lvl in CYBER_ABSTRACTION_LEVELS
         }
         self.node_maps = node_maps or {
-            lvl: {} for lvl in ABSTRACTION_LEVELS
+            lvl: {} for lvl in CYBER_ABSTRACTION_LEVELS
         }
         self.edge_maps = edge_maps or {
-            lvl: {} for lvl in ABSTRACTION_LEVELS
+            lvl: {} for lvl in CYBER_ABSTRACTION_LEVELS
         }
 
         # state of the device (for Identifier)

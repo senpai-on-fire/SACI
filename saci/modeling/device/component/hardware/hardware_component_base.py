@@ -1,9 +1,5 @@
-from typing import Tuple, List
-
-from .cyber_abstraction_level import CyberAbstractionLevel
-from .component_base import ComponentBase
-from .component_type import ComponentType
-from ...communication.base_comm import BaseCommunication
+from saci.modeling.device.component.component_base import ComponentBase
+from saci.modeling.device.component.component_type import ComponentType
 
 
 class HardwareComponentBase(ComponentBase):

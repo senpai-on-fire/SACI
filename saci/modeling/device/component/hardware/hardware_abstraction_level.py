@@ -9,7 +9,7 @@ class HardwareAbstractionLevel(IntEnum):
     UNKNOWN = 5
 
 
-ABSTRACTION_LEVELS = [
+HARDWARE_ABSTRACTION_LEVELS = [
     HardwareAbstractionLevel.HIGH,
     HardwareAbstractionLevel.TECHNOLOGY,
     HardwareAbstractionLevel.PACKAGE,

@@ -1,7 +1,7 @@
 from typing import Tuple, List
 
-from .component_type import ComponentType
-from ...communication.base_comm import BaseCommunication
+from saci.modeling.device.component.component_type import ComponentType
+from saci.modeling.communication.base_comm import BaseCommunication
 
 
 class ComponentBase:
