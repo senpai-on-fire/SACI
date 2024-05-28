@@ -5,7 +5,7 @@ from typing import List
 
 
 class LocalizerHigh(CyberComponentHigh):
-    __slots__ = CyberComponentHigh.__slots__
+    __slots__ = ("enable", )
 
     def __init__(self, enable=False, **kwargs):
         super().__init__(**kwargs)

@@ -11,6 +11,9 @@ class CPV:
     A CPV consists of a set of goal states, an entry state, and an attack. The attack is a directed graph that
 
     """
+
+    NAME: str = "Unspecified"
+
     def __init__(
         self,
         required_components: Optional[List[Type[CyberComponentBase]]] = None,
