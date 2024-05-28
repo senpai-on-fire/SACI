@@ -1,6 +1,5 @@
 from typing import Tuple, List
 
-from saci.modeling.device.component.component_type import ComponentType
 from saci.modeling.communication.base_comm import BaseCommunication
 
 
@@ -13,7 +12,7 @@ class ComponentBase:
     __slots__ = ("name", "type")
 
     def __init__(self, name=None, _type=None):
-        self.name = name
+        self.name = name or self.__class__.__name__
         self.type = _type
 
     #

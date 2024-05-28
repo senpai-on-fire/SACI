@@ -1,5 +1,5 @@
 from .component import ComponentBase, HardwareComponentBase, CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentSourceCode, CyberComponentBinary, CyberComponentBase
-from .telemetry import TelemetryHigh, TelemetryAlgorithmic
+from .telemetry import TelemetryHigh, TelemetryAlgorithmic, Telemetry
 from .controller import ControllerHigh
 from .motor import MotorHigh, MotorAlgorithmic, MultiMotorHigh, MultiMotorAlgo, MultiCopterMotorHigh, MultiCopterMotorAlgo
 from .device import Device
