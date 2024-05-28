@@ -103,4 +103,3 @@ class Identifier:
             for model in handle:
                 import ipdb; ipdb.set_trace()
         return {}
-
