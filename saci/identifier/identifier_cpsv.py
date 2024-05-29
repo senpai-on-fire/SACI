@@ -59,22 +59,24 @@ class Identifier:
         
         with ctrl.solve(yield_=True) as handle:
             solutions = [FactBase(model.facts(atoms=True)) for model in handle]
-            # import ipdb; ipdb.set_trace()
             # Find the solutions that makes the CPS crash earliest.
             optimal_solution = self.optimize_crash(solutions)
             if optimal_solution is not None:
+                path = []
+                inputs = []
+                for cpsv in cpsvs:
+                    if optimal_solution.query(cpsv.attack_ASP).count() > 0:
+                        path.append(cpsv.component)
+                        time = optimal_solution.query(cpsv.attack_ASP).first().time
+                        inputs.append({cpsv.component.name: f'{cpsv.input} at Time {time}'})
                 # extract the attack
                 newCPV = CPV()
                 newCPV.NAME = 'NEWCPV'
-                # TODO: path will come from ASP solutions
-                path : List[ComponentBase] = self.device.components
                 behaviors = Behaviors(None)
                 cpvpath = CPVPath(path, behaviors)
-                cpvpath.cpv_inputs = [{'sik': 'sniff NETID'}, {'sik': 'choose the NETID'}, {'mavlink': 'sniff system ID'}, {'mavlink': 'use the system ID'}, {'mavlink': 'arm'}]
-                # cpvpath.cpv_inputs = [{'foo': 'bar'} for _ in path]
+                cpvpath.cpv_inputs = inputs 
                 # TODO: in theory, a new CPV can return multiple possible paths. Here we only take the optimal one.
                 return [(newCPV, [cpvpath])]
-                # return [y for y in list(optimal_solution.query(cpsv.attack_ASP).all()) for cpsv in cpsvs]
             else:
                 return []
 
