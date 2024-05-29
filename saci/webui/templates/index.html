@@ -9,6 +9,19 @@
     <script src="/index.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+        .code {
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+
+    <!-- d3,js -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
     <title>SACI WebUI</title>
 </head>
 <body class="container">
@@ -34,11 +47,12 @@
     <form>
     <fieldset>
     <legend>Blueprint</legend>
-    <select>
-        <option selected>Any</option>
-        <option id="px4-copter">PX4 Copter</option>
+    <select id="blueprint" onchange="get_blueprint_component_graph($('#blueprint').find('option:selected').attr('id'));">
+        <option id="99" selected>Any</option>
+        <option id="0">PX4 Copter</option>
     </select>
     </fieldset>
+    <div id="blueprint_graph"></div>
     </form>
 
     <form>
@@ -61,6 +75,13 @@
     <div id="components"></div>
     </fieldset>
     <button id="search-btn" type="button" class="btn btn-primary" onclick="search_for_cpvs();" disabled="disabled">Search for CPVs</button>
+    </form>
+
+    <form>
+    <fieldset>
+    <legend>Search Results</legend>
+    <div id="cpv-search-results"></div>
+    </fieldset>
     </form>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>

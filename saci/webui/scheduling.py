@@ -4,7 +4,7 @@ import time
 import threading
 
 from saci.modeling.state import GlobalState
-from saci.orchestrator.orchestrator import identify, constrain_cpv_path
+from saci.orchestrator.orchestrator import identify, constrain_cpv_path, identify_from_cpsv
 
 
 WORK_THREAD = None
@@ -27,6 +27,15 @@ def add_search(**kwargs) -> int:
     return max_id
 
 
+def update_search_result(search_id: int, **kwargs) -> None:
+    global SEARCHES
+
+    search = SEARCHES[search_id]
+    for k, v in kwargs.items():
+        search[k] = v
+    search["last_updated"] = int(time.time() * 10000)
+
+
 def cpv_search_worker(cpv=None, search_id=None, **kwargs):
 
     from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
@@ -45,9 +54,13 @@ def cpv_search_worker(cpv=None, search_id=None, **kwargs):
     if cpv_model is not None and cpv_paths is not None:
         identified_cpv_and_paths.append((cpv_model, cpv_paths))
 
+    from saci_db.vulns import MavlinkCPSV, MavlinkOverflow
+    potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), [MavlinkCPSV(), MavlinkOverflow()]))
+    identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
+
     # write identified CPV and paths back
     print(identified_cpv_and_paths)
-    SEARCHES[search_id]["identified_cpv_and_paths"] = identified_cpv_and_paths
+    update_search_result(search_id, identified_cpv_and_paths=identified_cpv_and_paths)
 
     # Constrain identified CPV paths
     # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
@@ -60,7 +73,7 @@ def cpv_search_worker(cpv=None, search_id=None, **kwargs):
 
     # write CPV inputs back
     print(cpv_inputs)
-    SEARCHES[search_id]["cpv_inputs"] = cpv_inputs
+    update_search_result(search_id, cpv_inputs=cpv_inputs)
 
 
 def working_routine():
