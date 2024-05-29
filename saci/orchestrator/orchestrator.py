@@ -1,10 +1,11 @@
-from typing import Tuple, Optional, List
+from typing import List, Optional, Tuple
 
 from ..constrainers import get_constrainer, get_constrainer_and_abstract_component
 from ..modeling import CPV
-from ..modeling.device import ComponentBase
+from ..modeling.device import ComponentBase, TelemetryHigh
 from ..modeling.state import GlobalState
 from ..modeling.behavior import Behaviors
+from ..modeling.cpvpath import CPVPath
 from ..identifier import IdentifierCPV, IdentifierCPSV
 
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
@@ -14,16 +15,6 @@ from saci_db.vulns import MavlinkCPSV, SiKCPSV
 import logging
 l = logging.getLogger(__name__)
 # l.setLevel('DEBUG')
-
-
-class CPVPath:
-    def __init__(self, path, behaviors):
-        self.path: List[ComponentBase] = path
-        self.final_behaviors: Behaviors = behaviors
-
-    def __repr__(self):
-        return f"<CPVPath: {repr(self.path)} -> {repr(self.final_behaviors)}>"
-
 
 def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[CPV, List[CPVPath]]:
     """
@@ -35,17 +26,13 @@ def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[CPV, 
     for path in identifier.identify(cpv_model):
         to_return.append(CPVPath(path, Behaviors([])))
     return cpv_model, to_return
-    # TODO: currently I'm hacking it to do CPS-V matching
-    # return identify_from_cpsv(cps, cpv_model.vulnerabilities, initial_state)
 
-def identify_from_cpsv(cps, cpsvs, initial_state):
+def identify_from_cpsv(cps, cpsvs, initial_state) -> List[Tuple[CPV, List[CPVPath]]]:
     """
-    Return: a list of (CPVModel, CPVdescription, input)
+    Return: create a new CPV and return that with the CPVPath  
     """
-    # TODO: create a CPVModel and CPVdescription based on inputs and CPSV
     identifier = IdentifierCPSV(cps, initial_state)
-    return [(None, None, x) for x in identifier.identify(cpsvs)]
-
+    return identifier.identify(cpsvs)
 
 def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
     """
@@ -55,6 +42,8 @@ def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
     state = None  # TODO:
     constraints = set()  # TODO:
 
+    if hasattr(cpv_path, 'cpv_inputs'):
+        return cpv_path.cpv_inputs
     inputs = [ ]
     for component in cpv_path.path:
         if hasattr(component, "ABSTRACTIONS"):
@@ -107,12 +96,21 @@ def process(cps, database, initial_state):
 
     ##### CPV Matching #####
     # identify potential CPV in CPS
+    l.info("Identifying CPVs from CPVs\n")
     identified_cpv_and_paths = [ ]
     for cpv_model_base in database["cpv_model"]:
         cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base)
         if cpv_paths is not None:
             identified_cpv_and_paths.append((cpv_model, cpv_paths))
 
+    l.info("Identifying CPVs from CPSVs\n")
+    ##### CPSV Matching #####
+    # for each CPSV, identify potenetial combinations on the target CPS
+    # 1. identify if the CPS contains the CPSV
+    potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), database['cpsv_model']))
+
+    # 2. generate combinations of CPSVs into CPV 
+    identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
     # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
     cpv_inputs = [ ]
     for cpv_model, cpv_paths in identified_cpv_and_paths:
@@ -124,14 +122,6 @@ def process(cps, database, initial_state):
     # TODO NOW: right now a single mavlink authentication cannot crash the drone.
     # We need to add SiK specification, and component identification
 
-    l.info("Identifying CPVs from CPSVs in database\n")
-    ##### CPSV Matching #####
-    # for each CPSV, identify potenetial combinations on the target CPS
-    # 1. identify if the CPS contains the CPSV
-    potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), database['cpsv_model']))
-
-    # 2. generate combinations of CPSVs into CPV 
-    cpv_inputs += identify_from_cpsv(cps, potential_cpsvs, initial_state)
         
     # verify each CPV input in customized simulation
     # TODO: connect this with TA2
@@ -143,14 +133,24 @@ def process(cps, database, initial_state):
 
     return all_cpvs
 
+def reverse_engineer(cps):
+    # TODO: this will be replaced by the actual TA3 output.
+    # TODO: this should be parallel
+
+    cps.add_component(TelemetryHigh(protocol_name="sik"))
+    cps.add_component(TelemetryHigh(protocol_name="mavlink"))
 
 def main():
     # input: the CPS model
     cps_components = ...
 
     cps = PX4Quadcopter()
-    components = [c() for c in cps.components]
-    initial_state = GlobalState(components=components)
+
+    # components = [c() for c in cps.components]
+    
+    # reverse_engineer(cps)
+
+    initial_state = GlobalState(components=cps.components)
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
