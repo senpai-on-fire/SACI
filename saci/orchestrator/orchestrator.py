@@ -1,8 +1,10 @@
-from typing import Optional, List
+from typing import Tuple, Optional, List
 
-from ..constrainers import get_constrainer
-from ..modeling.device import ComponentBase, CyberComponentBinary
+from ..constrainers import get_constrainer, get_constrainer_and_abstract_component
+from ..modeling import CPV
+from ..modeling.device import ComponentBase
 from ..modeling.state import GlobalState
+from ..modeling.behavior import Behaviors
 from ..identifier import IdentifierCPV, IdentifierCPSV
 
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
@@ -13,33 +15,28 @@ import logging
 l = logging.getLogger(__name__)
 # l.setLevel('DEBUG')
 
-class Behaviors:
-    """
-    Describes a list of behaviors.
-    """
-
-    def __init__(self):
-        pass
-
 
 class CPVPath:
     def __init__(self, path, behaviors):
         self.path: List[ComponentBase] = path
         self.final_behaviors: Behaviors = behaviors
 
+    def __repr__(self):
+        return f"<CPVPath: {repr(self.path)} -> {repr(self.final_behaviors)}>"
 
-def identify(cps, cpv_model, initial_state) -> List[CPVPath]:
+
+def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[CPV, List[CPVPath]]:
     """
     Identify if the given CPV model may exist in the CPS model.
     Return a CPV description if it exists, otherwise return None.
     """
-    # identifier = IdentifierCPV(cps, initial_state)
-    # to_return = []
-    # for path in identifier.identify(cpv_model):
-        # to_return.append(CPVPath(path, Behaviors()))
-    # return to_return
-    # TODO: currently I'm hacking it to do CPSV matching
-    return identify_from_cpsv(cps, cpv_model.vulnerabilities, initial_state)
+    identifier = IdentifierCPV(cps, initial_state)
+    to_return = []
+    for path in identifier.identify(cpv_model):
+        to_return.append(CPVPath(path, Behaviors([])))
+    return cpv_model, to_return
+    # TODO: currently I'm hacking it to do CPS-V matching
+    # return identify_from_cpsv(cps, cpv_model.vulnerabilities, initial_state)
 
 def identify_from_cpsv(cps, cpsvs, initial_state):
     """
@@ -60,23 +57,41 @@ def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
 
     inputs = [ ]
     for component in cpv_path.path:
-        constrainer_clses = list(get_constrainer(component))
-        if not constrainer_clses:
-            raise TypeError(f"No constrainer found for {component}")
+        if hasattr(component, "ABSTRACTIONS"):
+            # this is a combo component
+            constrainercls_and_abstractions = list(get_constrainer_and_abstract_component(component))
+            if not constrainercls_and_abstractions:
+                raise TypeError(f"No constrainer found for {component}")
 
-        # FIXME: We are taking the last class
-        constrainer = constrainer_clses[-1]()
-        r, info = constrainer.solve(state, behaviors, constraints)
-        if r is False:
-            # unsat
-            return None
-        # sat!
-        behaviors = info["behaviors"]
-        state = info["input_state"]
-        input = info["input"]
-        constraints = info["constraints"]
+        else:
+            # this is an abstracted component
+            constrainer_clses = list(get_constrainer(component))
+            if not constrainer_clses:
+                raise TypeError(f"No constrainer found for {component}")
 
-        inputs.append(input)
+            constrainercls_and_abstractions = [(cls, component) for cls in constrainer_clses]
+
+        for constrainer_cls, abstraction in constrainercls_and_abstractions:
+            constrainer = constrainer_cls()
+
+            print(f"... Constrainer {constrainer} for component {abstraction}")
+
+            r, info = constrainer.solve(abstraction, b"foobar_output", state, behaviors, constraints)
+            if r is False:
+                # unsat
+                return None
+            # sat!
+            behaviors = info["behaviors"]
+            state = info["input_state"]
+            input = info["input"]
+            constraints = info["constraints"]
+
+            if input is not None:
+                inputs.append(info)
+                break
+        else:
+            print(f"... No constrainer can constrain component {component}. You should provide better constrainers!")
+            inputs.append(None)
 
     return inputs
 
@@ -93,8 +108,8 @@ def process(cps, database, initial_state):
     ##### CPV Matching #####
     # identify potential CPV in CPS
     identified_cpv_and_paths = [ ]
-    for cpv_model in database["cpv_model"]:
-        cpv_paths = identify(cps, cpv_model, initial_state)
+    for cpv_model_base in database["cpv_model"]:
+        cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base)
         if cpv_paths is not None:
             identified_cpv_and_paths.append((cpv_model, cpv_paths))
 

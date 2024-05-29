@@ -15,6 +15,9 @@ class ComponentBase:
         self.name = name or self.__class__.__name__
         self.type = _type
 
+    def __repr__(self):
+        return f"<{self.name}>"
+
     #
     # Simulation Useful Functions
     #

@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from flask import Flask, render_template, send_file, request
 
+from .scheduling import add_search, start_work_thread
+
 app = Flask(__name__)
+start_work_thread()
 
 
 def get_component_abstractions(comp) -> dict[str, str]:
     if hasattr(comp, "ABSTRACTIONS"):
-        return dict((str(level), value_cls.__name__) for level, value_cls in comp.ABSTRACTIONS.items())
+        return dict((str(level), abs_obj.__class__.__name__) for level, abs_obj in comp.ABSTRACTIONS.items())
     return {}
 
 
@@ -36,6 +39,17 @@ def cpv_info():
                 "name": comp.name,
                 "abstractions": get_component_abstractions(comp),
             } for comp in cpv.required_components],
+    }
+
+
+@app.route("/api/cpv_search")
+def cpv_search():
+    # TODO: Getting the components from the front end
+
+    search_id = add_search()
+
+    return {
+        "search_id": search_id,
     }
 
 

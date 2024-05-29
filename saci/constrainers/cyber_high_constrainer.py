@@ -1,13 +1,13 @@
 
 from .base_constrainer import BaseConstrainer
 from ..modeling import ComponentBase
-from ..modeling.device import CyberComponentAlgorithmic
+from ..modeling.device import CyberComponentHigh
 
 
-class FSMConstrainer(BaseConstrainer):
+class CyberHighConstrainer(BaseConstrainer):
     @classmethod
     def supports(cls, component: ComponentBase) -> bool:
-        return isinstance(component, CyberComponentAlgorithmic)  # TODO: Check if the component is an FSM component
+        return isinstance(component, CyberComponentHigh)  # TODO: also check if the programming language is C
 
     def solve(self, component, output, out_state, behaviors, constraints):
         return True, {

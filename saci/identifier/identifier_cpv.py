@@ -30,21 +30,13 @@ from ..modeling.device.component import CyberComponentHigh
 #     time: int
 
 def get_next_components(component: ComponentBase, components: List[ComponentBase], device: Device) -> List[ComponentBase]:
-    graph = device.component_graphs[CyberComponentHigh]
-    graph_nodes = graph.nodes.items()
-    components_to_node = {}
-    node_to_components = {}
-    for c in components:
-        for n, edges in graph_nodes:
-            if n == c.__class__:
-                components_to_node[c] = n
-                node_to_components[n] = c
-                break
-    graph_neighbors = graph.out_edges(components_to_node[component])
+    graph = device.component_graph
+    graph_neighbors = graph.out_edges(component)
 
     to_return = []
     for start, end in graph_neighbors:
-        to_return.append(node_to_components[end])
+        if end in components:
+            to_return.append(end)
     return to_return
 
 

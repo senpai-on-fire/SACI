@@ -9,7 +9,7 @@ class BinaryConstrainer(BaseConstrainer):
     def supports(cls, component: ComponentBase) -> bool:
         return isinstance(component, CyberComponentBinary)
 
-    def solve(self, out_state, behaviors, constraints):
+    def solve(self, component, output, out_state, behaviors, constraints):
         return True, {
             "input": None,
             "input_state": None,

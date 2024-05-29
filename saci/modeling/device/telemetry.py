@@ -4,11 +4,12 @@ from ..communication import BaseCommunication
 
 
 class TelemetryHigh(CyberComponentHigh):
-    __slots__ = CyberComponentHigh.__slots__ + ("protocol_name",)
+    __slots__ = ("protocol_name", "communication", )
 
-    def __init__(self, protocol_name=None, **kwargs):
+    def __init__(self, protocol_name=None, communication=None, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
         self.protocol_name = protocol_name
+        self.communication = communication
 
 
 class TelemetryAlgorithmic(CyberComponentAlgorithmic):
@@ -26,12 +27,16 @@ class Telemetry(CyberComponentBase):
     This is the base class for all telemetry components.
     """
 
-    ABSTRACTIONS = {
-        CyberAbstractionLevel.HIGH: TelemetryHigh,
-        CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic,
-        CyberAbstractionLevel.SOURCE: CyberComponentSourceCode,
-        CyberAbstractionLevel.BINARY: CyberComponentBinary,
-    }
+    __slots__ = ("has_external_input", "ABSTRACTIONS")
 
-    def __init__(self, **kwargs):
+    def __init__(self, has_external_input=False, **kwargs):
         super().__init__(**kwargs)
+
+        self.has_external_input = has_external_input
+
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: TelemetryHigh(),
+            CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(),
+            CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
+            CyberAbstractionLevel.BINARY: CyberComponentBinary(),
+        }

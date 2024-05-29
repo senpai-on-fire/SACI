@@ -11,19 +11,17 @@ class Device:
     def __init__(
         self,
         name: str,
-        components: List[Type[CyberComponentBase]],
-        component_graphs: Dict[Type[CyberComponentBase], nx.DiGraph] = None,
-        node_maps: Dict[Type[CyberComponentBase], Dict[CyberComponentBase, CyberComponentBase]] = None,
-        edge_maps: Dict[Type[CyberComponentBase], Dict[Tuple[CyberComponentBase, CyberComponentBase], Tuple[CyberComponentBase, CyberComponentBase]]] = None,
+        components: List[CyberComponentBase],
+        component_graph: Dict[CyberComponentBase, nx.DiGraph] = None,
+        node_maps: Dict[CyberComponentBase, Dict[CyberComponentBase, CyberComponentBase]] = None,
+        edge_maps: Dict[CyberComponentBase, Dict[Tuple[CyberComponentBase, CyberComponentBase], Tuple[CyberComponentBase, CyberComponentBase]]] = None,
         state: Optional[GlobalState] = None,
     ):
         self.name = name
         self.components = components
 
         # communication and mappings between components
-        self.component_graphs = component_graphs or {
-            lvl: nx.DiGraph() for lvl in CYBER_ABSTRACTION_LEVELS
-        }
+        self.component_graph = component_graph or nx.DiGraph()
         self.node_maps = node_maps or {
             lvl: {} for lvl in CYBER_ABSTRACTION_LEVELS
         }

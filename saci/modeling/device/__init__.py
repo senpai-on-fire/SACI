@@ -7,3 +7,5 @@ from .gps import GPSReceiver
 from .camera import CameraHigh
 from .localizer import LocalizerHigh, LocalizerAlgorithm 
 from .gyroscope import GyroscopeHigh, GyroscopeAlgorithmic
+from .sik_radio import SikRadio
+from .mavlink import Mavlink

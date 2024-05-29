@@ -11,7 +11,7 @@ class BruteforceConstrainer(BaseConstrainer):
         # the bruteforce constrainer supports everything
         return True
 
-    def solve(self, out_state, behaviors, constraints):
+    def solve(self, component, output, out_state, behaviors, constraints):
         return True, {
             "behaviors": [],
             "input_state": None,

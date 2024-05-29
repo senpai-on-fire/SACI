@@ -9,5 +9,5 @@ class BaseConstrainer:
     def supports(cls, component: ComponentBase) -> bool:
         raise NotImplementedError()
 
-    def solve(self, out_state, behaviors, constraints):
+    def solve(self, component, output, out_state, behaviors, constraints):
         raise NotImplementedError()

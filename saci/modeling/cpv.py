@@ -38,3 +38,6 @@ class CPV:
     def in_goal_state(self, state: GlobalState):
         return False
 
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}>"
