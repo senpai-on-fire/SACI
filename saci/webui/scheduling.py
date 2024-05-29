@@ -36,31 +36,42 @@ def update_search_result(search_id: int, **kwargs) -> None:
     search["last_updated"] = int(time.time() * 10000)
 
 
-def cpv_search_worker(cpv=None, search_id=None, **kwargs):
+def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
 
     from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
     cps = PX4Quadcopter()
 
     initial_state = GlobalState(cps.components)
 
-    from saci_db.cpvs.cpv01_mavlink_motors import MavlinkCPV
-    cpv = MavlinkCPV()  # TODO: Use the one that is passed in
+    from saci_db.cpvs import CPVS
 
+    cpv_model = None
+    for cpv_ in CPVS:
+        if cpv_.__class__.__name__ == cpv:
+            cpv_model = cpv_
+            break
+
+    if cpv_model is None:
+        # no CPV is found
+        update_search_result(search_id, result=f"No CPV is found for {cpv}")
+        return
 
     # Identify CPV models and CPV paths
     identified_cpv_and_paths = []
 
-    cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv)
+    cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model)
     if cpv_model is not None and cpv_paths is not None:
         identified_cpv_and_paths.append((cpv_model, cpv_paths))
 
-    from saci_db.vulns import MavlinkCPSV, MavlinkOverflow
-    potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), [MavlinkCPSV(), MavlinkOverflow()]))
-    identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
+    if "mavlink" in cpv_model.__class__.__name__.lower():
+        from saci_db.vulns import MavlinkCPSV, MavlinkOverflow
+        potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), [MavlinkCPSV(), MavlinkOverflow()]))
+        identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
 
     # write identified CPV and paths back
     print(identified_cpv_and_paths)
     update_search_result(search_id, identified_cpv_and_paths=identified_cpv_and_paths)
+    update_search_result(search_id, result="CPV path candidates identified.")
 
     # Constrain identified CPV paths
     # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
@@ -74,6 +85,7 @@ def cpv_search_worker(cpv=None, search_id=None, **kwargs):
     # write CPV inputs back
     print(cpv_inputs)
     update_search_result(search_id, cpv_inputs=cpv_inputs)
+    update_search_result(search_id, result="CPV input identified.")
 
 
 def working_routine():

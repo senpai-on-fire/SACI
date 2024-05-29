@@ -6,7 +6,8 @@ function select_cpv(name)
             name: name,
         },
         success: function(result) {
-            $("#cpv-name").text("Selected CPV base: " + result["name"]);
+            $("#cpv-name").text(result["name"]);
+            $("#cpv-name").attr("cpv-class-name", result["cls_name"]);
             $("#components").html(gen_components_html(result["components"]));
             $("#search-btn").removeAttr("disabled");
         }
@@ -138,7 +139,7 @@ function search_for_cpvs()
     $.ajax({
         url: "/api/cpv_search",
         data: {
-            
+            cpv_name: $("#cpv-name").attr("cpv-class-name")
         },
         success: function(result) {
             // alert("Search ID: " + result["search_id"]);

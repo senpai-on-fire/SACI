@@ -59,6 +59,7 @@ def cpv_info():
 
     return {
         "name": cpv.NAME,
+        "cls_name": cpv.__class__.__name__,
         "components": [
             {
                 "name": comp.name,
@@ -101,7 +102,11 @@ def get_blueprint():
 def cpv_search():
     # TODO: Getting the components from the front end
 
-    search_id = add_search()
+    cpv_name = request.args.get("cpv_name", None)
+    if cpv_name is None:
+        return {"error": "CPV name must be provided"}
+
+    search_id = add_search(cpv=cpv_name)
 
     return {
         "search_id": search_id,
@@ -139,6 +144,7 @@ def cpv_search_result():
 
     result = {
         "taken": search.get("taken", False),
+        "result": search.get("result", None),
         # "identified_cpv_and_paths": search.get("identified_cpv_and_paths", None),
         "cpv_inputs": search.get("cpv_inputs", None),
         "last_updated": search.get("last_updated", int(time.time() * 10000)),
