@@ -10,7 +10,7 @@ from ..identifier import IdentifierCPV, IdentifierCPSV
 
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 from saci_db.cpvs import MavlinkCPV
-from saci_db.vulns import MavlinkCPSV, SiKCPSV
+from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
 
 import logging
 l = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ def process(cps, database, initial_state):
     # for each CPSV, identify potenetial combinations on the target CPS
     # 1. identify if the CPS contains the CPSV
     potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), database['cpsv_model']))
-
+    l.info(f"Potential CPSVs: {potential_cpsvs}\n")
     # 2. generate combinations of CPSVs into CPV 
     identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
     # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
@@ -136,9 +136,7 @@ def process(cps, database, initial_state):
 def reverse_engineer(cps):
     # TODO: this will be replaced by the actual TA3 output.
     # TODO: this should be parallel
-
-    cps.add_component(TelemetryHigh(protocol_name="sik"))
-    cps.add_component(TelemetryHigh(protocol_name="mavlink"))
+    pass
 
 def main():
     # input: the CPS model
@@ -148,14 +146,15 @@ def main():
 
     # components = [c() for c in cps.components]
     
-    # reverse_engineer(cps)
+    reverse_engineer(cps)
 
     initial_state = GlobalState(components=cps.components)
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
         "cpv_model": [MavlinkCPV()],
-        "cpsv_model": [MavlinkCPSV(), SiKCPSV()],
+        "cpsv_model": [MavlinkCPSV(), MavlinkOverflow()],
+        # "cpsv_model": [MavlinkCPSV(), SiKCPSV(), MavlinkOverflow()],
         "cps_vuln": [],
     }
 
