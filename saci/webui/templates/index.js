@@ -45,73 +45,60 @@ function get_blueprint_component_graph(blueprint_id)
 
             const data = result["component_graph"];
 
-            const width = 600;
+            const width = 1200;
             const height = 400;
 
             const svg = d3.select("#blueprint_graph")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
+                  .append("svg")
+                  .attr("width", width)
+                  .attr("height", height);
 
             const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-            const simulation = d3.forceSimulation(data.nodes)
-                 .force("link", d3.forceLink(data.links).id(d => d.id).distance(200))
-                 .force("charge", d3.forceManyBody().strength(-100))
-                 .force("center", d3.forceCenter(width / 2, height / 2));
-
-            svg.append("defs").selectAll("marker")
-                .data(["end"])      // Different link/path types can be defined here
-                .enter().append("marker")    // This section adds in the arrows
-                .attr("id", String)
-                .attr("viewBox", "0 -5 10 10")
-                .attr("refX", 15)
-                .attr("refY", 0.5)
-                .attr("markerWidth", 2)
-                .attr("markerHeight", 2)
-                .attr("orient", "auto")
-                .append("path")
-                .attr("d", "M0,-5L10,0L0,5");
+            // Manually position nodes in a line
+            data.nodes.forEach((node, index) => {
+                node.x = index * 175 + 50; // Adjust 100 for spacing between nodes
+                node.y = height / 2;
+            });
 
             const link = svg.append("g")
-                .attr("class", "links")
-                .selectAll("line")
-                .data(data.links)
-                .enter().append("line")
-                .attr("class", "link")
-                .attr("stroke-width", 2)
-                .attr("stroke", "#999")
-                .attr("marker-end", "url(#end)");
+                  .attr("class", "links")
+                  .selectAll("line")
+                  .data(data.links)
+                  .enter().append("line")
+                  .attr("class", "link")
+                  .attr("stroke-width", 2)
+                  .attr("stroke", "#999");
 
             const node = svg.append("g")
-                .attr("class", "nodes")
-                .selectAll("circle")
-                .data(data.nodes)
-                .enter().append("circle")
-                .attr("r", 10)
-                .attr("fill", d => color(d.id));
+                  .attr("class", "nodes")
+                  .selectAll("circle")
+                  .data(data.nodes)
+                  .enter().append("circle")
+                  .attr("r", 10)
+                  .attr("fill", d => color(d.id));
 
             const text = svg.append("g")
-                .attr("class", "texts")
-                .selectAll("text")
-                .data(data.nodes)
-                .enter().append("text")
-                .attr("dy", -30)
-                .attr("text-anchor", "middle")
-                .text(d => d.name);
+                  .attr("class", "texts")
+                  .selectAll("text")
+                  .data(data.nodes)
+                  .enter().append("text")
+                  .attr("dy", -30)
+                  .attr("text-anchor", "middle")
+                  .text(d => d.name);
 
-            simulation.on("tick", () => {
-                link.attr("x1", d => d.source.x)
-                    .attr("y1", d => d.source.y)
-                    .attr("x2", d => d.target.x)
-                    .attr("y2", d => d.target.y);
+            link.attr("x1", d => data.nodes.find(node => node.id === d.source).x)
+                .attr("y1", d => data.nodes.find(node => node.id === d.source).y)
+                .attr("x2", d => data.nodes.find(node => node.id === d.target).x)
+                .attr("y2", d => data.nodes.find(node => node.id === d.target).y);
 
-                node.attr("cx", d => d.x)
-                    .attr("cy", d => d.y);
+            // Set node positions based on manually set node positions
+            node.attr("cx", d => d.x)
+                .attr("cy", d => d.y);
 
-                text.attr("x", d => d.x)
-                    .attr("y", d => d.y);
-            });
+            // Set text positions based on manually set node positions
+            text.attr("x", d => d.x)
+                .attr("y", d => d.y);
         }
     });
 }
