@@ -1,4 +1,4 @@
-from .component import CyberComponentHigh
+from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
 
 
 class ControllerHigh(CyberComponentHigh):
@@ -14,3 +14,11 @@ class ControllerHigh(CyberComponentHigh):
         """
         super().__init__(**kwargs)
         self.in_failsafe_mode = in_failsafe_mode
+
+
+class Controller(CyberComponentBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: ControllerHigh(),
+        }

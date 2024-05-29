@@ -82,9 +82,13 @@ def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
     cpv_inputs = [ ]
     for cpv_model, cpv_paths in SEARCHES[search_id]["identified_cpv_and_paths"]:
         for cpv_path in cpv_paths:
-            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path, {"goal": "alter_motor_speed"})
+            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path, {"goal": getattr(cpv_model, "goal_motor_state", "shut_down")})
             if cpv_input is not None:
-                cpv_inputs.append((cpv_model, cpv_path, cpv_input))
+                cpv_inputs.append({
+                    "cpv_model": cpv_model,
+                    "cpv_path": cpv_path,
+                    "cpv_input": cpv_input,
+                })
 
     # write CPV inputs back
     print(cpv_inputs)

@@ -92,10 +92,11 @@ def get_blueprint():
                 "source": id(src),
                 "target": id(dst),
             })
-    return {
-        "component_graph": d
-    }
-
+        return {
+            "component_graph": d
+        }
+    else:
+        return {"error": "Blueprint not found"}
 
 
 @app.route("/api/cpv_search")

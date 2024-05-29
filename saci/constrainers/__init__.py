@@ -9,11 +9,12 @@ from .bruteforce_constrainer import BruteforceConstrainer
 from .cyber_high_constrainer import CyberHighConstrainer
 from .telemetry_high_constrainer import TelemetryHighConstrainer
 from .actuator_high_constrainer import ActuatorHighConstrainer
+from .controller_high_constrainer import ControllerHighConstrainer
 
 
 CONSTRAINERS = {
     ComponentType.CYBER: {
-        CyberAbstractionLevel.HIGH: [CyberHighConstrainer, TelemetryHighConstrainer, ActuatorHighConstrainer],
+        CyberAbstractionLevel.HIGH: [CyberHighConstrainer, TelemetryHighConstrainer, ActuatorHighConstrainer, ControllerHighConstrainer],
         CyberAbstractionLevel.ALGORITHMIC: [FSMConstrainer, BruteforceConstrainer],
         CyberAbstractionLevel.SOURCE: [CConstrainer, BruteforceConstrainer],
         CyberAbstractionLevel.BINARY: [BinaryConstrainer, BruteforceConstrainer],

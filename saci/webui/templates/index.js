@@ -20,9 +20,11 @@ function gen_components_html(components)
     var i = 1;
     for (const comp of components) {
         html += '<div class="mb-3"><label class="form-label">Component ' + i + '</label>' +
-            '<input type="text" class="form-control" value="' + comp["name"] + '" disabled>' +
-            gen_component_abstraction_html(comp) +
-            '</div>';
+            '<div class="row">' +
+            '<div class="col"><input type="text" class="form-control" value="' + comp["name"] + '" disabled></div>' +
+            '<div class="col">' +
+            gen_component_abstraction_html(comp) + '</div>' +
+            '</div></div>';
         // html += "-> <br />";
         i += 1;
     }
@@ -32,21 +34,22 @@ function gen_components_html(components)
 
 function get_blueprint_component_graph(blueprint_id)
 {
+    $("#blueprint_graph").empty();
     $.ajax({
         url: "/api/get_blueprint",
         data: {
             "id": blueprint_id,
         },
         success: function (result) {
-            if (result["error"]) {
+            if (result["error"] !== undefined) {
                 console.log(data["error"]);
                 return;
             }
 
             const data = result["component_graph"];
 
-            const width = 1200;
-            const height = 400;
+            const width = 1400;
+            const height = 300;
 
             const svg = d3.select("#blueprint_graph")
                   .append("svg")
@@ -57,7 +60,7 @@ function get_blueprint_component_graph(blueprint_id)
 
             // Manually position nodes in a line
             data.nodes.forEach((node, index) => {
-                node.x = index * 175 + 50; // Adjust 100 for spacing between nodes
+                node.x = 100 + index * 175 + 50; // Adjust 100 for spacing between nodes
                 node.y = height / 2;
             });
 
@@ -107,7 +110,7 @@ function gen_component_abstraction_html(component)
 {
     var html = "";
     if (!$.isEmptyObject(component["abstractions"])) {
-        html = '<label class="form-label">Abstraction Level</label>' +
+        html = // '<label class="form-label">Abstraction Level</label>' +
             '<select class="form-select">';
         for (var level in component["abstractions"]) {
             if (component["abstractions"][level] == "-") {
