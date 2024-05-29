@@ -1,8 +1,6 @@
-from typing import List
-
 from claripy import BVS
 
-from ..component import CyberComponentAlgorithmic
+from ..component import CyberComponentBase, CyberAbstractionLevel
 from .multi_motor import MultiMotorHigh, MultiMotorAlgo
 
 
@@ -22,3 +20,12 @@ class MultiCopterMotorAlgo(MultiMotorAlgo):
         self.v["lift"] = BVS("lift", 64)
         self.v["yaw"] = BVS("yaw", 64)
         self.v["pitch"] = BVS("pitch", 64)
+
+
+class MultiCopterMotor(CyberComponentBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: MultiCopterMotorHigh(),
+            CyberAbstractionLevel.ALGORITHMIC: MultiCopterMotorAlgo(),
+        }

@@ -16,7 +16,7 @@ import logging
 l = logging.getLogger(__name__)
 # l.setLevel('DEBUG')
 
-def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[CPV, List[CPVPath]]:
+def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
     """
     Identify if the given CPV model may exist in the CPS model.
     Return a CPV description if it exists, otherwise return None.
@@ -25,7 +25,10 @@ def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[CPV, 
     to_return = []
     for path in identifier.identify(cpv_model):
         to_return.append(CPVPath(path, Behaviors([])))
-    return cpv_model, to_return
+    if to_return:
+        return cpv_model, to_return
+    else:
+        return None, None
 
 def identify_from_cpsv(cps, cpsvs, initial_state) -> List[Tuple[CPV, List[CPVPath]]]:
     """
@@ -34,7 +37,7 @@ def identify_from_cpsv(cps, cpsvs, initial_state) -> List[Tuple[CPV, List[CPVPat
     identifier = IdentifierCPSV(cps, initial_state)
     return identifier.identify(cpsvs)
 
-def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
+def constrain_cpv_path(cps, cpv_model, cpv_path, output) -> Optional:
     """
     Constrain a CPV path on a CPV model with the goal of generating
     """
@@ -44,8 +47,9 @@ def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
 
     if hasattr(cpv_path, 'cpv_inputs'):
         return cpv_path.cpv_inputs
+    prior_input = output
     inputs = [ ]
-    for component in cpv_path.path:
+    for component in reversed(cpv_path.path):
         if hasattr(component, "ABSTRACTIONS"):
             # this is a combo component
             constrainercls_and_abstractions = list(get_constrainer_and_abstract_component(component))
@@ -65,7 +69,7 @@ def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
 
             print(f"... Constrainer {constrainer} for component {abstraction}")
 
-            r, info = constrainer.solve(abstraction, b"foobar_output", state, behaviors, constraints)
+            r, info = constrainer.solve(abstraction, prior_input, state, behaviors, constraints)
             if r is False:
                 # unsat
                 return None
@@ -76,11 +80,12 @@ def constrain_cpv_path(cps, cpv_model, cpv_path) -> Optional:
             constraints = info["constraints"]
 
             if input is not None:
-                inputs.append(info)
+                inputs.insert(0, info | {"constrainer": constrainer_cls.__name__})
+                prior_input = input
                 break
         else:
             print(f"... No constrainer can constrain component {component}. You should provide better constrainers!")
-            inputs.append(None)
+            inputs.insert(0, None)
 
     return inputs
 
@@ -115,7 +120,7 @@ def process(cps, database, initial_state):
     cpv_inputs = [ ]
     for cpv_model, cpv_paths in identified_cpv_and_paths:
         for cpv_path in cpv_paths:
-            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path)
+            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path, {"goal": "alter_motor_speed"})
             if cpv_input is not None:
                 cpv_inputs.append((cpv_model, cpv_path, cpv_input))
 

@@ -154,13 +154,16 @@ function get_cpv_research_result_html(search_id, r)
         JSON.stringify(r, null, 4)
     );
     var json_pre = $('<pre class="code" style="background-color: #f3f3f3;"></pre>').append(json_code);
-    var cpv = $("<div></div>").text(r["cpv_inputs"][0][0]);
-    var cpv_path = $("<div></div>").text(r["cpv_inputs"][0][1]);
-    var input = $("<div></div>").text(r["cpv_inputs"][0][2]);
     container.append(json_pre);
-    container.append(cpv);
-    container.append(cpv_path);
-    container.append(input);
+    if (r["cpv_inputs"] !== "None") {
+        var cpv = $("<div></div>").text(r["cpv_inputs"][0][0]);
+        var cpv_path = $("<div></div>").text(r["cpv_inputs"][0][1]);
+        var input = $("<div></div>").text(r["cpv_inputs"][0][2]);
+
+        container.append(cpv);
+        container.append(cpv_path);
+        container.append(input);
+    }
     return container;
 }
 

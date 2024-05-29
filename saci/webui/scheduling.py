@@ -70,15 +70,19 @@ def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
 
     # write identified CPV and paths back
     print(identified_cpv_and_paths)
-    update_search_result(search_id, identified_cpv_and_paths=identified_cpv_and_paths)
-    update_search_result(search_id, result="CPV path candidates identified.")
+    if identified_cpv_and_paths:
+        update_search_result(search_id, identified_cpv_and_paths=identified_cpv_and_paths)
+        update_search_result(search_id, result="CPV path candidates identified.")
+    else:
+        update_search_result(search_id, result="No CPV path candidates are identified.")
+        return
 
     # Constrain identified CPV paths
     # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
     cpv_inputs = [ ]
     for cpv_model, cpv_paths in SEARCHES[search_id]["identified_cpv_and_paths"]:
         for cpv_path in cpv_paths:
-            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path)
+            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path, {"goal": "alter_motor_speed"})
             if cpv_input is not None:
                 cpv_inputs.append((cpv_model, cpv_path, cpv_input))
 
