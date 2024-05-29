@@ -37,4 +37,5 @@ class Device:
         for component in self.components:
             new_state = component.update_state(new_state)
 
-
+    def add_component(self, component):
+        self.components.append(component)

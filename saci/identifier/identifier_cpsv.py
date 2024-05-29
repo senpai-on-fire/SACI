@@ -1,8 +1,10 @@
-from typing import List, Optional, Dict, Type, Any
+from typing import List, Optional, Dict, Type, Any, Tuple
 
 from ..modeling import Device, CPV, ComponentBase, CPSV
 from ..modeling.state import GlobalState
 from ..modeling.device.component import CyberComponentHigh
+from ..modeling.behavior import Behaviors
+from ..modeling.cpvpath import CPVPath
 
 from clorm import FactBase
 from clorm.clingo import Control
@@ -32,14 +34,19 @@ l = logging.getLogger(__name__)
 # class GoalFound(Predicate):
 #     time: int
 
+
+def create_CPV_class(name, **attributes):
+    # Create a new class with the given name, base classes, and attributes
+    return type(name, CPV, attributes)
+
 class Identifier:
     def __init__(self, device: Device, initial_state: GlobalState):
         self.device = device
         self.initial_state = initial_state
 
-    def identify(self, cpsvs : List[CPSV]):
+    def identify(self, cpsvs : List[CPSV]) -> List[Tuple[CPV, CPVPath]]:
         # For each cpsv, put their description together
-        ctrl = Control(unifier=[cpsv.attack_ASP for cpsv in cpsvs] + [self.device.crash_atom])
+        ctrl = Control(unifier=[self.device.crash_atom] + [x.attack_ASP for x in cpsvs])
         for cpsv in cpsvs:
             if hasattr(cpsv, 'rulefile') and cpsv.rulefile:
                 l.info(f'loading {cpsv.rulefile}')
@@ -52,11 +59,22 @@ class Identifier:
         
         with ctrl.solve(yield_=True) as handle:
             solutions = [FactBase(model.facts(atoms=True)) for model in handle]
+            # import ipdb; ipdb.set_trace()
             # Find the solutions that makes the CPS crash earliest.
             optimal_solution = self.optimize_crash(solutions)
             if optimal_solution is not None:
                 # extract the attack
-                return [y for y in list(optimal_solution.query(cpsv.attack_ASP).all()) for cpsv in cpsvs]
+                newCPV = CPV()
+                newCPV.NAME = 'NEWCPV'
+                # TODO: path will come from ASP solutions
+                path : List[ComponentBase] = self.device.components
+                behaviors = Behaviors(None)
+                cpvpath = CPVPath(path, behaviors)
+                cpvpath.cpv_inputs = [{'sik': 'sniff NETID'}, {'sik': 'choose the NETID'}, {'mavlink': 'sniff system ID'}, {'mavlink': 'use the system ID'}, {'mavlink': 'arm'}]
+                # cpvpath.cpv_inputs = [{'foo': 'bar'} for _ in path]
+                # TODO: in theory, a new CPV can return multiple possible paths. Here we only take the optimal one.
+                return [(newCPV, [cpvpath])]
+                # return [y for y in list(optimal_solution.query(cpsv.attack_ASP).all()) for cpsv in cpsvs]
             else:
                 return []
 
