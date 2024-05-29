@@ -150,8 +150,8 @@ function search_for_cpvs()
 function get_cpv_research_result_html(search_id, r)
 {
     var container = $("<div><h4>Search " + search_id + "</h4></div>");
-    var json_code = $('<code id="code" name="code" class="language-json" style="overflow-wrap: anywhere;" readonly></code>').text(
-        JSON.stringify(r, null, 4)
+    var json_code = $('<code id="code" name="code" class="language-json" style="overflow-wrap: anywhere;" readonly></code>').html(
+        hljs.highlight(JSON.stringify(r, null, 4), {'language': 'json'}).value
     );
     var json_pre = $('<pre class="code" style="background-color: #f3f3f3;"></pre>').append(json_code);
     container.append(json_pre);
@@ -207,8 +207,6 @@ function update_cpv_search_results()
                     }
                 });
             }
-
-            hljs.highlightAll();
         }
     });
 }
