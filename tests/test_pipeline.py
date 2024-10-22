@@ -5,21 +5,22 @@ import unittest
 
 import saci
 from saci.modeling.state import GlobalState
-from saci.modeling.device import MultiCopterMotorHigh
+from saci.modeling.device import MultiCopterMotor
 from saci.orchestrator import process, identify
 
 from saci_db.cpvs import MavlinkCPV
-from saci_db.devices.px4_quadcopter_device import PX4Quadcopter, GCSTelemetryHigh
+from saci_db.vulns import MavlinkCPSV
+from saci_db.devices.px4_quadcopter_device import PX4Quadcopter, GCSTelemetry
 
 
 def generate_fake_data():
     cps = PX4Quadcopter()
-    components = [c() for c in cps.components]
-    initial_state = GlobalState(components=components)
+    initial_state = GlobalState(cps.components)
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
         "cpv_model": [MavlinkCPV()],
+        "cpsv_model": [MavlinkCPSV()],
         "cps_vuln": [],
     }
     return cps, database, initial_state
@@ -37,14 +38,14 @@ class TestPipeline(unittest.TestCase):
     def test_cli(self):
         output = subprocess.run(["saci", "-v"], capture_output=True)
         version_string = output.stdout.decode("utf-8").strip()
-        assert version_string == saci.__version__
+        self.assertEqual(version_string, saci.__version__)
 
     def test_identifier_mavlink_cpv(self):
         cps, _, initial_state = generate_fake_data()
-        cpv_paths = identify(cps, MavlinkCPV(), initial_state)
+        _, cpv_paths = identify(cps, initial_state, cpv_model=MavlinkCPV())
         path = cpv_paths[0].path
-        assert isinstance(path[0], GCSTelemetryHigh)
-        assert isinstance(path[-1], MultiCopterMotorHigh)
+        self.assertIsInstance(path[0], GCSTelemetry)
+        self.assertIsInstance(path[-1], MultiCopterMotor)
 
 
 if __name__ == "__main__":
