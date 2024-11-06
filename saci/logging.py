@@ -87,11 +87,11 @@ class Loggers:
         return list(super(Loggers, self).__dir__()) + list(self._loggers.keys())
 
 
-def is_enabled_for(logger, level):
+def is_enabled_for(self: logging.Logger, level: int) -> bool:
     if level == 1:
-        from .. import loggers
+        from .. import loggers # pyright: ignore
         return loggers.profiling_enabled
-    return originalIsEnabledFor(logger, level)
+    return originalIsEnabledFor(self, level)
 
 
 originalIsEnabledFor = logging.Logger.isEnabledFor

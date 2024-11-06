@@ -1,5 +1,9 @@
 from typing import List, Optional, Tuple
 
+from saci_db.cpvs.cpv06_roll_over import RollOverCPV
+from saci_db.devices.ngcrover import NGCRover
+from saci_db.vulns.knowncreds import WifiKnownCredsVuln
+from saci_db.vulns.noaps import NoAPSVuln
 from ..constrainers import get_constrainer, get_constrainer_and_abstract_component
 from ..modeling import CPV
 from ..modeling.device import ComponentBase, TelemetryHigh
@@ -147,7 +151,8 @@ def main():
     # input: the CPS model
     cps_components = ...
 
-    cps = PX4Quadcopter()
+    # cps = PX4Quadcopter()
+    cps = NGCRover()
 
     # components = [c() for c in cps.components]
     
@@ -157,8 +162,11 @@ def main():
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
-        "cpv_model": [MavlinkCPV()],
+        # "cpv_model": [MavlinkCPV()],
         "cpsv_model": [MavlinkCPSV(), MavlinkOverflow()],
+        "cpv_model": [RollOverCPV()],
+        "cpsv_model": [WifiKnownCredsVuln(), NoAPSVuln()],
+        # "cpsv_model": [],
         # "cpsv_model": [MavlinkCPSV(), SiKCPSV(), MavlinkOverflow()],
         "cps_vuln": [],
     }

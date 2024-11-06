@@ -9,14 +9,14 @@ def main():
     args = parser.parse_args()
 
     if args.run_component == "orchestrator":
-        from saci.orchestrator import main as orchestrator_main
+        from .orchestrator import main as orchestrator_main
         orchestrator_main()
-    if args.run_component == "web":
+    elif args.run_component == "web":
         try:
-            import flask
+            import flask # pyright: ignore [reportMissingImports]
         except ImportError:
             raise RuntimeError("Please install flask before running the web component")
-        from saci.webui.web import app
+        from .webui.web import app
         app.run()
     else:
         raise RuntimeError("Unknown component to run")
