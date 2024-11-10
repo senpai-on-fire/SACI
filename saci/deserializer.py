@@ -1,22 +1,80 @@
+import argparse
 import json
-from typing import List
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional
 
 import networkx as nx
 import matplotlib.pyplot as plt
+from jinja2 import Template, Environment
 
+from saci.modeling.device import GPSReceiver, Controller
+from saci.modeling.device.compass import CompassSensorHigh
+
+
+@dataclass(frozen=True)
+class ComponentPath:
+    """The path to, and name of, a component class.
+
+    Basically
+        from `module_path` import `class_name`
+    should be valid.
+    """
+    module_path: str
+    class_name: str
+    attr_name: str
+    local: bool = False
+    """True when this component is being generated here."""
+    file_name: Optional[str] = None
+    """Present when this component is being generated here."""
+
+    @property
+    def qualified_class_name(self) -> str:
+        return self.module_path.lstrip(".") + "." + self.class_name
+
+    @property
+    def import_statement(self) -> str:
+        if self.local:
+            return f"from .{self.module_path} import {self.class_name}"
+        else:
+            return f"import {self.module_path}"
+
+# TODO: probably have this in some more centralized location
+BUILTIN_SYSTEM_COMPONENTS: dict[str, ComponentPath] = {
+    "Compass": ComponentPath("saci.modeling.device.compass", "CompassSensorHigh", "compass"),
+    "GPS": ComponentPath("saci.modeling.device", "GPSReceiver", "gps"),
+    "Vehicle Control": ComponentPath("saci.modeling.device", "Controller", "vehicle_control"),
+    "Drive Motor Control": ComponentPath("saci.modeling.device", "Controller", "drive_motor_control"),
+}
+
+def system_name_to_path(system_name: str) -> ComponentPath:
+    if system_name in BUILTIN_SYSTEM_COMPONENTS:
+        return BUILTIN_SYSTEM_COMPONENTS[system_name]
+    name_parts = system_name.split(" ")
+    module_name = "".join(part.lower() for part in name_parts)
+    class_name = "".join(name_parts)
+    if any(not name.isidentifier() for name in (module_name, class_name)):
+        raise ValueError(f"Couldn't convert system name {system_name!r} to valid names")
+    return ComponentPath(module_name, class_name, module_name + ".py", local=True, file_name=f"{module_name}.py")
+
+@dataclass(frozen=True)
+class Port:
+    name: str
+    # TODO: refine connections type
+    connections: list[dict]
+    unique_instance_id: str
 
 @dataclass
 class System:
     id_: int
     name: str
-    systems: List["System"]
-    ports: List[dict]
-    interfaces: List[dict]
+    subsystems: list["System"]
+    ports: list[Port]
+    interfaces: list[dict]
 
     @property
-    def all_systems(self):
-        return [subsub for sub in self.systems for subsub in [sub] + sub.all_systems]
+    def all_subsystems(self):
+        return [subsub for sub in self.subsystems for subsub in [sub] + sub.all_subsystems]
 
     def __repr__(self):
         return self.name
@@ -25,9 +83,18 @@ class System:
         return hash(self.id_)
 
 class Deserializer:
+    # TODO: refine types
+    ports: dict[str, System]
+    interfaces: list[tuple[tuple[str, str], tuple[str, str]]]
+
     def __init__(self):
         self.ports = {}
         self.interfaces = []
+
+    def deserialize_port(self, node: dict):
+        if not node["name"]:
+            raise ValueError(f"ports must have a name, but {node} does not")
+        return Port(node["name"], node["connections"], node["unique_instance_id"])
 
     def deserialize_system(self, node):
         # if ifaces := node["interfaces"]:
@@ -35,24 +102,29 @@ class Deserializer:
         # if components := node["node_data"]:
         #     print(f"{node["name"]}'s node_data: {components}")
         subsystems = [self.deserialize_system(subnode) for subnode in node["systems"]]
+        ports = [self.deserialize_port(port_node) for port_node in node["ports"]]
         sys = System(
             node["id"],
             node["name"],
             subsystems,
-            node["ports"],
+            ports,
             node["interfaces"],
         )
-        for port in sys.ports:
-            self.ports[port["unique_instance_id"]] = sys
+        for port in ports:
+            self.ports[port.unique_instance_id] = sys
         for iface in sys.interfaces:
             src = iface["src_port"]
             dst = iface["dest_port"]
             self.interfaces.append(((src["name"], src["unique_instance_id"]), (dst["name"], dst["unique_instance_id"])))
         return sys
 
-    def render(self, sys):
+    @property
+    def connections(self):
+        return [(self.ports[src].name, self.ports[dst].name) for (_, src), (_, dst) in self.interfaces]
+
+    def render(self, render_path: Path, sys: System):
         g = nx.DiGraph()
-        for subsys in [sys] + sys.all_systems:
+        for subsys in [sys] + sys.all_subsystems:
             g.add_node(subsys)
         edge_labels = {}
         for (src_name, src_port), (dst_name, dst_port) in self.interfaces:
@@ -62,10 +134,92 @@ class Deserializer:
             label = edge_labels[(src_sys, dst_sys)] = f"{src_name} -> {dst_name}"
             g.add_edge(src_sys, dst_sys, label=label)
         a = nx.nx_agraph.to_agraph(g)
-        a.draw("system.png", prog="dot")
+        a.draw(render_path, prog="dot")
         # pos = nx.spring_layout(g)
         # nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
         # plt.show()
+
+def port_name_to_attr(port_name: str) -> str:
+    name_parts = port_name.split(" ")
+    attr = "_".join(part.lower() for part in name_parts)
+    if not attr.isidentifier():
+        raise ValueError(f"Couldn't convert port name {port_name!r} to valid attribute name")
+    return attr
+
+jinja_env = Environment(autoescape=False)
+jinja_env.filters["port_name_to_attr"] = port_name_to_attr
+
+system_template = jinja_env.from_string("""\"""Auto-generated component for system "{{ system.name }}".\"""
+from saci.modeling.device.component.cyber import CyberComponentBase
+
+class {{ component_path.class_name }}(CyberComponentBase):
+    def __init__(self, **kwargs):
+        # TODO: has_external_input?
+        super().__init__(**kwargs)
+        # TODO: do something more interesting with ports
+        {% for port in system.ports %}
+        self.{{ port.name | port_name_to_attr }} = None
+        {% endfor %}
+""")
+
+def emit_system(base_path: Path, system: System) -> ComponentPath:
+    component_path = system_name_to_path(system.name)
+    if component_path.file_name is None:
+        return component_path
+
+    with open(base_path / component_path.file_name, "w") as file:
+        file.write(system_template.render(system=system, component_path=component_path))
+
+    return component_path
+
+device_template = jinja_env.from_string("""\"""Auto-generated device for system "{{ name }}".\"""
+import os
+import networkx as nx
+from clorm import Predicate, IntegerField
+
+import saci.modeling.device
+
+# TODO: dedup these imports, also check to make sure we don't have component name clashes
+{% for comp_path in components.values() %}
+{{ comp_path.import_statement }}
+{% endfor %}
+
+
+class {{ device_path.class_name }}Crash(Predicate):
+    time = IntegerField()
+    
+class {{ device_path.class_name }}(saci.modeling.Device):
+    crash_atom = {{ device_path.class_name }}Crash
+    description = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'device.lp')
+
+    def __init__(self, state=None):
+        components = []
+        {% for comp_path in components.values() %}
+        {{ comp_path.attr_name }} = {{ comp_path.qualified_class_name }}()
+        components.append({{ comp_path.attr_name }})
+        {% endfor %}
+
+        component_graph = nx.from_edgelist([
+        {% for start_name, end_name in connections %}
+            ({{ components[start_name].attr_name }}, {{ components[end_name].attr_name }}),
+        {% endfor %}
+        ], create_using=nx.DiGraph)
+
+        super().__init__(
+            name={{ device_path.class_name }},
+            components=components,
+            component_graph=component_graph,
+            state=state,
+        )
+""")
+
+def emit_device(base_path: Path, components: dict[str, ComponentPath], connections: list[tuple[str, str]], name: str):
+    device_path = system_name_to_path(name) # TODO: we never want to find this in the builtins
+    with open(base_path / "__init__.py", "w") as file:
+        file.write(device_template.render(components=components, connections=connections, name=name, device_path=device_path))
+
+    with open(base_path / "device.lp", "w") as _:
+        pass
 
 def just_filter_the_json(d):
     return {
@@ -76,9 +230,34 @@ def just_filter_the_json(d):
     }
 
 if __name__ == '__main__':
-    with open("/Users/jessie/projects/senpai/saci-database/ngc rover with db ids.json", "r") as f:
-        # with open("/Users/jessie/projects/senpai/saci-database/filtered.json", "w") as f2:
-        #     json.dump(just_filter_the_json(json.load(f)), f2)
-        deserializer = Deserializer()
-        system = deserializer.deserialize_system(json.load(f))
-        deserializer.render(system)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-r', '--render', action='store_true')
+    parser.add_argument("serialized", type=Path)
+    parser.add_argument("output_dir", type=Path)
+    args = parser.parse_args()
+
+    if args.output_dir.exists():
+        if not args.output_dir.is_dir():
+            raise ValueError(f"Output location {args.output_dir} exists, but is not a directory")
+    else:
+        args.output_dir.mkdir()
+
+    deserializer = Deserializer()
+    with args.serialized.open() as f:
+        device = deserializer.deserialize_system(json.load(f))
+
+    if args.render:
+        deserializer.render(args.output_dir / "system.png", device)
+
+    # we're treating subsystems like components for now.
+    # perhaps this will change if we actually get components in the TA3 output.
+    components = {}
+    for sub in device.all_subsystems:
+        if sub.name in components:
+            # should we instead dedup somehow?
+            raise ValueError(f"Non-unique system name {sub.name!r}")
+        components[sub.name] = emit_system(args.output_dir, sub)
+
+    # TODO: do we want to model connections to the top-level device in some better way than just filtering them out...
+    connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name]
+    emit_device(args.output_dir, components, connections, device.name)
