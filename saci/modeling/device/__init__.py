@@ -8,5 +8,6 @@ from .camera import CameraHigh
 from .localizer import LocalizerHigh, LocalizerAlgorithm 
 from .gyroscope import GyroscopeHigh, GyroscopeAlgorithmic
 from .sik_radio import SikRadio
+from .wifi import Wifi
 from .mavlink import Mavlink
 from .microcontroller import MicroController
