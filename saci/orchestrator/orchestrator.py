@@ -9,7 +9,8 @@ from ..modeling.cpvpath import CPVPath
 from ..identifier import IdentifierCPV, IdentifierCPSV
 
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
-from saci_db.cpvs import MavlinkCPV
+from saci_db.devices.ngc_rover import NGCRover
+from saci_db.cpvs import MavlinkCPV, WiFiDeauthDosCPV
 from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
 
 import logging
@@ -143,8 +144,8 @@ def reverse_engineer(cps):
     # TODO: this should be parallel
     pass
 
-def main():
-    # input: the CPS model
+
+def drone_demo():
     cps_components = ...
 
     cps = PX4Quadcopter()
@@ -165,6 +166,36 @@ def main():
 
     all_cpvs = process(cps, database, initial_state)
     print(all_cpvs)
+
+
+def NGC_demo():
+    cps_components = ...
+
+    cps = NGCRover()
+
+    # components = [c() for c in cps.components]
+    
+    reverse_engineer(cps)
+
+    initial_state = GlobalState(components=cps.components)
+
+    # input: the database with CPV models and CPS vulnerabilities
+    database = {
+        "cpv_model": [WiFiDeauthDosCPV()],
+        "cpsv_model": [],
+        # "cpsv_model": [MavlinkCPSV(), SiKCPSV(), MavlinkOverflow()],
+        "cps_vuln": [],
+    }
+
+    all_cpvs = process(cps, database, initial_state)
+    print(all_cpvs[0][2])
+
+def main(device=None):
+    # input: the CPS model
+    if device is None:
+        drone_demo()
+    elif device == "NGC_rover":
+        NGC_demo()
 
 
 if __name__ == "__main__":

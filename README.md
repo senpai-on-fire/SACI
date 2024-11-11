@@ -147,3 +147,9 @@ device = PX4Quadcopter(
 identifier = Identifier(device, [cpv])
 paths = identifier.identify()
 ```
+
+# How to run
+
+```
+saci -r orchestrator
+```

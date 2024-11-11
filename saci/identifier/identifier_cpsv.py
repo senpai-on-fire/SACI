@@ -51,7 +51,9 @@ class Identifier:
             if hasattr(cpsv, 'rulefile') and cpsv.rulefile:
                 l.info(f'loading {cpsv.rulefile}')
                 ctrl.load(cpsv.rulefile)
-        
+        # TODO very hacky now
+        if len(cpsvs) == 0:
+            return []
         # TODO: the description should be those that are on the same level of the CPSVs and relavent to the CPSVs only
         ctrl.load(self.device.description)
 
