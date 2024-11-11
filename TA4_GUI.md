@@ -68,17 +68,19 @@ Example (Reference: [https://github.com/senpai-on-fire/saci-database/blob/main/s
 
 ```json
 {[
-    # TA3 needs to identify the existence of the component.
-    "component": "Telemetry",
-    # constraints are the conditions that SACI thinks to trigger the vulnerability.
-    # TA2 or TA3 need to validate the conditions.
-    "constraints": "None",
-    # input and input_state is the input that could possible trigger the vulnerability when the CPS is under the input_state.
-    # TA2 needs to validate the inputs through simulation
-    "input": {
-        "manual_mavlink_command": "SHUTDOWN"
-    },
-    "input_state": "None"
+    {
+        # TA3 needs to identify the existence of the component.
+        "component": "Telemetry",
+        # constraints are the conditions that SACI thinks to trigger the vulnerability.
+        # TA2 or TA3 need to validate the conditions.
+        "constraints": "None",
+        # input and input_state is the input that could possible trigger the vulnerability when the CPS is under the input_state.
+        # TA2 needs to validate the inputs through simulation
+        "input": {
+            "manual_mavlink_command": "SHUTDOWN"
+        },
+        "input_state": "None"
+    }
 ]}
 ```
 
