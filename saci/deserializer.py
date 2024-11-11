@@ -52,10 +52,11 @@ def system_name_to_path(system_name: str) -> ComponentPath:
         return BUILTIN_SYSTEM_COMPONENTS[system_name]
     name_parts = system_name.split(" ")
     module_name = "".join(part.lower() for part in name_parts)
+    attr_name = "_".join(part.lower() for part in name_parts)
     class_name = "".join(name_parts)
     if any(not name.isidentifier() for name in (module_name, class_name)):
         raise ValueError(f"Couldn't convert system name {system_name!r} to valid names")
-    return ComponentPath(module_name, class_name, module_name + ".py", local=True, file_name=f"{module_name}.py")
+    return ComponentPath(module_name, class_name, attr_name, local=True, file_name=f"{module_name}.py")
 
 @dataclass(frozen=True)
 class Port:
@@ -206,7 +207,7 @@ class {{ device_path.class_name }}(saci.modeling.Device):
         ], create_using=nx.DiGraph)
 
         super().__init__(
-            name={{ device_path.class_name }},
+            name="{{ device_path.class_name }}",
             components=components,
             component_graph=component_graph,
             state=state,
