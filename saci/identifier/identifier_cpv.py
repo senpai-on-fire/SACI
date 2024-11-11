@@ -55,6 +55,8 @@ class Identifier:
 
 
         to_return = []
+        if not cpv.vulnerable(self.device):
+            return to_return
         # DFS a path, then check the path against the CPV to see if it's possible
         for start in starting_locations:
             stack = [(start, [start])]
