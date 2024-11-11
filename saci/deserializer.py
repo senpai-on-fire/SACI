@@ -52,7 +52,7 @@ def system_name_to_path(system_name: str) -> ComponentPath:
         return BUILTIN_SYSTEM_COMPONENTS[system_name]
     name_parts = system_name.split(" ")
     module_name = "".join(part.lower() for part in name_parts)
-    attr_name = "_".join(part.lower() for part in name_parts)
+    attr_name = "comp_" + "_".join(part.lower() for part in name_parts)
     class_name = "".join(name_parts)
     if any(not name.isidentifier() for name in (module_name, class_name)):
         raise ValueError(f"Couldn't convert system name {system_name!r} to valid names")
@@ -91,11 +91,14 @@ class Deserializer:
     def __init__(self):
         self.ports = {}
         self.interfaces = []
+        self._unnamed_port_counter = 0
 
     def deserialize_port(self, node: dict):
-        if not node["name"]:
-            raise ValueError(f"ports must have a name, but {node} does not")
-        return Port(node["name"], node["connections"], node["unique_instance_id"])
+        name = node["name"]
+        if not name:
+            name = f"port{self._unnamed_port_counter}"
+            self._unnamed_port_counter += 1
+        return Port(name, node["connections"], node["unique_instance_id"])
 
     def deserialize_system(self, node):
         # if ifaces := node["interfaces"]:
