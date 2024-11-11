@@ -11,6 +11,7 @@ WORK_THREAD = None
 SEARCHES: dict[int, dict] = {}
 
 
+
 def add_search(**kwargs) -> int:
     # TODO: add lock
 
@@ -37,10 +38,6 @@ def update_search_result(search_id: int, **kwargs) -> None:
 
 
 def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
-
-    from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
-    cps = PX4Quadcopter()
-
     initial_state = GlobalState(cps.components)
 
     from saci_db.cpvs import CPVS
@@ -63,6 +60,7 @@ def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
     if cpv_model is not None and cpv_paths is not None:
         identified_cpv_and_paths.append((cpv_model, cpv_paths))
 
+    # what is this special casing??
     if "mavlink" in cpv_model.__class__.__name__.lower():
         from saci_db.vulns import MavlinkCPSV, MavlinkOverflow
         potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), [MavlinkCPSV(), MavlinkOverflow()]))

@@ -35,6 +35,7 @@ function gen_components_html(components)
 function get_blueprint_component_graph(blueprint_id)
 {
     $("#blueprint_graph").empty();
+    $("#blueprint_options").empty();
     $.ajax({
         url: "/api/get_blueprint",
         data: {
@@ -52,43 +53,43 @@ function get_blueprint_component_graph(blueprint_id)
             const height = 300;
 
             const svg = d3.select("#blueprint_graph")
-                  .append("svg")
-                  .attr("width", width)
-                  .attr("height", height);
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
 
             const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-            // Manually position nodes in a line
+            // Position each node randomly, should probably use an actual graph layout algo!
             data.nodes.forEach((node, index) => {
-                node.x = 100 + index * 175 + 50; // Adjust 100 for spacing between nodes
-                node.y = height / 2;
+                node.x = 50 + Math.random() * 600;
+                node.y = 50 + Math.random() * 250;
             });
 
             const link = svg.append("g")
-                  .attr("class", "links")
-                  .selectAll("line")
-                  .data(data.links)
-                  .enter().append("line")
-                  .attr("class", "link")
-                  .attr("stroke-width", 2)
-                  .attr("stroke", "#999");
+                .attr("class", "links")
+                .selectAll("line")
+                .data(data.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke-width", 2)
+                .attr("stroke", "#999");
 
             const node = svg.append("g")
-                  .attr("class", "nodes")
-                  .selectAll("circle")
-                  .data(data.nodes)
-                  .enter().append("circle")
-                  .attr("r", 10)
-                  .attr("fill", d => color(d.id));
+                .attr("class", "nodes")
+                .selectAll("circle")
+                .data(data.nodes)
+                .enter().append("circle")
+                .attr("r", 10)
+                .attr("fill", d => color(d.id));
 
             const text = svg.append("g")
-                  .attr("class", "texts")
-                  .selectAll("text")
-                  .data(data.nodes)
-                  .enter().append("text")
-                  .attr("dy", -30)
-                  .attr("text-anchor", "middle")
-                  .text(d => d.name);
+                .attr("class", "texts")
+                .selectAll("text")
+                .data(data.nodes)
+                .enter().append("text")
+                .attr("dy", -30)
+                .attr("text-anchor", "middle")
+                .text(d => d.name);
 
             link.attr("x1", d => data.nodes.find(node => node.id === d.source).x)
                 .attr("y1", d => data.nodes.find(node => node.id === d.source).y)
@@ -102,6 +103,26 @@ function get_blueprint_component_graph(blueprint_id)
             // Set text positions based on manually set node positions
             text.attr("x", d => d.x)
                 .attr("y", d => d.y);
+
+            const blueprint_options = $("#blueprint_options");
+            console.log(data.options);
+            for (const [option, value] of Object.entries(data.options)) {
+                const option_div = $("<div></div>").text(`${option}:`);
+                const input = $("<input>");
+                input.attr("type", "text");
+                input.val(`${value}`);
+                option_div.append(input);
+                blueprint_options.append(option_div);
+                input.on("change", event => {
+                    console.log(input.val());
+                    event.preventDefault();
+                    $.post({
+                        url: `/api/set_blueprint_option?id=${blueprint_id}&option=${option}`,
+                        data: input.val(),
+                        contentType: "application/json",
+                    });
+                });
+            }
         }
     });
 }
@@ -129,7 +150,8 @@ function search_for_cpvs()
     $.ajax({
         url: "/api/cpv_search",
         data: {
-            cpv_name: $("#cpv-name").attr("cpv-class-name")
+            cpv_name: $("#cpv-name").attr("cpv-class-name"),
+            blueprint_id: $('#blueprint').find('option:selected').attr('id')
         },
         success: function(result) {
             // alert("Search ID: " + result["search_id"]);

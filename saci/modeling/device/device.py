@@ -16,6 +16,7 @@ class Device:
         node_maps: Dict[CyberComponentBase, Dict[CyberComponentBase, CyberComponentBase]] = None,
         edge_maps: Dict[CyberComponentBase, Dict[Tuple[CyberComponentBase, CyberComponentBase], Tuple[CyberComponentBase, CyberComponentBase]]] = None,
         state: Optional[GlobalState] = None,
+        options: tuple[str, ...] = (),
     ):
         self.name = name
         self.components = components
@@ -32,6 +33,8 @@ class Device:
         # state of the device (for Identifier)
         self.state = state
 
+        self.options = options
+
     def update_state(self, state: GlobalState) -> GlobalState:
         new_state: GlobalState = state.copy()
         for component in self.components:
@@ -39,3 +42,9 @@ class Device:
 
     def add_component(self, component):
         self.components.append(component)
+
+    def get_option(self, name):
+        return None
+
+    def set_option(self, name, value):
+        pass

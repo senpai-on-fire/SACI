@@ -1,5 +1,6 @@
 from __future__ import annotations
 import time
+from typing import Optional
 
 from flask import Flask, render_template, send_file, request
 
@@ -68,36 +69,54 @@ def cpv_info():
         ],
     }
 
+def lookup_blueprint(raw):
+    try:
+        blueprint_id = int(raw)
+        if blueprint_id >= len(blueprints):
+            return None
+        return blueprints[blueprint_id]
+    except (TypeError, ValueError):
+        return None
 
 @app.route("/api/get_blueprint")
 def get_blueprint():
-    blueprint_id = request.args.get("id", None)
+    blueprint_id_raw = request.args.get("id", None)
 
-    if blueprint_id is None:
+    if (cps := lookup_blueprint(blueprint_id_raw)) is None:
         return {"error": "Blueprint not found"}
 
-    d = {}
-    if blueprint_id == "0":
-        from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
+    d = {
+        "nodes": [],
+        "links": [],
+        "options": {},
+    }
+    for node in cps.component_graph:
+        d["nodes"].append({"id": id(node), "name": repr(node)})
+    for src, dst in cps.component_graph.edges:
+        d["links"].append({
+            "source": id(src),
+            "target": id(dst),
+        })
+    for option in cps.options:
+        d["options"][option] = cps.get_option(option)
+    return {
+        "component_graph": d
+    }
 
-        cps = PX4Quadcopter()
-        d = {
-            "nodes": [],
-            "links": [],
-        }
-        for node in cps.component_graph:
-            d["nodes"].append({"id": id(node), "name": repr(node)})
-        for src, dst in cps.component_graph.edges:
-            d["links"].append({
-                "source": id(src),
-                "target": id(dst),
-            })
-        return {
-            "component_graph": d
-        }
-    else:
+@app.post("/api/set_blueprint_option")
+def set_blueprint_option():
+    blueprint_id_raw = request.args.get("id", None)
+
+    if (cps := lookup_blueprint(blueprint_id_raw)) is None:
         return {"error": "Blueprint not found"}
 
+    option = request.args.get("option", None)
+    value = request.get_json()
+
+    cps.set_option(option, value)
+    print(cps.steering.has_aps)
+
+    return {}
 
 @app.route("/api/cpv_search")
 def cpv_search():
@@ -107,7 +126,12 @@ def cpv_search():
     if cpv_name is None:
         return {"error": "CPV name must be provided"}
 
-    search_id = add_search(cpv=cpv_name)
+    blueprint_id_raw = request.args.get("blueprint_id", None)
+    if (cps := lookup_blueprint(blueprint_id_raw)) is None:
+        return {"error": "Valid blueprint ID must be provided"}
+
+    # TODO: watch out for thread safety with this cps reference...
+    search_id = add_search(cpv=cpv_name, cps=cps)
 
     return {
         "search_id": search_id,
@@ -161,4 +185,11 @@ def js():
 
 
 # delayed import
+from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
+from saci_db.devices.ngcrover import NGCRover
 from saci_db.cpvs import CPVS
+
+blueprints = [
+    PX4Quadcopter(),
+    NGCRover(),
+]
