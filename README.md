@@ -147,3 +147,8 @@ device = PX4Quadcopter(
 identifier = Identifier(device, [cpv])
 paths = identifier.identify()
 ```
+
+
+### Run with examples
+
+1. `saci -r orchestrator -y tests/hypothesis_wifi.json`, this is to take a user hypothesis as input and check if such a CPV exist in the device, by checking if the corresponding components and vulnerabilities exist.
