@@ -53,7 +53,6 @@ class Identifier:
             if hasattr(c, 'has_external_input') and c.has_external_input:
                 starting_locations.append(c)
 
-
         to_return = []
         if not cpv.vulnerable(self.device):
             return to_return

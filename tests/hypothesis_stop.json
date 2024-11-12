@@ -1,0 +1,5 @@
+{
+    "Name": "The Wifi Credential and Control CPV",
+    "Required Components": ["Telemetry", "Controller", "Steering"],
+    "Vulnerabilities": []
+}
