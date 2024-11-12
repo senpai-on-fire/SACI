@@ -47,10 +47,11 @@
     <form>
     <fieldset>
     <legend>Blueprint</legend>
-    <select id="blueprint" onchange="get_blueprint_component_graph($('#blueprint').find('option:selected').attr('id'));">
-        <option id="99" selected>Any</option>
-        <option id="0">PX4 Copter</option>
-        <option id="1">NGC Rover</option>
+    <select id="blueprint" onchange="get_blueprint_component_graph($('#blueprint').find('option:selected').val());">
+        <option value="99" selected>Any</option>
+        {% for blueprint in blueprints %}
+        <option value="{{ blueprint }}">{{ blueprint }}</option>
+        {% endfor %}
     </select>
     </fieldset>
     <div id="blueprint_graph"></div>

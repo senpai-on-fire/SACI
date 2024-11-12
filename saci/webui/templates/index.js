@@ -151,7 +151,7 @@ function search_for_cpvs()
         url: "/api/cpv_search",
         data: {
             cpv_name: $("#cpv-name").attr("cpv-class-name"),
-            blueprint_id: $('#blueprint').find('option:selected').attr('id')
+            blueprint_id: $('#blueprint').find('option:selected').val()
         },
         success: function(result) {
             // alert("Search ID: " + result["search_id"]);

@@ -233,25 +233,20 @@ def just_filter_the_json(d):
         # "interfaces": d["interfaces"],
     }
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-r', '--render', action='store_true')
-    parser.add_argument("serialized", type=Path)
-    parser.add_argument("output_dir", type=Path)
-    args = parser.parse_args()
-
-    if args.output_dir.exists():
-        if not args.output_dir.is_dir():
-            raise ValueError(f"Output location {args.output_dir} exists, but is not a directory")
+def ingest(serialized: dict, output_dir: Path, render: bool=False, force: bool=False):
+    if output_dir.exists():
+        if not output_dir.is_dir():
+            raise ValueError(f"Output location {output_dir} exists, but is not a directory")
+        if not force:
+            raise FileExistsError(f"Output location {output_dir} exists, won't overwrite it without force=True")
     else:
-        args.output_dir.mkdir()
+        output_dir.mkdir()
 
     deserializer = Deserializer()
-    with args.serialized.open() as f:
-        device = deserializer.deserialize_system(json.load(f))
+    device = deserializer.deserialize_system(serialized)
 
-    if args.render:
-        deserializer.render(args.output_dir / "system.png", device)
+    if render:
+        deserializer.render(output_dir / "system.png", device)
 
     # we're treating subsystems like components for now.
     # perhaps this will change if we actually get components in the TA3 output.
@@ -260,8 +255,20 @@ if __name__ == '__main__':
         if sub.name in components:
             # should we instead dedup somehow?
             raise ValueError(f"Non-unique system name {sub.name!r}")
-        components[sub.name] = emit_system(args.output_dir, sub)
+        components[sub.name] = emit_system(output_dir, sub)
 
     # TODO: do we want to model connections to the top-level device in some better way than just filtering them out...
     connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name]
-    emit_device(args.output_dir, components, connections, device.name)
+    emit_device(output_dir, components, connections, device.name)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-r', '--render', action='store_true')
+    parser.add_argument("serialized", type=Path)
+    parser.add_argument("output_dir", type=Path)
+    args = parser.parse_args()
+
+    with args.serialized.open() as f:
+        serialized = json.load(f)
+
+    ingest(serialized, args.output_dir, render=args.render)

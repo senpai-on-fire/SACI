@@ -1,10 +1,15 @@
 from __future__ import annotations
 import time
 from typing import Optional
+from pathlib import Path
+import os
 
-from flask import Flask, render_template, send_file, request
+from flask import Flask, render_template, send_file, request, abort
 
+from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
+
+
 
 app = Flask(__name__)
 start_work_thread()
@@ -42,7 +47,7 @@ def json_serialize(obj) -> int | str | bool | list | dict:
 
 @app.route('/')
 def index():
-    return render_template("index.html", cpvs=CPVS)
+    return render_template("index.html", cpvs=CPVS, blueprints=blueprints)
 
 
 @app.route("/api/cpv_info")
@@ -78,12 +83,33 @@ def lookup_blueprint(raw):
     except (TypeError, ValueError):
         return None
 
+@app.post("/api/ingest_blueprint")
+def ingest_blueprint():
+    if "name" not in request.args:
+        return {"error": "must give name argument"}, 400
+    name = request.args["name"]
+    if name in blueprints:
+        return {"error": "exists"}, 400
+    force = request.args.get("force", False)
+    serialized = request.get_json(silent=True)
+    if serialized is None:
+        return {"error": "must give json body"}, 400
+    try:
+        # TODO: move this to another thread and return a promise?
+        ingest(serialized, INGESTION_DIR / name, force=force)
+    except FileExistsError as e:
+        return {"error": "exists"}, 400
+    except ValueError as e:
+        return {"error": "couldn't deserialize blueprint"}, 400
+    return {}
+
 @app.route("/api/get_blueprint")
 def get_blueprint():
-    blueprint_id_raw = request.args.get("id", None)
+    blueprint_id = request.args.get("id", None)
 
-    if (cps := lookup_blueprint(blueprint_id_raw)) is None:
+    if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
+    cps = blueprints[blueprint_id]
 
     d = {
         "nodes": [],
@@ -105,10 +131,11 @@ def get_blueprint():
 
 @app.post("/api/set_blueprint_option")
 def set_blueprint_option():
-    blueprint_id_raw = request.args.get("id", None)
+    blueprint_id = request.args.get("id", None)
 
-    if (cps := lookup_blueprint(blueprint_id_raw)) is None:
+    if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
+    cps = blueprints[blueprint_id]
 
     option = request.args.get("option", None)
     value = request.get_json()
@@ -126,9 +153,10 @@ def cpv_search():
     if cpv_name is None:
         return {"error": "CPV name must be provided"}
 
-    blueprint_id_raw = request.args.get("blueprint_id", None)
-    if (cps := lookup_blueprint(blueprint_id_raw)) is None:
-        return {"error": "Valid blueprint ID must be provided"}
+    blueprint_id = request.args.get("blueprint_id", None)
+    if blueprint_id not in blueprints:
+        return {"error": "Blueprint not found"}
+    cps = blueprints[blueprint_id]
 
     # TODO: watch out for thread safety with this cps reference...
     search_id = add_search(cpv=cpv_name, cps=cps)
@@ -185,11 +213,13 @@ def js():
 
 
 # delayed import
-from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
-from saci_db.devices.ngcrover import NGCRover
+from saci_db.devices import devices, ingested
 from saci_db.cpvs import CPVS
 
-blueprints = [
-    PX4Quadcopter(),
-    NGCRover(),
-]
+if (dirname := os.getenv("INGESTION_DIR")) is not None:
+    INGESTION_DIR = Path(dirname)
+else:
+    INGESTION_DIR = Path(ingested.__file__).resolve().parent
+del dirname
+
+blueprints = devices | ingested.devices
