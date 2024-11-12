@@ -49,14 +49,25 @@
     <legend>Blueprint</legend>
     <select id="blueprint" onchange="get_blueprint_component_graph($('#blueprint').find('option:selected').val());">
         <option value="99" selected>Any</option>
-        {% for blueprint in blueprints %}
-        <option value="{{ blueprint }}">{{ blueprint }}</option>
+        {% for blueprint_id, blueprint in blueprints.items() %}
+        <option value="{{ blueprint_id }}">{{ blueprint_id }}: {{ blueprint.name }}</option>
         {% endfor %}
     </select>
     </fieldset>
     <div id="blueprint_graph"></div>
     <div id="blueprint_options"></div>
     </form>
+
+    <details class="border">
+        <summary>Add Blueprint</summary>
+        <form>
+            <fieldset>
+                <label for="new-blueprint-name">ID:</label> <input type="text" id="new-blueprint-name">
+                <label for="new-blueprint-json">Blueprint JSON:</label> <textarea id="new-blueprint-json"></textarea>
+                <button id="new-blueprint-submit" onclick="add_blueprint()">Add Blueprint</button>
+            </fieldset>
+        </form>
+    </details>
 
     <form>
     <fieldset>

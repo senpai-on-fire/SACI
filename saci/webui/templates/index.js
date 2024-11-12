@@ -223,6 +223,22 @@ function update_cpv_search_results()
     });
 }
 
+function add_blueprint() {
+    const name = $("#new-blueprint-name").val();
+    const blueprint = $("#new-blueprint-json").val();
+    $.post({
+        url: "/api/ingest_blueprint?name=" + encodeURIComponent(name),
+        data: blueprint,
+        contentType: "application/json",
+        success: () => {
+            alert(`added blueprint ${name} successfully`);
+        },
+        error: (xhr) => {
+            alert(`adding blueprint failed: ${xhr.responseText}`);
+        },
+    })
+}
+
 $(document).ready(function() {
     setInterval(update_cpv_search_results, 1000);
 });

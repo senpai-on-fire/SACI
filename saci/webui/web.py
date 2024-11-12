@@ -1,6 +1,6 @@
 from __future__ import annotations
 import time
-from typing import Optional
+import importlib
 from pathlib import Path
 import os
 
@@ -101,6 +101,13 @@ def ingest_blueprint():
         return {"error": "exists"}, 400
     except ValueError as e:
         return {"error": "couldn't deserialize blueprint"}, 400
+
+    importlib.invalidate_caches()
+    # TODO: probably don't need to reload *all* the ingested modules
+    importlib.reload(ingested)
+    # TODO: should probably just separate builtin and ingested blueprints...
+    blueprints["ingested/" + name] = ingested.devices["ingested/" + name]
+
     return {}
 
 @app.route("/api/get_blueprint")
