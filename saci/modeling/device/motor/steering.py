@@ -1,9 +1,12 @@
 from typing import Optional
 
 from .servo import ServoHigh, ServoAlgorithmic
+from ..component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
 
+class Steering(CyberComponentBase):
+    pass
 
-class SteeringHigh(ServoHigh):
+class SteeringHigh(ServoHigh, Steering, CyberComponentHigh):
     """Describes a servo-based steering system for a vehicle.
 
     :param has_aps: Whether or not the steering system has an active protection system (APS) to prevent undesirable

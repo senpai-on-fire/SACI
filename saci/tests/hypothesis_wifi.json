@@ -1,0 +1,6 @@
+{
+    "Name": "The roll-the-rover-over CPV",
+    "Required Components": ["Telemetry", "Controller", "Steering"],
+    "Required Physics": ["Speed", "Incline Degree", "Friction"],
+    "Vulnerabilities": ["WifiKnownCredsVuln", "NoAPSVuln"]
+}

@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Type
+from typing import List, Optional, Dict, Type, TextIO
 
 from .device import Device, CyberComponentBase
 from .state import GlobalState
@@ -13,20 +13,21 @@ class CPV:
     """
 
     NAME: str = "Unspecified"
-
+        
     def __init__(
         self,
         required_components: Optional[List[Type[CyberComponentBase]]] = None,
         entry_component: CyberComponentBase = None,
         exit_component: CyberComponentBase = None,
         goals: List[CyberComponentBase] = None,
-        vulnerabilities: List[BaseVulnerability] = None
+        vulnerabilities: List[BaseVulnerability] = None,
     ):
         self.required_components = required_components or []
         self.entry_component = entry_component
         self.exit_component = exit_component
         self.goals = goals or []
         self.vulnerabilities = vulnerabilities or []
+        
 
     def vulnerable(self, device: Device):
         for vulnerability in self.vulnerabilities:

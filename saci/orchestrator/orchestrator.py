@@ -5,7 +5,7 @@ from saci_db.devices.ngcrover import NGCRover
 from saci_db.vulns.knowncreds import WifiKnownCredsVuln
 from saci_db.vulns.noaps import NoAPSVuln
 from ..constrainers import get_constrainer, get_constrainer_and_abstract_component
-from ..modeling import CPV
+from ..modeling import CPV, CPVHypothesis
 from ..modeling.device import ComponentBase, TelemetryHigh
 from ..modeling.state import GlobalState
 from ..modeling.behavior import Behaviors
@@ -102,17 +102,26 @@ def verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input) -> bool:
 
 
 def process(cps, database, initial_state):
+    identified_cpv_and_paths = [ ]
 
+    ##### Hypothesis Matching ######
+    ## TODO: the hypothesis might be CPSV-based and connected with the other CPSVs in the future
+    if database['hypotheses'] is not None:
+        identified_cpv_and_paths = [ ]
+        for cpv_model_base in database["hypotheses"]:
+            cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base)
+            if cpv_paths is not None:
+                identified_cpv_and_paths.append((cpv_model, cpv_paths))
+    
     ##### CPV Matching #####
     # identify potential CPV in CPS
-    l.info("Identifying CPVs from CPVs\n")
-    identified_cpv_and_paths = [ ]
+    l.info("Identifying CPVs from existed CPV database\n")
     for cpv_model_base in database["cpv_model"]:
         cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base)
         if cpv_paths is not None:
             identified_cpv_and_paths.append((cpv_model, cpv_paths))
 
-    l.info("Identifying CPVs from CPSVs\n")
+    l.info("Identifying CPVs from existed CPSV database\n")
     ##### CPSV Matching #####
     # for each CPSV, identify potenetial combinations on the target CPS
     # 1. identify if the CPS contains the CPSV
@@ -121,6 +130,7 @@ def process(cps, database, initial_state):
     # 2. generate combinations of CPSVs into CPV 
     identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
     # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
+    
     cpv_inputs = [ ]
     for cpv_model, cpv_paths in identified_cpv_and_paths:
         for cpv_path in cpv_paths:
@@ -145,9 +155,17 @@ def process(cps, database, initial_state):
 def reverse_engineer(cps):
     # TODO: this will be replaced by the actual TA3 output.
     # TODO: this should be parallel
+    # TODO: this can be on demand, i.e., SACI has a specific task to TA3
     pass
 
-def main():
+
+def test_hypothesis(h):
+    """
+    Test hypothesis
+    """
+
+def main(hypothesis = None):
+
     # input: the CPS model
     cps_components = ...
 
@@ -155,6 +173,17 @@ def main():
     cps = NGCRover()
 
     # components = [c() for c in cps.components]
+    
+    # hypothesis will be system and ports
+    # e.g., name: Arduino R4, ports: wifi
+    # effect: system level, physics, like the 6 degree of freedom 
+    # if there is a hypothesis, test the hypothesis 
+    if hypothesis is not None:
+        with open(hypothesis, 'r') as f:
+            cpv_hypothesis = CPVHypothesis(f)
+
+
+    # otherwise, just search CPV from our database
     
     reverse_engineer(cps)
 
@@ -169,6 +198,7 @@ def main():
         # "cpsv_model": [],
         # "cpsv_model": [MavlinkCPSV(), SiKCPSV(), MavlinkOverflow()],
         "cps_vuln": [],
+        "hypotheses": [cpv_hypothesis]
     }
 
     all_cpvs = process(cps, database, initial_state)
@@ -176,4 +206,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # TODO: orchestrator should keep receiving new hypotheses and new inputs from each TA.
     main()
