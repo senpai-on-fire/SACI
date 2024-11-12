@@ -105,7 +105,8 @@ def process(cps, database, initial_state):
     identified_cpv_and_paths = [ ]
 
     ##### Hypothesis Matching ######
-    ## TODO: the hypothesis might be CPSV-based and connected with the other CPSVs in the future
+    # TODO: the hypothesis might be CPSV-based and connected with the other CPSVs in the future
+    # But this may not be that important, because IV&V said the hypothesis will specify a physical effect 
     if database['hypotheses'] is not None:
         identified_cpv_and_paths = [ ]
         for cpv_model_base in database["hypotheses"]:
@@ -193,7 +194,8 @@ def main(hypothesis = None):
     database = {
         # "cpv_model": [MavlinkCPV()],
         "cpsv_model": [MavlinkCPSV(), MavlinkOverflow()],
-        "cpv_model": [RollOverCPV()],
+        "cpv_model": [],
+        # "cpv_model": [RollOverCPV()],
         "cpsv_model": [WifiKnownCredsVuln(), NoAPSVuln()],
         # "cpsv_model": [],
         # "cpsv_model": [MavlinkCPSV(), SiKCPSV(), MavlinkOverflow()],

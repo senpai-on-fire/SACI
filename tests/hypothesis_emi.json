@@ -1,0 +1,5 @@
+{
+    "Name": "The EMI against Compass CPV",
+    "Required Components": ["CompassSensor", "Controller", "Steering"],
+    "Vulnerabilities": []
+}

@@ -12,3 +12,4 @@ from .wifi import Wifi
 from .mavlink import Mavlink
 from .microcontroller import MicroController
 from .motor import *
+from .compass import *
