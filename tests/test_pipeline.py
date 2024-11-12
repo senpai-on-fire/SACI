@@ -30,6 +30,7 @@ def generate_fake_data():
         "cpv_model": [MavlinkCPV()],
         "cpsv_model": [MavlinkCPSV()],
         "cps_vuln": [],
+        "hypotheses": []
     }
     return cps, database, initial_state
 
