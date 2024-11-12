@@ -5,7 +5,7 @@ from ..modeling import device as device
 from saci_db import vulns as vulns
 from typing import List
 
-from .device import CyberComponentBase
+from .device import Device, CyberComponentBase
 from .cpv import CPV
 
 import logging
@@ -45,3 +45,9 @@ class CPVHypothesis(CPV):
             if not any(map(lambda p: self._match(p, required), path)):
                 return False
         return True
+    
+    def vulnerable(self, device: Device):
+        if self.vulnerabilities is not None:
+            return super().vulnerable(device)
+        else:
+            return True
