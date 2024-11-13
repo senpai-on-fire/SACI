@@ -100,15 +100,18 @@ def ingest_blueprint():
     except FileExistsError as e:
         return {"error": "exists"}, 400
     except ValueError as e:
+        print(e)
         return {"error": "couldn't deserialize blueprint"}, 400
 
     importlib.invalidate_caches()
     # TODO: probably don't need to reload *all* the ingested modules
     importlib.reload(ingested)
     # TODO: should probably just separate builtin and ingested blueprints...
-    blueprints["ingested/" + name] = ingested.devices["ingested/" + name]
+    blueprint_id = "ingested/" + name
+    device = ingested.devices[blueprint_id]
+    blueprints[blueprint_id] = device
 
-    return {}
+    return {"id": blueprint_id, "name": device.name}
 
 @app.route("/api/get_blueprint")
 def get_blueprint():

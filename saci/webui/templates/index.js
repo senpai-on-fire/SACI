@@ -187,7 +187,7 @@ function get_cpv_research_result_html(search_id, r)
         hljs.highlight(JSON.stringify(r, null, 4), {'language': 'json'}).value
     );
     var json_pre = $('<pre class="code" style="background-color: #f3f3f3;"></pre>').append(json_code);
-    var json_details = $('<details></details>').append($('<summary></summary>').text("Raw")).append(json_pre);
+    var json_details = $('<details></details>').append($('<summary></summary>').text("Raw JSON")).append(json_pre);
     container.append(json_details);
     return container;
 }
@@ -243,7 +243,10 @@ function add_blueprint() {
         url: "/api/ingest_blueprint?name=" + encodeURIComponent(name),
         data: blueprint,
         contentType: "application/json",
-        success: () => {
+        dataType: "json",
+        success: (data) => {
+            const option = $("<option></option>").attr("value", data.id).text(`${data.id}: ${data.name}`);
+            $("#blueprint").append(option);
             alert(`added blueprint ${name} successfully`);
         },
         error: (xhr) => {

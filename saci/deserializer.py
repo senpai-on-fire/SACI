@@ -91,6 +91,7 @@ class Deserializer:
     def __init__(self):
         self.ports = {}
         self.interfaces = []
+        self.system_names = set()
         self._unnamed_port_counter = 0
 
     def deserialize_port(self, node: dict):
@@ -107,9 +108,13 @@ class Deserializer:
         #     print(f"{node["name"]}'s node_data: {components}")
         subsystems = [self.deserialize_system(subnode) for subnode in node["systems"]]
         ports = [self.deserialize_port(port_node) for port_node in node["ports"]]
+        name = node["name"]
+        while name in self.system_names:
+            name += "p"
+        self.system_names.add(name)
         sys = System(
             node["id"],
-            node["name"],
+            name,
             subsystems,
             ports,
             node["interfaces"],
