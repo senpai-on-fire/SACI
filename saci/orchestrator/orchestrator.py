@@ -1,3 +1,4 @@
+from time import sleep
 from typing import List, Optional, Tuple
 
 from saci_db.cpvs.cpv06_roll_over import RollOverCPV
@@ -15,6 +16,28 @@ from ..identifier import IdentifierCPV, IdentifierCPSV
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 from saci_db.cpvs import MavlinkCPV
 from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
+
+MOCK_TASKS_1 = {
+    "TA1": ["Check if a controller interface exists"],
+    "TA2": [{
+        "Description": "Simulate roll-over",
+        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
+    }],
+    "TA3": []
+}
+
+MOCK_TASKS_2 = {
+    "TA1": ["Check if a controller interface exists"],
+    "TA2": [{
+        "Description": "Simulate roll-over",
+        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
+    }],
+    "TA3": [{
+        "Description": "Measure please! (Resource: chatgpt)",
+        "Meta-Data": ["CoM", "Base of Support", "Moment of Inertia", "Shape and Geometry"]
+    }]
+}
+
 
 import logging
 l = logging.getLogger(__name__)
@@ -151,7 +174,8 @@ def process(cps, database, initial_state):
         verified = verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input)
         all_cpvs.append((cps, cpv_model, cpv_desc, cpv_input, verified))
 
-    return all_cpvs
+    tasks = MOCK_TASKS_1 
+    return all_cpvs, tasks
 
 def reverse_engineer(cps):
     # TODO: this will be replaced by the actual TA3 output.
@@ -193,7 +217,7 @@ def main(hypothesis = None):
     # input: the database with CPV models and CPS vulnerabilities
     database = {
         # "cpv_model": [MavlinkCPV()],
-        "cpsv_model": [MavlinkCPSV(), MavlinkOverflow()],
+        # "cpsv_model": [MavlinkCPSV(), MavlinkOverflow()],
         "cpv_model": [],
         # "cpv_model": [RollOverCPV()],
         "cpsv_model": [WifiKnownCredsVuln(), NoAPSVuln()],
@@ -203,9 +227,16 @@ def main(hypothesis = None):
         "hypotheses": [cpv_hypothesis]
     }
 
-    all_cpvs = process(cps, database, initial_state)
-    print(all_cpvs)
+    all_cpvs, tasks = process(cps, database, initial_state)
 
+    print(all_cpvs[0])
+
+    print(tasks)
+    
+    sleep(10)
+    tasks = MOCK_TASKS_2
+    
+    print(tasks)
 
 if __name__ == "__main__":
     # TODO: orchestrator should keep receiving new hypotheses and new inputs from each TA.
