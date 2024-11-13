@@ -1,5 +1,6 @@
 import argparse
 import json
+import string
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -47,14 +48,30 @@ BUILTIN_SYSTEM_COMPONENTS: dict[str, ComponentPath] = {
     "Drive Motor Control": ComponentPath("saci.modeling.device", "Controller", "drive_motor_control"),
 }
 
+def split_any(s: str, split_on: set[str]) -> list[str]:
+    out = []
+    part = ""
+    for c in s:
+        if c in split_on:
+            if part != "":
+                out.append(part)
+                part = ""
+        else:
+            part += c
+    if part != "":
+        out.append(part)
+    return out
+
 def system_name_to_path(system_name: str) -> ComponentPath:
     if system_name in BUILTIN_SYSTEM_COMPONENTS:
         return BUILTIN_SYSTEM_COMPONENTS[system_name]
-    name_parts = system_name.split(" ")
+    if system_name[0] in string.digits:
+        system_name = "N" + system_name
+    name_parts = split_any(system_name, {' ', '-', '_'})
     module_name = "".join(part.lower() for part in name_parts)
     attr_name = "comp_" + "_".join(part.lower() for part in name_parts)
     class_name = "".join(name_parts)
-    if any(not name.isidentifier() for name in (module_name, class_name)):
+    if any(not name.isidentifier() for name in (module_name, class_name, attr_name)):
         raise ValueError(f"Couldn't convert system name {system_name!r} to valid names")
     return ComponentPath(module_name, class_name, attr_name, local=True, file_name=f"{module_name}.py")
 
