@@ -18,7 +18,7 @@ class ControllerHighConstrainer(BaseConstrainer):
 
     def solve(self, component, output, out_state, behaviors, constraints):
         return True, {
-            "input": {"manual_mavlink_command": "SHUTDOWN"},
+            "input": {},
             "input_state": None,
             "behaviors": None,
             "constraints": None,

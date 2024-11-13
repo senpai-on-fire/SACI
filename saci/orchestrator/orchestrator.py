@@ -245,6 +245,7 @@ def main(hypothesis = None):
 
     all_cpvs = process(cps, database, initial_state, ta1=ta1, ta2=ta2, ta3=ta3, queue=ta4_queue)
 
+
     print(all_cpvs[0])
 
 if __name__ == "__main__":
