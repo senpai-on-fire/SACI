@@ -162,20 +162,33 @@ function search_for_cpvs()
 function get_cpv_research_result_html(search_id, r)
 {
     var container = $("<div><h4>Search " + search_id + "</h4></div>");
+    if (r["cpv_inputs"] !== "None") {
+        var cpv = $("<div></div>").text(`CPV: ${r["cpv_inputs"][0].cpv_model}`);
+        var cpv_path = $("<div></div>").text(`Path: ${r["cpv_inputs"][0].cpv_path.path.join(", ")}`);
+        // var input = $("<div></div>").text(`Input: ${r["cpv_inputs"][0].cpv_input}`);
+
+        container.append(cpv);
+        container.append(cpv_path);
+        // container.append(input);
+    }
+    if (r["tasks"] !== "None") {
+        for (const [ta, tasks] of Object.entries(r.tasks)) {
+            const tasks_div = $("<div></div>").text(`${ta} Tasks:`);
+            const tasks_ul = $('<ul style="margin-bottom: 0"></ul>');
+            for (const task of tasks) {
+                const task_li = $("<li></li>").text(`${task.Description} [${task["Meta-Data"].join(", ")}]`);
+                tasks_ul.append(task_li);
+            }
+            tasks_div.append(tasks_ul);
+            container.append(tasks_div);
+        }
+    }
     var json_code = $('<code id="code" name="code" class="language-json" style="overflow-wrap: anywhere;" readonly></code>').html(
         hljs.highlight(JSON.stringify(r, null, 4), {'language': 'json'}).value
     );
     var json_pre = $('<pre class="code" style="background-color: #f3f3f3;"></pre>').append(json_code);
-    container.append(json_pre);
-    if (r["cpv_inputs"] !== "None") {
-        var cpv = $("<div></div>").text(r["cpv_inputs"][0][0]);
-        var cpv_path = $("<div></div>").text(r["cpv_inputs"][0][1]);
-        var input = $("<div></div>").text(r["cpv_inputs"][0][2]);
-
-        container.append(cpv);
-        container.append(cpv_path);
-        container.append(input);
-    }
+    var json_details = $('<details></details>').append($('<summary></summary>').text("Raw")).append(json_pre);
+    container.append(json_details);
     return container;
 }
 

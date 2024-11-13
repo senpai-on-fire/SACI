@@ -4,7 +4,7 @@ import time
 import threading
 
 from saci.modeling.state import GlobalState
-from saci.orchestrator.orchestrator import identify, constrain_cpv_path, identify_from_cpsv
+from saci.orchestrator.orchestrator import identify, constrain_cpv_path, identify_from_cpsv, MOCK_TASKS_1, MOCK_TASKS_2
 
 
 WORK_THREAD = None
@@ -92,6 +92,11 @@ def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
     print(cpv_inputs)
     update_search_result(search_id, cpv_inputs=cpv_inputs)
     update_search_result(search_id, result="CPV input identified.")
+
+    # add the tasks we want the other TAs to do
+    update_search_result(search_id, tasks=MOCK_TASKS_1)
+    time.sleep(5.0)
+    update_search_result(search_id, tasks=MOCK_TASKS_2)
 
 
 def working_routine():

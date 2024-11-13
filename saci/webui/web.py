@@ -208,6 +208,7 @@ def cpv_search_result():
         # "identified_cpv_and_paths": search.get("identified_cpv_and_paths", None),
         "cpv_inputs": search.get("cpv_inputs", None),
         "last_updated": search.get("last_updated", int(time.time() * 10000)),
+        "tasks": search.get("tasks", None),
     }
 
     return json_serialize(result)
