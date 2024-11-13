@@ -18,7 +18,10 @@ from saci_db.cpvs import MavlinkCPV
 from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
 
 MOCK_TASKS_1 = {
-    "TA1": ["Check if a controller interface exists"],
+    "TA1": [{
+        "Description": "Check if a controller interface exists",
+        "Meta-Data": []
+    }],
     "TA2": [{
         "Description": "Simulate roll-over",
         "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
@@ -27,7 +30,10 @@ MOCK_TASKS_1 = {
 }
 
 MOCK_TASKS_2 = {
-    "TA1": ["Check if a controller interface exists"],
+    "TA1": [{
+        "Description": "Check if a controller interface exists",
+        "Meta-Data": []
+    }],
     "TA2": [{
         "Description": "Simulate roll-over",
         "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
