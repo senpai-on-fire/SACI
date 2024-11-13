@@ -1,9 +1,15 @@
+import json
+import os
+import queue
 from typing import List, Optional, Dict, Type, Any
+from pathlib import Path
 
 from ..modeling import Device, CPV, ComponentBase
 from ..modeling.state import GlobalState
 from ..modeling.device.component import CyberComponentHigh
+from ..orchestrator.workers import Worker
 
+ATOM_FILE = os.path.join(Path(__file__).parent.parent.parent, "tests", "atoms.json")
 # from clorm import Predicate, ConstantStr, SimpleField
 # from clorm.clingo import Control
 
@@ -33,18 +39,31 @@ def get_next_components(component: ComponentBase, components: List[ComponentBase
     graph = device.component_graph
     graph_neighbors = graph.out_edges(component)
 
-    to_return = []
+    cpv_paths = []
     for start, end in graph_neighbors:
         if end in components:
-            to_return.append(end)
-    return to_return
+            cpv_paths.append(end)
+    return cpv_paths
 
 
 class Identifier:
-    def __init__(self, device: Device, initial_state: GlobalState):
+    def __init__(self, device: Device,
+                 initial_state: GlobalState,
+                 ta1: Worker = None,
+                 ta2: Worker = None,
+                 ta3: Worker = None,
+                 queue = None):
         self.device = device
         self.initial_state = initial_state
-
+        with open(ATOM_FILE, 'r') as f:
+            self.atoms = json.load(f)
+        self.ta1 = ta1
+        self.ta2 = ta2
+        self.ta3 = ta3
+        self.queue = queue 
+        self.workers = {"TA1": self.ta1,
+                        "TA2": self.ta2,
+                        "TA3": self.ta3}
 
     def identify(self, cpv: CPV) -> List[List[ComponentBase]]:
         # get the starting locations
@@ -53,9 +72,10 @@ class Identifier:
             if hasattr(c, 'has_external_input') and c.has_external_input:
                 starting_locations.append(c)
 
-        to_return = []
+        cpv_paths = []
+        # check if the corresponding CPSVs exist
         if not cpv.vulnerable(self.device):
-            return to_return
+            return cpv_paths
         # DFS a path, then check the path against the CPV to see if it's possible
         for start in starting_locations:
             stack = [(start, [start])]
@@ -64,13 +84,41 @@ class Identifier:
                 (vertex, path) = stack.pop()
                 if vertex not in visited:
                     if cpv.is_possible_path(path):
-                        to_return.append(path)
+                        cpv_paths.append(path)
                     else:
                         visited.add(vertex)
                         for neighbor in get_next_components(vertex, self.initial_state.components, self.device):
                             stack.append((neighbor, path + [neighbor]))
-        return to_return
+        
+        # Ask TA2 to simulate the CPV, regarding the variables, if the CPV is a CPV hypothesis.
+        if hasattr(cpv, "hypothesis"):
+            description = self._check_atoms(cpv.hypothesis["Kinetic Effect"])
+            if description is not None:
+                self.ta2.input_queue.put(description)
 
+                # We are waiting for TA2 to finish now
+                # TODO we don't want to wait in the future
+                result =  self.queue.get()
+
+                # check the result
+                self._parse_result(result)
+                # while self._progressing() is False:
+                    # break
+        return cpv_paths
+
+    def _parse_result(self, result):
+        if result["Request Result"] == "Fail":
+            for role in result['Tasks']:
+                self.workers[role].input_queue.put(result['Tasks']['TA3'])
+
+    def _check_atoms(self, effect):
+        """
+        check the atoms from self.atoms for what independent variables that TA2 should simulate
+        """
+        finder = list(filter(lambda x: x["Kinetic Effect"] == effect, self.atoms))
+        if len(finder) > 0:
+            return finder[0]
+        return None
 
     def in_progress_asp_identify(self) -> Dict[Type[CPV], List[Type[ComponentBase]]]:
         # Turn the communication graph into clingo stuff

@@ -1,3 +1,4 @@
+import queue
 from time import sleep
 from typing import List, Optional, Tuple
 
@@ -16,6 +17,8 @@ from ..identifier import IdentifierCPV, IdentifierCPSV
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 from saci_db.cpvs import MavlinkCPV
 from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
+
+from .workers import TA1, TA2, TA3
 
 MOCK_TASKS_1 = {
     "TA1": [{
@@ -49,12 +52,17 @@ import logging
 l = logging.getLogger(__name__)
 # l.setLevel('DEBUG')
 
-def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
+def identify(cps, initial_state,
+             cpv_model: Optional[CPV] = None,
+             ta1 = None,
+             ta2 = None,
+             ta3 = None,
+             queue = None) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
     """
     Identify if the given CPV model may exist in the CPS model.
     Return a CPV description if it exists, otherwise return None.
     """
-    identifier = IdentifierCPV(cps, initial_state)
+    identifier = IdentifierCPV(cps, initial_state, ta1=ta1, ta2=ta2, ta3=ta3, queue=queue)
     to_return = []
     for path in identifier.identify(cpv_model):
         to_return.append(CPVPath(path, Behaviors([])))
@@ -130,7 +138,7 @@ def verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input) -> bool:
     return False
 
 
-def process(cps, database, initial_state):
+def process(cps, database, initial_state, ta1=None, ta2=None, ta3=None, queue=None):
     identified_cpv_and_paths = [ ]
 
     ##### Hypothesis Matching ######
@@ -139,7 +147,7 @@ def process(cps, database, initial_state):
     if database['hypotheses'] is not None:
         identified_cpv_and_paths = [ ]
         for cpv_model_base in database["hypotheses"]:
-            cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base)
+            cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base, ta1=ta1, ta2=ta2, ta3=ta3, queue=queue)
             if cpv_paths is not None:
                 identified_cpv_and_paths.append((cpv_model, cpv_paths))
     
@@ -180,8 +188,7 @@ def process(cps, database, initial_state):
         verified = verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input)
         all_cpvs.append((cps, cpv_model, cpv_desc, cpv_input, verified))
 
-    tasks = MOCK_TASKS_1 
-    return all_cpvs, tasks
+    return all_cpvs
 
 def reverse_engineer(cps):
     # TODO: this will be replaced by the actual TA3 output.
@@ -196,7 +203,10 @@ def test_hypothesis(h):
     """
 
 def main(hypothesis = None):
-
+    ta4_queue = queue.Queue()
+    ta1 = TA1(ta4_queue)
+    ta2 = TA2(ta4_queue)
+    ta3 = TA3(ta4_queue)
     # input: the CPS model
     cps_components = ...
 
@@ -233,16 +243,9 @@ def main(hypothesis = None):
         "hypotheses": [cpv_hypothesis]
     }
 
-    all_cpvs, tasks = process(cps, database, initial_state)
+    all_cpvs = process(cps, database, initial_state, ta1=ta1, ta2=ta2, ta3=ta3, queue=ta4_queue)
 
     print(all_cpvs[0])
-
-    print(tasks)
-    
-    sleep(10)
-    tasks = MOCK_TASKS_2
-    
-    print(tasks)
 
 if __name__ == "__main__":
     # TODO: orchestrator should keep receiving new hypotheses and new inputs from each TA.
