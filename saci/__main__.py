@@ -7,6 +7,8 @@ def main():
     parser.add_argument("-r", "--run-component", type=str, help="Specify the component to run")
     parser.add_argument("-y", "--hypothesis", type=str, help="Add CPV hypothesis")
     parser.add_argument("-v", "--version", action="version", version=f"{saci.__version__}")
+    parser.add_argument("-a", "--address", default="127.0.0.1", help="Address to listen on")
+    parser.add_argument("-p", "--port", default=5000, help="Port to listen on")
     args = parser.parse_args()
 
     if args.run_component == "orchestrator":
@@ -19,7 +21,7 @@ def main():
         except ImportError:
             raise RuntimeError("Please install flask before running the web component")
         from .webui.web import app
-        app.run()
+        app.run(host=args.address, port=args.port)
     else:
         raise RuntimeError("Unknown component to run")
 
