@@ -20,6 +20,10 @@ from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
 
 from .workers import TA1, TA2, TA3
 
+import logging
+l = logging.getLogger(__name__)
+# l.setLevel('DEBUG')
+
 MOCK_TASKS_1 = {
     "TA1": [{
         "Description": "Check if a controller interface exists",
@@ -47,10 +51,6 @@ MOCK_TASKS_2 = {
     }]
 }
 
-
-import logging
-l = logging.getLogger(__name__)
-# l.setLevel('DEBUG')
 
 def identify(cps, initial_state,
              cpv_model: Optional[CPV] = None,
