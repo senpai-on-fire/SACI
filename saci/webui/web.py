@@ -1,6 +1,9 @@
 from __future__ import annotations
+
+import json
 import time
 import importlib
+from io import StringIO
 from pathlib import Path
 import os
 
@@ -8,11 +11,12 @@ from flask import Flask, render_template, send_file, request, abort
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
-
-
+from ..modeling import CPVHypothesis
 
 app = Flask(__name__)
 start_work_thread()
+
+hypotheses = {}
 
 
 def get_component_abstractions(comp) -> dict[str, str]:
@@ -55,22 +59,32 @@ def cpv_info():
     cls_name = request.args.get("name")
 
     if not cls_name:
-        return {"error": "Name is required"}
+        return {"error": "Name is required"}, 400
 
-    for cpv in CPVS:
-        if cpv.__class__.__name__ == cls_name:
-            break
+    if cls_name.startswith("hypothesis/"):
+        hypothesis_name = cls_name[len("hypothesis/"):]
+        if hypothesis_name not in hypotheses:
+            return {"error": "Hypothesis doesn't exist"}, 400
+        hypothesis = hypotheses[hypothesis_name]
+        name = hypothesis_name
+        components = hypothesis.required_components
     else:
-        return {"error": "CPV not found"}
+        for cpv in CPVS:
+            if cpv.__class__.__name__ == cls_name:
+                break
+        else:
+            return {"error": "CPV not found"}, 400
+        name = cpv.NAME
+        components = cpv.required_components
 
     return {
-        "name": cpv.NAME,
-        "cls_name": cpv.__class__.__name__,
+        "name": name,
+        "cls_name": cls_name,
         "components": [
             {
                 "name": comp.name,
                 "abstractions": get_component_abstractions(comp),
-            } for comp in cpv.required_components
+            } for comp in components
         ],
     }
 
@@ -82,6 +96,25 @@ def lookup_blueprint(raw):
         return blueprints[blueprint_id]
     except (TypeError, ValueError):
         return None
+
+@app.post("/api/add_hypothesis")
+def add_hypothesis():
+    if "name" not in request.args:
+        return {"error": "must give name argument"}, 400
+    name = request.args["name"]
+    if name in hypotheses:
+        return {"error": "hypothesis name already taken"}, 400
+    required_components = request.get_json(silent=True)
+    if required_components is None:
+        return {"error": "must give json body"}, 400
+    # TODO: why are we stringifying here...
+    hypotheses[name] = CPVHypothesis(StringIO(json.dumps({
+        "Name": name,
+        "Required Components": required_components,
+        "Kinetic Effect": "do something, or not",
+        "Vulnerabilities": [],
+    })))
+    return {}
 
 @app.post("/api/ingest_blueprint")
 def ingest_blueprint():
@@ -159,17 +192,24 @@ def set_blueprint_option():
 def cpv_search():
     # TODO: Getting the components from the front end
 
-    cpv_name = request.args.get("cpv_name", None)
-    if cpv_name is None:
-        return {"error": "CPV name must be provided"}
-
     blueprint_id = request.args.get("blueprint_id", None)
     if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
     cps = blueprints[blueprint_id]
 
-    # TODO: watch out for thread safety with this cps reference...
-    search_id = add_search(cpv=cpv_name, cps=cps)
+    cpv_name = request.args.get("cpv_name", None)
+    if cpv_name is None:
+        return {"error": "CPV name must be provided"}
+
+    if cpv_name.startswith("hypothesis/"):
+        hypothesis_name = cpv_name[len("hypothesis/"):]
+        if hypothesis_name not in hypotheses:
+            return {"error": "Hypothesis doesn't exist"}, 400
+        hypothesis = hypotheses[hypothesis_name]
+        # TODO: watch out for thread safety with this cps reference...
+        search_id = add_search(hypothesis=hypothesis, cps=cps)
+    else:
+        search_id = add_search(cpv=cpv_name, cps=cps)
 
     return {
         "search_id": search_id,

@@ -35,7 +35,7 @@ class CPVHypothesis(CPV):
             return components[0], components[-1]
 
     def _match(self, component, required):
-        ll = list(required.ABSTRACTIONS.values())
+        ll = list(required.ABSTRACTIONS.values()) + [required]
         if not any(map(lambda req_c: type(component) == type(req_c), ll)):
             return False
         return True

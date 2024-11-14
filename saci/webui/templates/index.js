@@ -1,3 +1,15 @@
+import {
+  CurveFactory,
+  Edge,
+  GeomEdge,
+  GeomGraph,
+  GeomNode,
+  Graph,
+  Node,
+  Point,
+  layoutGeomGraph,
+} from 'https://cdn.jsdelivr.net/npm/@msagl/core@1.1.23/+esm';
+
 function select_cpv(name)
 {
     $.ajax({
@@ -13,6 +25,7 @@ function select_cpv(name)
         }
     });
 }
+window.select_cpv = select_cpv;
 
 function gen_components_html(components)
 {
@@ -31,6 +44,7 @@ function gen_components_html(components)
     // html += "<div>DONE</div>";
     return html;
 }
+window.gen_components_html = gen_components_html;
 
 function get_blueprint_component_graph(blueprint_id)
 {
@@ -51,6 +65,25 @@ function get_blueprint_component_graph(blueprint_id)
 
             const width = 1400;
             const height = 300;
+
+            /*
+            const graph = new Graph();
+            const layoutNodes = new Map();
+            for (const node of data.nodes) {
+                const n = new Node(node.id);
+                layoutNodes.set(node.id, n);
+                graph.addNode(n);
+                const gn = new GeomNode(n);
+                gn.boundaryCurve = CurveFactory.mkCircle(20, new Point(0, 0));
+            }
+            const geomGraph = new GeomGraph(graph);
+            const geomEdges = [];
+            for (const link of data.links) {
+                const edge = new Edge(layoutNodes[link.source], layoutNodes[link.target]);
+                geomEdges.push(new GeomEdge(edge));
+            }
+            layoutGeomGraph(geomGraph);
+            */
 
             const svg = d3.select("#blueprint_graph")
                 .append("svg")
@@ -126,6 +159,7 @@ function get_blueprint_component_graph(blueprint_id)
         }
     });
 }
+window.get_blueprint_component_graph = get_blueprint_component_graph;
 
 function gen_component_abstraction_html(component)
 {
@@ -144,6 +178,7 @@ function gen_component_abstraction_html(component)
     }
     return html;
 }
+window.gen_component_abstraction_html = gen_component_abstraction_html;
 
 function search_for_cpvs()
 {
@@ -158,6 +193,7 @@ function search_for_cpvs()
         }
     });
 }
+window.search_for_cpvs = search_for_cpvs;
 
 function get_cpv_research_result_html(search_id, r)
 {
@@ -191,6 +227,7 @@ function get_cpv_research_result_html(search_id, r)
     container.append(json_details);
     return container;
 }
+window.get_cpv_research_result_html = get_cpv_research_result_html;
 
 function update_cpv_search_results()
 {
@@ -235,8 +272,9 @@ function update_cpv_search_results()
         }
     });
 }
+window.update_cpv_search_results = update_cpv_search_results;
 
-function add_blueprint() {
+function add_blueprint(event) {
     const name = $("#new-blueprint-name").val();
     const blueprint = $("#new-blueprint-json").val();
     $.post({
@@ -254,6 +292,51 @@ function add_blueprint() {
         },
     })
 }
+window.add_blueprint = add_blueprint;
+
+window.remove_hypothesis_component = function(elem) {
+    elem.parentElement.remove();
+    return false;
+};
+
+function make_hypothesis_component() {
+    // janky lmao
+    const old_hypo_comp = document.querySelector(".hypothesis-component");
+    const new_hypo_comp = old_hypo_comp.cloneNode(true);
+    new_hypo_comp.querySelector("input").value = "";
+    return new_hypo_comp;
+}
+
+window.add_hypothesis_component = function(elem) {
+    document.querySelector(".hypothesis-components")
+        .appendChild(make_hypothesis_component());
+    return false;
+};
+
+function make_hypothesis(name) {
+    const link = $('<a href="#"></a>').text(name).on("click", () => select_cpv(`hypothesis/${name}`));
+    return $('<li class="list-group-item"></li>').append(link);
+}
+
+window.add_hypothesis = function() {
+    const name = $("#new-hypothesis-name").val();
+    const components = $(".hypothesis-component input").map((i, e) => e.value).toArray();
+    $.post({
+        url: "/api/add_hypothesis?name=" + encodeURIComponent(name),
+        data: JSON.stringify(components),
+        contentType: "application/json",
+        dataType: "json",
+        success: (data) => {
+            const li = make_hypothesis(name);
+            $("#cpv-list").append(li);
+            alert(`added hypothesis ${name} successfully`);
+        },
+        error: (xhr) => {
+            alert(`adding hypothesis failed: ${xhr.responseText}`);
+        },
+    })
+    return false;
+};
 
 $(document).ready(function() {
     setInterval(update_cpv_search_results, 1000);

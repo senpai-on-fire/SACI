@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import json
+import queue
 import time
 import threading
+from io import StringIO
 
+from saci.modeling import CPVHypothesis
 from saci.modeling.state import GlobalState
+from saci.orchestrator import process
 from saci.orchestrator.orchestrator import identify, constrain_cpv_path, identify_from_cpsv, MOCK_TASKS_1, MOCK_TASKS_2
-
+from saci.orchestrator.workers import TA1, TA2, TA3
 
 WORK_THREAD = None
 SEARCHES: dict[int, dict] = {}
@@ -37,7 +42,7 @@ def update_search_result(search_id: int, **kwargs) -> None:
     search["last_updated"] = int(time.time() * 10000)
 
 
-def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
+def cpv_search_worker(cps=None, cpv: str=None, search_id=None, hypothesis=None, **kwargs):
     initial_state = GlobalState(cps.components)
 
     from saci_db.cpvs import CPVS
@@ -48,45 +53,42 @@ def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
             cpv_model = cpv_
             break
 
-    if cpv_model is None:
+    if cpv_model is None and hypothesis is None:
         # no CPV is found
         update_search_result(search_id, result=f"No CPV is found for {cpv}")
         return
 
-    # Identify CPV models and CPV paths
-    identified_cpv_and_paths = []
+    ta4_queue = queue.Queue()
+    ta1 = TA1(ta4_queue)
+    ta2 = TA2(ta4_queue)
+    ta3 = TA3(ta4_queue)
 
-    cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model)
-    if cpv_model is not None and cpv_paths is not None:
-        identified_cpv_and_paths.append((cpv_model, cpv_paths))
+    if hypothesis is not None:
+        hypotheses = [hypothesis]
+    else:
+        hypotheses = None
 
-    # what is this special casing??
-    if "mavlink" in cpv_model.__class__.__name__.lower():
-        from saci_db.vulns import MavlinkCPSV, MavlinkOverflow
-        potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), [MavlinkCPSV(), MavlinkOverflow()]))
-        identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
+    print(hypotheses)
+    database = {
+        "hypotheses": hypotheses,
+        "cpv_model": [cpv_model] if cpv_model is not None else [],
+        "cpsv_model": [],
+        "cps_vuln": [],
+    }
+    process_output = process(cps, database, initial_state)
+    cpv_inputs = [
+        {"cpv_model": cpv_model, "cpv_path": cpv_path, "cpv_input": cpv_input}
+        for (_, cpv_model, cpv_path, cpv_input, _)
+        in process_output
+    ]
 
     # write identified CPV and paths back
-    print(identified_cpv_and_paths)
-    if identified_cpv_and_paths:
-        update_search_result(search_id, identified_cpv_and_paths=identified_cpv_and_paths)
+    print(cpv_inputs)
+    if cpv_inputs:
         update_search_result(search_id, result="CPV path candidates identified.")
     else:
         update_search_result(search_id, result="No CPV path candidates are identified.")
         return
-
-    # Constrain identified CPV paths
-    # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
-    cpv_inputs = [ ]
-    for cpv_model, cpv_paths in SEARCHES[search_id]["identified_cpv_and_paths"]:
-        for cpv_path in cpv_paths:
-            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path, {"goal": getattr(cpv_model, "goal_motor_state", "shut_down")})
-            if cpv_input is not None:
-                cpv_inputs.append({
-                    "cpv_model": cpv_model,
-                    "cpv_path": cpv_path,
-                    "cpv_input": cpv_input,
-                })
 
     # write CPV inputs back
     print(cpv_inputs)
@@ -94,9 +96,15 @@ def cpv_search_worker(cps=None, cpv: str=None, search_id=None, **kwargs):
     update_search_result(search_id, result="CPV input identified.")
 
     # add the tasks we want the other TAs to do
-    update_search_result(search_id, tasks=MOCK_TASKS_1)
-    time.sleep(5.0)
-    update_search_result(search_id, tasks=MOCK_TASKS_2)
+    # TODO: make this thread exit at some point
+    # TODO: this is janky bc we are sending the same object each time... but i don't think there's really any multithreading issues here
+    tasks = []
+    print("getting tasks")
+    while True:
+        task = ta4_queue.get()
+        print(f"task: {task}")
+        tasks.append(task)
+        update_search_result(search_id, tasks=tasks)
 
 
 def working_routine():

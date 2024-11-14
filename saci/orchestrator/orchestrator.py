@@ -95,13 +95,15 @@ def constrain_cpv_path(cps, cpv_model, cpv_path, output) -> Optional:
             # this is a combo component
             constrainercls_and_abstractions = list(get_constrainer_and_abstract_component(component))
             if not constrainercls_and_abstractions:
-                raise TypeError(f"No constrainer found for {component}")
+                inputs.insert(0, None)
+                continue
 
         else:
             # this is an abstracted component
             constrainer_clses = list(get_constrainer(component))
             if not constrainer_clses:
-                raise TypeError(f"No constrainer found for {component}")
+                inputs.insert(0, None)
+                continue
 
             constrainercls_and_abstractions = [(cls, component) for cls in constrainer_clses]
 
