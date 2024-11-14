@@ -24,6 +24,36 @@ import logging
 l = logging.getLogger(__name__)
 # l.setLevel('DEBUG')
 
+MOCK_TASKS_1 = {
+    "TA1": [{
+        "Description": "Check if a controller interface exists",
+        "Meta-Data": []
+    }],
+    "TA2": [{
+        "Description": "Simulate roll-over",
+        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
+    }],
+    "TA3": []
+}
+
+MOCK_TASKS_2 = {
+    "TA1": [{
+        "Description": "Check if a controller interface exists",
+        "Meta-Data": []
+    }],
+    "TA2": [{
+        "Description": "Simulate roll-over",
+        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
+    }],
+    "TA3": [{
+        "Description": "Measure please! (Resource: chatgpt)",
+        "Meta-Data": ["CoM", "Base of Support", "Moment of Inertia", "Shape and Geometry"]
+    }]
+}
+
+
+
+
 def identify(cps, initial_state,
              cpv_model: Optional[CPV] = None,
              ta1 = None,
