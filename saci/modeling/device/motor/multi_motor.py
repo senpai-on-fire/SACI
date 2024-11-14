@@ -2,8 +2,8 @@ from typing import List
 
 from claripy import BVS
 
-from ..component import CyberComponentAlgorithmic
-from .motor import MotorHigh, MotorAlgorithmic
+from ..component import CyberAbstractionLevel
+from .motor import MotorHigh, MotorAlgorithmic, Motor
 
 
 class MultiMotorHigh(MotorHigh):
@@ -34,3 +34,11 @@ class MultiMotorAlgo(MotorAlgorithmic):
             total_rpm += motor.v["rpm"]
 
         return total_rpm
+
+class MultiMotor(Motor):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: MultiMotorHigh(),
+            CyberAbstractionLevel.ALGORITHMIC: MultiMotorAlgo(),
+        }

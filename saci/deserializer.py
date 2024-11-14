@@ -1,6 +1,8 @@
 import argparse
 import json
+import copy
 import string
+import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -42,10 +44,29 @@ class ComponentPath:
 
 # TODO: probably have this in some more centralized location
 BUILTIN_SYSTEM_COMPONENTS: dict[str, ComponentPath] = {
-    "Compass": ComponentPath("saci.modeling.device.compass", "CompassSensorHigh", "compass"),
+    "Compass": ComponentPath("saci.modeling.device", "CompassSensorHigh", "compass"),
     "GPS": ComponentPath("saci.modeling.device", "GPSReceiver", "gps"),
     "Vehicle Control": ComponentPath("saci.modeling.device", "Controller", "vehicle_control"),
     "Drive Motor Control": ComponentPath("saci.modeling.device", "Controller", "drive_motor_control"),
+}
+
+SACI_TYPE_MAPPING: dict[str, ComponentPath] = {
+    "MOTOR": ComponentPath("saci.modeling.device.motor", "Motor", "motor"),
+    "MULTIMOTOR": ComponentPath("saci.modeling.device.motor", "MultiMotor", "multimotor"),
+    "MULTICOPTERMOTOR": ComponentPath("saci.modeling.device.motor", "MultiCopterMotor", "multicoptermotor"),
+    "SERVO": ComponentPath("saci.modeling.device.motor", "Servo", "servo"),
+    "STEERING": ComponentPath("saci.modeling.device.motor", "Steering", "steering"),
+    "CAMERA": ComponentPath("saci.modeling.device.camera", "Camera", "camera"),
+    "COMPASS": ComponentPath("saci.modeling.device.compass", "CompassSensor", "compass"),
+    "CONTROLLER": ComponentPath("saci.modeling.device.controller", "Controller", "controller"),
+    "GPS": ComponentPath("saci.modeling.device.gps", "GPSReceiver", "gps"),
+    "GYROSCOPE": ComponentPath("saci.modeling.device.gyroscope", "Gyroscope", "gyroscope"),
+    "MAVLINK": ComponentPath("saci.modeling.device.mavlink", "Mavlink", "mavlink"),
+    # TODO: oops
+    "MICROCONTROLLER": ComponentPath("saci.modeling.device.controller", "Controller", "controller"),
+    "SIKRADIO": ComponentPath("saci.modeling.device.sikradio", "SikRadio", "sikradio"),
+    "TELEMETRY": ComponentPath("saci.modeling.device.telemetry", "Telemetry", "telemetry"),
+    "WIFI": ComponentPath("saci.modeling.device.wifi", "Wifi", "wifi"),
 }
 
 def split_any(s: str, split_on: set[str]) -> list[str]:
@@ -62,9 +83,9 @@ def split_any(s: str, split_on: set[str]) -> list[str]:
         out.append(part)
     return out
 
-def system_name_to_path(system_name: str) -> ComponentPath:
-    if system_name in BUILTIN_SYSTEM_COMPONENTS:
-        return BUILTIN_SYSTEM_COMPONENTS[system_name]
+def system_name_to_path(system_name: str, saci_type: str) -> ComponentPath:
+    # if system_name in BUILTIN_SYSTEM_COMPONENTS:
+    #     return BUILTIN_SYSTEM_COMPONENTS[system_name]
     if system_name[0] in string.digits:
         system_name = "N" + system_name
     name_parts = split_any(system_name, {' ', '-', '_'})
@@ -73,6 +94,8 @@ def system_name_to_path(system_name: str) -> ComponentPath:
     class_name = "".join(name_parts)
     if any(not name.isidentifier() for name in (module_name, class_name, attr_name)):
         raise ValueError(f"Couldn't convert system name {system_name!r} to valid names")
+    if (path := SACI_TYPE_MAPPING.get(saci_type)) is not None:
+        return dataclasses.replace(path, attr_name=attr_name)
     return ComponentPath(module_name, class_name, attr_name, local=True, file_name=f"{module_name}.py")
 
 @dataclass(frozen=True)
@@ -89,6 +112,7 @@ class System:
     subsystems: list["System"]
     ports: list[Port]
     interfaces: list[dict]
+    saci_type: str
 
     @property
     def all_subsystems(self):
@@ -135,6 +159,7 @@ class Deserializer:
             subsystems,
             ports,
             node["interfaces"],
+            node["saciType"],
         )
         for port in ports:
             self.ports[port.unique_instance_id] = sys
@@ -174,6 +199,7 @@ def port_name_to_attr(port_name: str) -> str:
 
 jinja_env = Environment(autoescape=False)
 jinja_env.filters["port_name_to_attr"] = port_name_to_attr
+jinja_env.filters["repr"] = repr
 
 system_template = jinja_env.from_string("""\"""Auto-generated component for system "{{ system.name }}".\"""
 from saci.modeling.device.component.cyber import CyberComponentBase
@@ -189,7 +215,7 @@ class {{ component_path.class_name }}(CyberComponentBase):
 """)
 
 def emit_system(base_path: Path, system: System) -> ComponentPath:
-    component_path = system_name_to_path(system.name)
+    component_path = system_name_to_path(system.name, system.saci_type)
     if component_path.file_name is None:
         return component_path
 
@@ -220,8 +246,8 @@ class {{ device_path.class_name }}(saci.modeling.Device):
 
     def __init__(self, state=None):
         components = []
-        {% for comp_path in components.values() %}
-        {{ comp_path.attr_name }} = {{ comp_path.qualified_class_name }}()
+        {% for comp_name, comp_path in components.items() %}
+        {{ comp_path.attr_name }} = {{ comp_path.qualified_class_name }}(name={{ comp_name | repr }})
         components.append({{ comp_path.attr_name }})
         {% endfor %}
 
@@ -239,8 +265,8 @@ class {{ device_path.class_name }}(saci.modeling.Device):
         )
 """)
 
-def emit_device(base_path: Path, components: dict[str, ComponentPath], connections: list[tuple[str, str]], name: str):
-    device_path = system_name_to_path(name) # TODO: we never want to find this in the builtins
+def emit_device(base_path: Path, components: dict[str, ComponentPath], connections: list[tuple[str, str]], name: str, saci_type: str):
+    device_path = system_name_to_path(name, saci_type) # TODO: we never want to find this in the builtins
     with open(base_path / "__init__.py", "w") as file:
         file.write(device_template.render(components=components, connections=connections, name=name, device_path=device_path))
 
@@ -281,7 +307,7 @@ def ingest(serialized: dict, output_dir: Path, render: bool=False, force: bool=F
 
     # TODO: do we want to model connections to the top-level device in some better way than just filtering them out...
     connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name]
-    emit_device(output_dir, components, connections, device.name)
+    emit_device(output_dir, components, connections, device.name, device.saci_type)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

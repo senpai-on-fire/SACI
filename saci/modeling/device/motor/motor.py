@@ -1,4 +1,4 @@
-from ..component import CyberComponentHigh, CyberComponentAlgorithmic
+from ..component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
 
 from claripy import BVS
 
@@ -17,3 +17,11 @@ class MotorAlgorithmic(CyberComponentAlgorithmic):
         super().__init__(**kwargs)
 
         self.variables["rpm"] = BVS("rpm", 64)
+
+class Motor(CyberComponentBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: MotorHigh(),
+            CyberAbstractionLevel.ALGORITHMIC: MotorAlgorithmic(),
+        }

@@ -1,4 +1,4 @@
-from ..component import CyberComponentHigh, CyberComponentAlgorithmic
+from ..component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberAbstractionLevel
 
 from claripy import BVS
 
@@ -17,3 +17,11 @@ class ServoAlgorithmic(CyberComponentAlgorithmic):
         super().__init__(**kwargs)
 
         self.variables["angle"] = BVS("angle", 64)
+
+class Servo(CyberComponentBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: ServoHigh(),
+            CyberAbstractionLevel.ALGORITHMIC: ServoAlgorithmic(),
+        }

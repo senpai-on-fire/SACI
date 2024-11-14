@@ -16,7 +16,11 @@ class ComponentBase:
         self.type = _type
 
     def __repr__(self):
-        return f"<{self.name}>"
+        type_name = type(self).__name__
+        if self.name != type_name:
+            return f"{self.name} ({type_name})"
+        else:
+            return self.name
 
     #
     # Simulation Useful Functions
