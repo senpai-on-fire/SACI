@@ -20,34 +20,6 @@ from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
 
 from .workers import TA1, TA2, TA3
 
-MOCK_TASKS_1 = {
-    "TA1": [{
-        "Description": "Check if a controller interface exists",
-        "Meta-Data": []
-    }],
-    "TA2": [{
-        "Description": "Simulate roll-over",
-        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
-    }],
-    "TA3": []
-}
-
-MOCK_TASKS_2 = {
-    "TA1": [{
-        "Description": "Check if a controller interface exists",
-        "Meta-Data": []
-    }],
-    "TA2": [{
-        "Description": "Simulate roll-over",
-        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
-    }],
-    "TA3": [{
-        "Description": "Measure please! (Resource: chatgpt)",
-        "Meta-Data": ["CoM", "Base of Support", "Moment of Inertia", "Shape and Geometry"]
-    }]
-}
-
-
 import logging
 l = logging.getLogger(__name__)
 # l.setLevel('DEBUG')
