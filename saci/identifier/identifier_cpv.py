@@ -8,8 +8,8 @@ from ..modeling import Device, CPV, ComponentBase
 from ..modeling.state import GlobalState
 from ..modeling.device.component import CyberComponentHigh
 from ..orchestrator.workers import Worker
+from ..atoms import Atoms
 
-ATOM_FILE = os.path.join(Path(__file__).parent.parent.parent, "tests", "atoms.json")
 # from clorm import Predicate, ConstantStr, SimpleField
 # from clorm.clingo import Control
 
@@ -55,8 +55,7 @@ class Identifier:
                  queue = None):
         self.device = device
         self.initial_state = initial_state
-        with open(ATOM_FILE, 'r') as f:
-            self.atoms = json.load(f)
+        Atoms
         self.ta1 = ta1
         self.ta2 = ta2
         self.ta3 = ta3
@@ -115,7 +114,7 @@ class Identifier:
         """
         check the atoms from self.atoms for what independent variables that TA2 should simulate
         """
-        finder = list(filter(lambda x: x["Kinetic Effect"] == effect, self.atoms))
+        finder = list(filter(lambda x: x["Kinetic Effect"] == effect, Atoms))
         if len(finder) > 0:
             return finder[0]
         return None

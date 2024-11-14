@@ -52,8 +52,6 @@ MOCK_TASKS_2 = {
 }
 
 
-
-
 def identify(cps, initial_state,
              cpv_model: Optional[CPV] = None,
              ta1 = None,
