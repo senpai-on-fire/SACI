@@ -199,13 +199,15 @@ function get_cpv_research_result_html(search_id, r)
 {
     var container = $("<div><h4>Search " + search_id + "</h4></div>");
     if (r["cpv_inputs"] !== "None") {
-        var cpv = $("<div></div>").text(`CPV: ${r["cpv_inputs"][0].cpv_model}`);
-        var cpv_path = $("<div></div>").text(`Path: ${r["cpv_inputs"][0].cpv_path.path.join(", ")}`);
-        // var input = $("<div></div>").text(`Input: ${r["cpv_inputs"][0].cpv_input}`);
+        for (const cpv_input of r["cpv_inputs"]) {
+            var cpv = $("<div></div>").text(`CPV: ${cpv_input.cpv_model}`);
+            var cpv_path = $("<div></div>").text(`Path: ${cpv_input.cpv_path.path.join(", ")}`);
+            // var input = $("<div></div>").text(`Input: ${r["cpv_inputs"][0].cpv_input}`);
 
-        container.append(cpv);
-        container.append(cpv_path);
-        // container.append(input);
+            container.append(cpv);
+            container.append(cpv_path);
+            // container.append(input);
+        }
     }
     if (r["tasks"] !== "None") {
         for (const [ta, tasks] of Object.entries(r.tasks)) {
