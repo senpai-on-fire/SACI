@@ -13,21 +13,29 @@ class CPV:
     """
 
     NAME: str = "Unspecified"
-        
+    DESCRIPTION: str = "Unspecified"
+
     def __init__(
         self,
-        required_components: Optional[List[Type[CyberComponentBase]]] = None,
+        required_components: Optional[List[CyberComponentBase]] = None,
         entry_component: CyberComponentBase = None,
         exit_component: CyberComponentBase = None,
         goals: List[CyberComponentBase] = None,
         vulnerabilities: List[BaseVulnerability] = None,
+        initial_conditions: list[str] = None,
+        final_conditions: list[str] = None,
+        steps: list[str] = None,
+        associated_files: list[str] = None,
     ):
         self.required_components = required_components or []
         self.entry_component = entry_component
         self.exit_component = exit_component
         self.goals = goals or []
         self.vulnerabilities = vulnerabilities or []
-        
+        self.initial_conditions = initial_conditions or []
+        self.final_conditions = final_conditions or []
+        self.steps = steps or []
+        self.associated_files = associated_files or []
 
     def vulnerable(self, device: Device):
         for vulnerability in self.vulnerabilities:
