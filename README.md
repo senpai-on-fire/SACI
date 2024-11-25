@@ -4,7 +4,7 @@ SACI - Software-Aware CPV Identifier
 ## Installation
 Install `SACI` and the `saci-db` (located in the same GitHub group) together: 
 ```bash
-pip install -e . ../saci-database
+pip install -e . '../saci-database[web]'
 ```
 
 ## Background
@@ -152,3 +152,7 @@ paths = identifier.identify()
 ### Run with examples
 
 1. `saci -r orchestrator -y tests/hypothesis_wifi.json`, this is to take a user hypothesis as input and check if such a CPV exist in the device, by checking if the corresponding components and vulnerabilities exist.
+
+### Run the web server
+
+1. `saci -r web`
