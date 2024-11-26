@@ -10,6 +10,7 @@ class CPV:
     A Cyber-Physical BaseVulnerability (CPV) is a representation of a vulnerability in a cyber-physical system.
     A CPV consists of a set of goal states, an entry state, and an attack. The attack is a directed graph that
 
+    Name CPVs based on the entry component and the physical impact.
     """
 
     NAME: str = "Unspecified"
@@ -26,6 +27,7 @@ class CPV:
         final_conditions: list[str] = None,
         steps: list[str] = None,
         associated_files: list[str] = None,
+        reference_urls: list[str] = None,
     ):
         self.required_components = required_components or []
         self.entry_component = entry_component
@@ -36,6 +38,7 @@ class CPV:
         self.final_conditions = final_conditions or []
         self.steps = steps or []
         self.associated_files = associated_files or []
+        self.reference_urls = reference_urls or []
 
     def vulnerable(self, device: Device):
         for vulnerability in self.vulnerabilities:
