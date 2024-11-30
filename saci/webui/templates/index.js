@@ -10,8 +10,163 @@ import {
   layoutGeomGraph,
 } from 'https://cdn.jsdelivr.net/npm/@msagl/core@1.1.23/+esm';
 
-function select_cpv(name)
-{
+// Mock data for CPVs and their details
+const cpvs_blueprint_1 = [
+    { id: 1, name: "CPV 1", details: ["Entry Component", "Required Component", "Associated CPS", "Initial System State", "Attack Vector", "Attack Impact", "Attack Requirements", "Privileges Requirements", "User-System Interactions", "Attack Steps"] },
+    { id: 2, name: "CPV 2", details: ["Entry Component 2", "Required Component 2", "Associated CPS 2", "Initial System State 2", "Attack Vector 2", "Attack Impact 2", "Attack Requirements 2", "Privileges Requirements 2", "User-System Interactions 2", "Attack Steps 2"] },
+];
+
+const cpvs_blueprint_2 = [
+    { id: 1, name: "CPV 1", details: ["Entry Component", "Required Component", "Associated CPS", "Initial System State", "Attack Vector", "Attack Impact", "Attack Requirements", "Privileges Requirements", "User-System Interactions", "Attack Steps"] },
+    { id: 2, name: "CPV 2", details: ["Entry Component 2", "Required Component 2", "Associated CPS 2", "Initial System State 2", "Attack Vector 2", "Attack Impact 2", "Attack Requirements 2", "Privileges Requirements 2", "User-System Interactions 2", "Attack Steps 2"] },
+];
+
+let autoUpdateEnabled = true;
+let currentCPVId = null;
+let autoUpdatePaused = false;
+let selectedBlueprintId = null;
+
+// Initialize blueprint selection handler
+function initializeBlueprintSelection() {
+    const blueprintSelect = document.getElementById("blueprint");
+    if (blueprintSelect) {
+        // Set initial value
+        selectedBlueprintId = blueprintSelect.value;
+        
+        // Add change event listener
+        blueprintSelect.addEventListener('change', function(e) {
+            selectedBlueprintId = e.target.value;
+            clearSearchResults();
+            updateSearchButtonState();
+            get_blueprint_component_graph(selectedBlueprintId);
+        });
+    }
+}
+
+// Clear search results and details
+function clearSearchResults() {
+    const cpvResultsDiv = document.getElementById("cpv-search-results");
+    const cpvDetailsDiv = document.getElementById("cpv-detail-results");
+    
+    if (cpvResultsDiv) {
+        cpvResultsDiv.innerHTML = '<div class="alert alert-info">Select a blueprint and click Search to find relevant CPVs.</div>';
+    }
+    
+    if (cpvDetailsDiv) {
+        cpvDetailsDiv.innerHTML = '';
+    }
+    
+    currentCPVId = null;
+}
+
+// Update search button state based on blueprint selection
+function updateSearchButtonState() {
+    const searchBtn = document.getElementById("search-btn");
+    if (searchBtn) {
+        if (selectedBlueprintId) {
+            searchBtn.removeAttribute('disabled');
+            searchBtn.title = 'Click to search for CPVs';
+        } else {
+            searchBtn.setAttribute('disabled', 'disabled');
+            searchBtn.title = 'Please select a blueprint first';
+        }
+    }
+}
+
+// Search for CPVs with selected blueprint
+function searchForCPVs() {
+    if (!selectedBlueprintId) {
+        console.error("No blueprint selected");
+        return;
+    }
+
+    console.log(`Searching CPVs for blueprint: ${selectedBlueprintId}`);
+
+    autoUpdatePaused = true;
+    setTimeout(() => {
+        autoUpdatePaused = false;
+    }, 10000);
+
+    const cpvResultsDiv = document.getElementById("cpv-search-results");
+    if (!cpvResultsDiv) {
+        console.error("CPV results container not found");
+        return;
+    }
+
+    // Show loading state
+    cpvResultsDiv.innerHTML = '<div class="alert alert-info">Searching CPVs...</div>';
+
+    // Filter or fetch CPVs based on selected blueprint
+    // This is where you would typically make an API call to get CPVs for the selected blueprint
+    // For now, we'll use the mock data
+    const table = document.createElement("table");
+    table.className = "table table-bordered";
+    const thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th>CPV ID</th><th>CPV Name</th><th>Blueprint</th></tr>";
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    cpvs_blueprint_1.forEach((cpv) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${cpv.id}</td>
+            <td><button class="btn btn-link" onclick="showCPVDetails(${cpv.id});">${cpv.name}</button></td>
+            <td>Blueprint ${selectedBlueprintId}</td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    cpvResultsDiv.innerHTML = '';
+    cpvResultsDiv.appendChild(table);
+}
+// Initialize on document load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeBlueprintSelection();
+    updateSearchButtonState();
+    clearSearchResults();
+});
+window.searchForCPVs = searchForCPVs;
+
+// Show details for selected CPV
+function showCPVDetails(cpvId) {
+    console.log(`Displaying details for CPV ID: ${cpvId}`);
+    currentCPVId = cpvId;
+
+    const selectedCPV = cpvs_blueprint_1.find(cpv => cpv.id === cpvId);
+    const cpvDetailDiv = document.getElementById("cpv-detail-results");
+
+    if (!cpvDetailDiv) {
+        console.error("CPV detail container not found");
+        return;
+    }
+
+    const detailsContainer = document.createElement("div");
+    detailsContainer.className = "cpv-details-container";
+
+    if (selectedCPV) {
+        const table = document.createElement("table");
+        table.className = "table table-striped";
+        const tbody = document.createElement("tbody");
+
+        selectedCPV.details.forEach((detail) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${detail}</td>`;
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+        detailsContainer.appendChild(table);
+    }
+
+    cpvDetailDiv.innerHTML = "";
+    cpvDetailDiv.appendChild(detailsContainer);
+}
+window.showCPVDetails = showCPVDetails;
+
+// Rest of the original functions remain the same
+function select_cpv(name) {
     $.ajax({
         url: "/api/cpv_info",
         data: {
@@ -22,6 +177,12 @@ function select_cpv(name)
             $("#cpv-name").attr("cpv-class-name", result["cls_name"]);
             $("#components").html(gen_components_html(result["components"]));
             $("#search-btn").removeAttr("disabled");
+            
+            // If this CPV has an ID, show its details
+            const cpv = cpvs_blueprint_1.find(c => c.name === result["name"]);
+            if (cpv) {
+                showCPVDetails(cpv.id);
+            }
         }
     });
 }
@@ -46,8 +207,7 @@ function gen_components_html(components)
 }
 window.gen_components_html = gen_components_html;
 
-function get_blueprint_component_graph(blueprint_id)
-{
+function get_blueprint_component_graph(blueprint_id) {
     $("#blueprint_graph").empty();
     $("#blueprint_options").empty();
     $.ajax({
@@ -62,81 +222,133 @@ function get_blueprint_component_graph(blueprint_id)
             }
 
             const data = result["component_graph"];
-
             const width = 1400;
-            const height = 300;
-
-            /*
-            const graph = new Graph();
-            const layoutNodes = new Map();
-            for (const node of data.nodes) {
-                const n = new Node(node.id);
-                layoutNodes.set(node.id, n);
-                graph.addNode(n);
-                const gn = new GeomNode(n);
-                gn.boundaryCurve = CurveFactory.mkCircle(20, new Point(0, 0));
-            }
-            const geomGraph = new GeomGraph(graph);
-            const geomEdges = [];
-            for (const link of data.links) {
-                const edge = new Edge(layoutNodes[link.source], layoutNodes[link.target]);
-                geomEdges.push(new GeomEdge(edge));
-            }
-            layoutGeomGraph(geomGraph);
-            */
+            const height = 400; // Increased height for better spacing
 
             const svg = d3.select("#blueprint_graph")
                 .append("svg")
                 .attr("width", width)
                 .attr("height", height);
 
+            // Create force simulation
+            const simulation = d3.forceSimulation(data.nodes)
+                .force("link", d3.forceLink(data.links)
+                    .id(d => d.id)
+                    .distance(150)) // Increased link distance
+                .force("charge", d3.forceManyBody()
+                    .strength(-300)) // Increased repulsion
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(50)); // Added collision detection
+
             const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-            // Position each node randomly, should probably use an actual graph layout algo!
-            data.nodes.forEach((node, index) => {
-                node.x = 50 + Math.random() * 600;
-                node.y = 50 + Math.random() * 250;
-            });
+            // Create container for graph elements with zoom capability
+            const container = svg.append("g");
+            
+            // Add zoom behavior
+            svg.call(d3.zoom()
+                .extent([[0, 0], [width, height]])
+                .scaleExtent([0.5, 2])
+                .on("zoom", (event) => {
+                    container.attr("transform", event.transform);
+                }));
 
-            const link = svg.append("g")
+            // Create arrow marker for directed edges
+            svg.append("defs").append("marker")
+                .attr("id", "arrow")
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 20)
+                .attr("refY", 0)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", "#999");
+
+            const link = container.append("g")
                 .attr("class", "links")
                 .selectAll("line")
                 .data(data.links)
                 .enter().append("line")
                 .attr("class", "link")
                 .attr("stroke-width", 2)
-                .attr("stroke", "#999");
+                .attr("stroke", "#999")
+                .attr("marker-end", "url(#arrow)");
 
-            const node = svg.append("g")
+            // Create node groups
+            const nodeGroup = container.append("g")
                 .attr("class", "nodes")
-                .selectAll("circle")
+                .selectAll("g")
                 .data(data.nodes)
-                .enter().append("circle")
-                .attr("r", 10)
+                .enter().append("g")
+                .attr("class", "node-group")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            // Add circles to node groups
+            const node = nodeGroup.append("circle")
+                .attr("r", 20)
                 .attr("fill", d => color(d.id));
 
-            const text = svg.append("g")
-                .attr("class", "texts")
-                .selectAll("text")
-                .data(data.nodes)
-                .enter().append("text")
+            // Add labels with background
+            const labels = nodeGroup.append("g")
+                .attr("class", "label-group");
+
+            // Add white background for labels
+            labels.append("rect")
+                .attr("class", "label-background")
+                .attr("fill", "white")
+                .attr("opacity", 0.8);
+
+            // Add text labels
+            const text = labels.append("text")
                 .attr("dy", -30)
                 .attr("text-anchor", "middle")
-                .text(d => d.name);
+                .text(d => d.name)
+                .each(function() {
+                    const bbox = this.getBBox();
+                    const parent = this.parentNode;
+                    const rect = parent.querySelector("rect");
+                    rect.setAttribute("x", bbox.x - 5);
+                    rect.setAttribute("y", bbox.y - 2);
+                    rect.setAttribute("width", bbox.width + 10);
+                    rect.setAttribute("height", bbox.height + 4);
+                });
 
-            link.attr("x1", d => data.nodes.find(node => node.id === d.source).x)
-                .attr("y1", d => data.nodes.find(node => node.id === d.source).y)
-                .attr("x2", d => data.nodes.find(node => node.id === d.target).x)
-                .attr("y2", d => data.nodes.find(node => node.id === d.target).y);
+            // Update positions on simulation tick
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
 
-            // Set node positions based on manually set node positions
-            node.attr("cx", d => d.x)
-                .attr("cy", d => d.y);
+                nodeGroup
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
 
-            // Set text positions based on manually set node positions
-            text.attr("x", d => d.x)
-                .attr("y", d => d.y);
+            // Drag functions
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
 
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            // Handle blueprint options
             const blueprint_options = $("#blueprint_options");
             console.log(data.options);
             for (const [option, value] of Object.entries(data.options)) {
@@ -231,47 +443,44 @@ function get_cpv_research_result_html(search_id, r)
 }
 window.get_cpv_research_result_html = get_cpv_research_result_html;
 
-function update_cpv_search_results()
-{
-    var cpv_search_ids = null;
+function update_cpv_search_results() {
+    if (autoUpdatePaused) {
+        console.log("Auto-update paused");
+        return; // Do nothing if auto-update is paused
+    }
+
+    const cpvResultsDiv = document.getElementById("cpv-search-results");
+    if (!cpvResultsDiv) return;
+
     $.ajax({
         url: "/api/cpv_search_ids",
-        success: function(result) {
-            cpv_search_ids = result["ids"];
+        success: function (result) {
+            const cpvSearchIds = result["ids"];
 
-            if (!cpv_search_ids.length) {
-                $("#cpv-search-results").html("<span id='no-search'>No running searches.</span>");
+            if (!cpvSearchIds.length) {
+                cpvResultsDiv.innerHTML = "<span>No running searches.</span>";
                 return;
-            } else {
-                $("#no-search").remove();
             }
 
-            for (const cpv_search_id of cpv_search_ids) {
+            cpvSearchIds.forEach((cpvSearchId) => {
                 $.ajax({
                     url: "/api/cpv_search_result",
-                    data: {
-                        id: cpv_search_id,
-                    },
+                    data: { id: cpvSearchId },
                     success: function (result) {
-                        var should_update = false;
-                        var elem_id = "cpv-search-result-" + cpv_search_id;
-                        if (!$("#" + elem_id).length) {
-                            // create the element
-                            $("#cpv-search-results").append($('<div id="' + elem_id + '">Test</div>'));
-                            should_update = true;
-                        } else {
-                            if (result["last_updated"].toString() !== $("#" + elem_id).attr("last_updated")) {
-                                should_update = true;
-                            }
+                        const elemId = `cpv-search-result-${cpvSearchId}`;
+                        let resultDiv = document.getElementById(elemId);
+
+                        if (!resultDiv) {
+                            resultDiv = document.createElement("div");
+                            resultDiv.id = elemId;
+                            cpvResultsDiv.appendChild(resultDiv);
                         }
-                        if (should_update) {
-                            $("#" + elem_id).html(get_cpv_research_result_html(cpv_search_id, result));
-                            $("#" + elem_id).attr("last_updated", result["last_updated"]);
-                        }
-                    }
+
+                        resultDiv.innerHTML = get_cpv_research_result_html(cpvSearchId, result);
+                    },
                 });
-            }
-        }
+            });
+        },
     });
 }
 window.update_cpv_search_results = update_cpv_search_results;
@@ -341,5 +550,5 @@ window.add_hypothesis = function() {
 };
 
 $(document).ready(function() {
-    setInterval(update_cpv_search_results, 1000);
+    //setInterval(update_cpv_search_results, 1000);
 });

@@ -26,12 +26,22 @@
         .hypothesis-component:only-child .add-hypo-remove-comp {
             display: none;
         }
+        hr{
+            border: 0;
+            height: 2px;
+            background: #333;
+            width: 100%;
+            margin: 30px auto;
+        }
+
     </style>
 
     <!-- d3,js -->
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
     <title>SACI WebUI</title>
+
+
 </head>
 <body class="container">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -53,9 +63,12 @@
     </div>
   </div>
 </nav>
-    <form>
+
+<hr>
+
+    <!-- <form>
     <fieldset>
-    <legend>Blueprint</legend>
+    <legend>Select the Cyber-Physical System under Test</legend>
     <select id="blueprint" onchange="get_blueprint_component_graph($('#blueprint').find('option:selected').val());">
         <option value="99" selected>Any</option>
         {% for blueprint_id, blueprint in blueprints.items() %}
@@ -65,8 +78,9 @@
     </fieldset>
     <div id="blueprint_graph"></div>
     <div id="blueprint_options"></div>
-    </form>
+    </form> -->
 
+<!-- 
     <details class="border">
         <summary>Add Blueprint</summary>
         <form>
@@ -78,9 +92,55 @@
         </form>
     </details>
 
-    <form>
+-->
+
+<hr>
+
+<div class="container mt-4">
+    <div class="blueprint-section">
+        <h2>Select the Cyber-Physical System under Test</h2>
+        <select id="blueprint" class="form-select mb-3">
+            <option value="">-- Select a Blueprint --</option>
+            {% for blueprint_id, blueprint in blueprints.items() %}
+            <option value="{{ blueprint_id }}">{{ blueprint_id }}: {{ blueprint.name }}</option>
+            {% endfor %}
+        </select>
+
+        <div id="blueprint_graph" class="mb-4"></div>
+        <div id="blueprint_options" class="mb-4"></div>
+    </div>
+
+    <hr>
+
+    <h2>The Cyber-Physical Vulnerability (CPV) Database</h2>
+    <ul id="cpv-list" class="list-group mb-4">
+        {% for cpv in cpvs %}
+        <li class="list-group-item">
+            <a href="#" onclick="select_cpv('{{ cpv.__class__.__name__ }}');">{{ cpv.NAME }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h3>Search for CPVs</h3>
+    <button id="search-btn" class="btn btn-primary mb-3" onclick="searchForCPVs();" disabled>
+        Search
+    </button>
+    
+    <div id="cpv-search-results" class="mb-4">
+        <!-- Search results will be displayed here -->
+    </div>
+
+    <h3>Selected CPV Details</h3>
+    <div id="cpv-detail-results" class="cpv-details-container">
+        <!-- CPV details will be displayed here -->
+    </div>
+</div>
+
+    <!-- <form>
     <fieldset>
-    <legend>CPV Playbook</legend>
+    <legend>The Cyber-Physical Vulnerability (CPV) Database</legend>
     <ul id="cpv-list" class="list-group">
     {% for cpv in cpvs %}
         <li class="list-group-item">
@@ -91,33 +151,9 @@
     </fieldset>
     </form>
 
-    <form>
-    <fieldset>
-    <legend>Add Hypothesis</legend>
-        <div>
-            <label>Name: <input type="text" id="new-hypothesis-name"></label>
-        </div>
-        <div class="hypothesis-components">
-            <div class="hypothesis-component">
-                <label>Component: <input type="text"></label>
-                <button onclick="return remove_hypothesis_component(this)" class="btn btn-sm btn-danger add-hypo-remove-comp">x</button>
-                <button onclick="return add_hypothesis_component(this)" class="btn btn-sm btn-primary add-hypo-add-comp">+</button>
-            </div>
-            <div class="hypothesis-component">
-                <label>Component: <input type="text"></label>
-                <button onclick="return remove_hypothesis_component(this)" class="btn btn-sm btn-danger add-hypo-remove-comp">x</button>
-                <button onclick="return add_hypothesis_component(this)" class="btn btn-sm btn-primary add-hypo-add-comp">+</button>
-            </div>
-            <div class="hypothesis-component">
-                <label>Component: <input type="text"></label>
-                <button onclick="return remove_hypothesis_component(this)" class="btn btn-sm btn-danger add-hypo-remove-comp">x</button>
-                <button onclick="return add_hypothesis_component(this)" class="btn btn-sm btn-primary add-hypo-add-comp">+</button>
-            </div>
-        </div>
-        <button onclick="add_hypothesis()" class="btn btn-success">Add Hypothesis</button>
-    </fieldset>
-    </form>
+    <hr> -->
 
+  <!--
     <form>
     <fieldset>
     <legend>Components</legend>
@@ -126,15 +162,34 @@
     </fieldset>
     <button id="search-btn" type="button" class="btn btn-primary" onclick="search_for_cpvs();" disabled="disabled">Search for CPVs</button>
     </form>
+  -->
+
+    <!-- <form></form>
+    <button id="search-btn" type="button" class="btn btn-primary" onclick="search_for_cpvs();">Search for CPVs</button>
+    </form>
 
     <form>
     <fieldset>
     <legend>Search Results</legend>
     <div id="cpv-search-results"></div>
     </fieldset>
-    </form>
+    </form> -->
+
+    <!-- <h3>Search for CPVs</h3>
+    <button id="search-btn" class="btn btn-primary mb-3" onclick="searchForCPVs();">Search</button>
+    
+    <div id="cpv-search-results" class="mb-4">
+    </div>
+
+    <h3>Selected CPV Details</h3>
+    <div id="cpv-detail-results" class="cpv-details-container">
+    </div> -->
+
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

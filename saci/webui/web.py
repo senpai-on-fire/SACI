@@ -184,7 +184,7 @@ def set_blueprint_option():
     value = request.get_json()
 
     cps.set_option(option, value)
-    print(cps.steering.has_aps)
+    #print(cps.steering.has_aps)
 
     return {}
 
