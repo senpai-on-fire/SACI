@@ -1,195 +1,77 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script type="module" src="/index.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-
-    <!-- highlight.js -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <style>
-        .code {
-            width: 100%;
-            height: 300px;
-        }
-        .add-hypo-add-comp {
-            display: none;
-        }
-        .hypothesis-component:last-child .add-hypo-add-comp {
-            display: inline-block;
-        }
-        .hypothesis-component:only-child .add-hypo-remove-comp {
-            display: none;
-        }
-        hr{
-            border: 0;
-            height: 2px;
-            background: #333;
-            width: 100%;
-            margin: 30px auto;
-        }
-
-    </style>
-
-    <!-- d3,js -->
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-
-    <title>SACI WebUI</title>
-
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SACI - CPV Database</title>
+    <!-- Add required stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Add required scripts -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
-<body class="container">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">SACI</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">Home</a>
-        </li>
-      </ul>
-      <form class="d-flex">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-      </form>
-    </div>
-  </div>
-</nav>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a href="#" class="text-xl font-bold">SACI</a>
+                <div class="hidden md:block">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-900">Home</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Search</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-<hr>
+    <main class="container mx-auto px-4 py-8">
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-4">Select the Cyber-Physical System under Test</h2>            
+            <select id="blueprint" class="w-full md:w-auto px-4 py-2 border rounded-md shadow-sm bg-white">
+                <option value="">-- Select a Blueprint --</option>
+                {% for blueprint_id, blueprint in blueprints.items() %}
+                    <option value="{{ blueprint_id }}">{{ blueprint_id }}: {{ blueprint.name }}</option>
+                {% endfor %}
+            </select>
 
-    <!-- <form>
-    <fieldset>
-    <legend>Select the Cyber-Physical System under Test</legend>
-    <select id="blueprint" onchange="get_blueprint_component_graph($('#blueprint').find('option:selected').val());">
-        <option value="99" selected>Any</option>
-        {% for blueprint_id, blueprint in blueprints.items() %}
-        <option value="{{ blueprint_id }}">{{ blueprint_id }}: {{ blueprint.name }}</option>
-        {% endfor %}
-    </select>
-    </fieldset>
-    <div id="blueprint_graph"></div>
-    <div id="blueprint_options"></div>
-    </form> -->
+            <div id="blueprint_graph" class="mt-4" style="min-height: 400px;"></div>
 
-<!-- 
-    <details class="border">
-        <summary>Add Blueprint</summary>
-        <form>
-            <fieldset>
-                <label for="new-blueprint-name">ID:</label> <input type="text" id="new-blueprint-name">
-                <label for="new-blueprint-json">Blueprint JSON:</label> <textarea id="new-blueprint-json"></textarea>
-                <button id="new-blueprint-submit" onclick="add_blueprint()">Add Blueprint</button>
-            </fieldset>
-        </form>
-    </details>
+            <div id="blueprint_options" class="mt-4"></div>
+        </section>
 
--->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-4">The Cyber-Physical Vulnerability (CPV) Playbook</h2>
+            <div class="flex flex-wrap gap-2">
+                {% for cpv in cpvs %}
+                    <button 
+                        onclick="select_cpv('{{ cpv.__class__.__name__ }}')" 
+                        class="px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors">
+                        {{ cpv.NAME }}
+                    </button>
+                {% endfor %}
+            </div>
+        </section>
 
-<hr>
+        <section class="mb-12">
+            <h3 class="text-xl font-bold mb-4">Search for CPVs</h3>
+            <button 
+                id="search-btn" 
+                onclick="searchForCPVs()" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                Search
+            </button>
+            <div id="cpv-search-results" class="mt-4 overflow-x-auto">
+                <div class="alert alert-info">Select a blueprint (CPS device) and click Search to find relevant CPVs.</div>
+            </div>
+        </section>
 
-<div class="container mt-4">
-    <div class="blueprint-section">
-        <h2>Select the Cyber-Physical System under Test</h2>
-        <select id="blueprint" class="form-select mb-3">
-            <option value="">-- Select a Blueprint --</option>
-            {% for blueprint_id, blueprint in blueprints.items() %}
-            <option value="{{ blueprint_id }}">{{ blueprint_id }}: {{ blueprint.name }}</option>
-            {% endfor %}
-        </select>
+        <section>
+            <h3 class="text-xl font-bold mb-4">Selected CPV Details</h3>
+            <div id="cpv-detail-results" class="cpv-details-container bg-white rounded-lg shadow-sm"></div>
+        </section>
+    </main>
 
-        <div id="blueprint_graph" class="mb-4"></div>
-        <div id="blueprint_options" class="mb-4"></div>
-    </div>
-
-    <hr>
-
-    <h2>The Cyber-Physical Vulnerability (CPV) Database</h2>
-    <ul id="cpv-list" class="list-group mb-4">
-        {% for cpv in cpvs %}
-        <li class="list-group-item">
-            <a href="#" onclick="select_cpv('{{ cpv.__class__.__name__ }}');">{{ cpv.NAME }}</a>
-        </li>
-        {% endfor %}
-    </ul>
-
-    <hr>
-
-    <h3>Search for CPVs</h3>
-    <button id="search-btn" class="btn btn-primary mb-3" onclick="searchForCPVs();" disabled>
-        Search
-    </button>
-    
-    <div id="cpv-search-results" class="mb-4">
-        <!-- Search results will be displayed here -->
-    </div>
-
-    <h3>Selected CPV Details</h3>
-    <div id="cpv-detail-results" class="cpv-details-container">
-        <!-- CPV details will be displayed here -->
-    </div>
-</div>
-
-    <!-- <form>
-    <fieldset>
-    <legend>The Cyber-Physical Vulnerability (CPV) Database</legend>
-    <ul id="cpv-list" class="list-group">
-    {% for cpv in cpvs %}
-        <li class="list-group-item">
-            <a href="#" onclick="select_cpv('{{ cpv.__class__.__name__ }}');">{{ cpv.NAME }}</a>
-        </li>
-    {% endfor %}
-    </ul>
-    </fieldset>
-    </form>
-
-    <hr> -->
-
-  <!--
-    <form>
-    <fieldset>
-    <legend>Components</legend>
-    Selected CPV base: <div id="cpv-name">None</div> <br />
-    <div id="components"></div>
-    </fieldset>
-    <button id="search-btn" type="button" class="btn btn-primary" onclick="search_for_cpvs();" disabled="disabled">Search for CPVs</button>
-    </form>
-  -->
-
-    <!-- <form></form>
-    <button id="search-btn" type="button" class="btn btn-primary" onclick="search_for_cpvs();">Search for CPVs</button>
-    </form>
-
-    <form>
-    <fieldset>
-    <legend>Search Results</legend>
-    <div id="cpv-search-results"></div>
-    </fieldset>
-    </form> -->
-
-    <!-- <h3>Search for CPVs</h3>
-    <button id="search-btn" class="btn btn-primary mb-3" onclick="searchForCPVs();">Search</button>
-    
-    <div id="cpv-search-results" class="mb-4">
-    </div>
-
-    <h3>Selected CPV Details</h3>
-    <div id="cpv-detail-results" class="cpv-details-container">
-    </div> -->
-
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script type="module" src="./index.js"></script>
 </body>
 </html>

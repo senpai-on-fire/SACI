@@ -1,13 +1,13 @@
 import {
-  CurveFactory,
-  Edge,
-  GeomEdge,
-  GeomGraph,
-  GeomNode,
-  Graph,
-  Node,
-  Point,
-  layoutGeomGraph,
+    CurveFactory,
+    Edge,
+    GeomEdge,
+    GeomGraph,
+    GeomNode,
+    Graph,
+    Node,
+    Point,
+    layoutGeomGraph,
 } from 'https://cdn.jsdelivr.net/npm/@msagl/core@1.1.23/+esm';
 
 // Mock data for CPVs and their details
@@ -16,12 +16,6 @@ const cpvs_blueprint_1 = [
     { id: 2, name: "CPV 2", details: ["Entry Component 2", "Required Component 2", "Associated CPS 2", "Initial System State 2", "Attack Vector 2", "Attack Impact 2", "Attack Requirements 2", "Privileges Requirements 2", "User-System Interactions 2", "Attack Steps 2"] },
 ];
 
-const cpvs_blueprint_2 = [
-    { id: 1, name: "CPV 1", details: ["Entry Component", "Required Component", "Associated CPS", "Initial System State", "Attack Vector", "Attack Impact", "Attack Requirements", "Privileges Requirements", "User-System Interactions", "Attack Steps"] },
-    { id: 2, name: "CPV 2", details: ["Entry Component 2", "Required Component 2", "Associated CPS 2", "Initial System State 2", "Attack Vector 2", "Attack Impact 2", "Attack Requirements 2", "Privileges Requirements 2", "User-System Interactions 2", "Attack Steps 2"] },
-];
-
-let autoUpdateEnabled = true;
 let currentCPVId = null;
 let autoUpdatePaused = false;
 let selectedBlueprintId = null;
@@ -38,18 +32,19 @@ function initializeBlueprintSelection() {
             selectedBlueprintId = e.target.value;
             clearSearchResults();
             updateSearchButtonState();
-            get_blueprint_component_graph(selectedBlueprintId);
+            if (typeof get_blueprint_component_graph === 'function') {
+                get_blueprint_component_graph(selectedBlueprintId);
+            }
         });
     }
 }
 
-// Clear search results and details
 function clearSearchResults() {
     const cpvResultsDiv = document.getElementById("cpv-search-results");
     const cpvDetailsDiv = document.getElementById("cpv-detail-results");
     
     if (cpvResultsDiv) {
-        cpvResultsDiv.innerHTML = '<div class="alert alert-info">Select a blueprint and click Search to find relevant CPVs.</div>';
+        cpvResultsDiv.innerHTML = '<div class="alert alert-info p-4 bg-blue-50 text-blue-700 rounded-md">Select a blueprint and click Search to find relevant CPVs.</div>';
     }
     
     if (cpvDetailsDiv) {
@@ -59,21 +54,21 @@ function clearSearchResults() {
     currentCPVId = null;
 }
 
-// Update search button state based on blueprint selection
 function updateSearchButtonState() {
     const searchBtn = document.getElementById("search-btn");
     if (searchBtn) {
         if (selectedBlueprintId) {
             searchBtn.removeAttribute('disabled');
             searchBtn.title = 'Click to search for CPVs';
+            searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         } else {
             searchBtn.setAttribute('disabled', 'disabled');
             searchBtn.title = 'Please select a blueprint first';
+            searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
     }
 }
 
-// Search for CPVs with selected blueprint
 function searchForCPVs() {
     if (!selectedBlueprintId) {
         console.error("No blueprint selected");
@@ -93,26 +88,37 @@ function searchForCPVs() {
         return;
     }
 
-    // Show loading state
-    cpvResultsDiv.innerHTML = '<div class="alert alert-info">Searching CPVs...</div>';
+    cpvResultsDiv.innerHTML = '<div class="alert alert-info p-4 bg-blue-50 text-blue-700 rounded-md">Searching CPVs...</div>';
 
-    // Filter or fetch CPVs based on selected blueprint
-    // This is where you would typically make an API call to get CPVs for the selected blueprint
-    // For now, we'll use the mock data
     const table = document.createElement("table");
-    table.className = "table table-bordered";
+    table.className = "min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow-sm mt-4";
+    
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>CPV ID</th><th>CPV Name</th><th>Blueprint</th></tr>";
+    thead.className = "bg-gray-50";
+    thead.innerHTML = `
+        <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPV ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPV Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blueprint</th>
+        </tr>
+    `;
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
+    tbody.className = "bg-white divide-y divide-gray-200";
 
-    cpvs_blueprint_1.forEach((cpv) => {
+    cpvs_blueprint_1.forEach((cpv, index) => {
         const row = document.createElement("tr");
+        row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         row.innerHTML = `
-            <td>${cpv.id}</td>
-            <td><button class="btn btn-link" onclick="showCPVDetails(${cpv.id});">${cpv.name}</button></td>
-            <td>Blueprint ${selectedBlueprintId}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cpv.id}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <button 
+                    onclick="window.showCPVDetails(${cpv.id})"
+                    class="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                >${cpv.name}</button>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Blueprint ${selectedBlueprintId}</td>
         `;
         tbody.appendChild(row);
     });
@@ -121,15 +127,7 @@ function searchForCPVs() {
     cpvResultsDiv.innerHTML = '';
     cpvResultsDiv.appendChild(table);
 }
-// Initialize on document load
-document.addEventListener('DOMContentLoaded', function() {
-    initializeBlueprintSelection();
-    updateSearchButtonState();
-    clearSearchResults();
-});
-window.searchForCPVs = searchForCPVs;
 
-// Show details for selected CPV
 function showCPVDetails(cpvId) {
     console.log(`Displaying details for CPV ID: ${cpvId}`);
     currentCPVId = cpvId;
@@ -142,70 +140,61 @@ function showCPVDetails(cpvId) {
         return;
     }
 
-    const detailsContainer = document.createElement("div");
-    detailsContainer.className = "cpv-details-container";
+    // Create the interactive details view
+    const detailsHTML = `
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            ${selectedCPV.details.map((detail, index) => `
+                <div class="border-b last:border-b-0">
+                    <button 
+                        onclick="toggleDetail(${index})"
+                        class="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    >
+                        <span class="font-medium text-gray-900">${detail}</span>
+                        <svg class="w-5 h-5 text-gray-500 transform transition-transform detail-chevron-${index}" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="detail-content-${index}" class="hidden px-4 py-3 bg-gray-50">
+                        <p class="text-sm text-gray-600">${getDetailDescription(detail)}</p>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
 
-    if (selectedCPV) {
-        const table = document.createElement("table");
-        table.className = "table table-striped";
-        const tbody = document.createElement("tbody");
+    cpvDetailDiv.innerHTML = detailsHTML;
+}
 
-        selectedCPV.details.forEach((detail) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `<td>${detail}</td>`;
-            tbody.appendChild(row);
-        });
+function getDetailDescription(detail) {
+    // Add descriptions for each detail type
+    const descriptions = {
+        "Entry Component": "The point where an attacker initially gains access to the system",
+        "Required Component": "System components that must be present for the vulnerability to be exploited",
+        "Associated CPS": "Connected cyber-physical systems that could be affected",
+        "Initial System State": "Required system conditions for the vulnerability to be present",
+        "Attack Vector": "The method or path used to exploit the vulnerability",
+        "Attack Impact": "The potential consequences of successful exploitation",
+        "Attack Requirements": "Necessary conditions and resources for successful exploitation",
+        "Privileges Requirements": "Access levels needed to exploit the vulnerability",
+        "User-System Interactions": "Required interactions between users and the system",
+        "Attack Steps": "Sequential steps involved in exploiting the vulnerability"
+    };
+    
+    return descriptions[detail] || "Description not available";
+}
 
-        table.appendChild(tbody);
-        detailsContainer.appendChild(table);
+function toggleDetail(index) {
+    const content = document.getElementById(`detail-content-${index}`);
+    const chevron = document.querySelector(`.detail-chevron-${index}`);
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        chevron.style.transform = 'rotate(180deg)';
+    } else {
+        content.classList.add('hidden');
+        chevron.style.transform = 'rotate(0)';
     }
-
-    cpvDetailDiv.innerHTML = "";
-    cpvDetailDiv.appendChild(detailsContainer);
 }
-window.showCPVDetails = showCPVDetails;
-
-// Rest of the original functions remain the same
-function select_cpv(name) {
-    $.ajax({
-        url: "/api/cpv_info",
-        data: {
-            name: name,
-        },
-        success: function(result) {
-            $("#cpv-name").text(result["name"]);
-            $("#cpv-name").attr("cpv-class-name", result["cls_name"]);
-            $("#components").html(gen_components_html(result["components"]));
-            $("#search-btn").removeAttr("disabled");
-            
-            // If this CPV has an ID, show its details
-            const cpv = cpvs_blueprint_1.find(c => c.name === result["name"]);
-            if (cpv) {
-                showCPVDetails(cpv.id);
-            }
-        }
-    });
-}
-window.select_cpv = select_cpv;
-
-function gen_components_html(components)
-{
-    var html = "";
-    var i = 1;
-    for (const comp of components) {
-        html += '<div class="mb-3"><label class="form-label">Component ' + i + '</label>' +
-            '<div class="row">' +
-            '<div class="col"><input type="text" class="form-control" value="' + comp["name"] + '" disabled></div>' +
-            '<div class="col">' +
-            gen_component_abstraction_html(comp) + '</div>' +
-            '</div></div>';
-        // html += "-> <br />";
-        i += 1;
-    }
-    // html += "<div>DONE</div>";
-    return html;
-}
-window.gen_components_html = gen_components_html;
 
 function get_blueprint_component_graph(blueprint_id) {
     $("#blueprint_graph").empty();
@@ -217,7 +206,7 @@ function get_blueprint_component_graph(blueprint_id) {
         },
         success: function (result) {
             if (result["error"] !== undefined) {
-                console.log(data["error"]);
+                console.log(result["error"]);
                 return;
             }
 
@@ -373,182 +362,14 @@ function get_blueprint_component_graph(blueprint_id) {
 }
 window.get_blueprint_component_graph = get_blueprint_component_graph;
 
-function gen_component_abstraction_html(component)
-{
-    var html = "";
-    if (!$.isEmptyObject(component["abstractions"])) {
-        html = // '<label class="form-label">Abstraction Level</label>' +
-            '<select class="form-select">';
-        for (var level in component["abstractions"]) {
-            if (component["abstractions"][level] == "-") {
-                html += "<option selected>" + component["abstractions"][level] + "</option>";
-            } else {
-                html += "<option>" + component["abstractions"][level] + "</option>";
-            }
-        }
-        html += "</select>";
-    }
-    return html;
-}
-window.gen_component_abstraction_html = gen_component_abstraction_html;
-
-function search_for_cpvs()
-{
-    $.ajax({
-        url: "/api/cpv_search",
-        data: {
-            cpv_name: $("#cpv-name").attr("cpv-class-name"),
-            blueprint_id: $('#blueprint').find('option:selected').val()
-        },
-        success: function(result) {
-            // alert("Search ID: " + result["search_id"]);
-        }
-    });
-}
-window.search_for_cpvs = search_for_cpvs;
-
-function get_cpv_research_result_html(search_id, r)
-{
-    var container = $("<div><h4>Search " + search_id + "</h4></div>");
-    if (r["cpv_inputs"] !== "None") {
-        for (const cpv_input of r["cpv_inputs"]) {
-            var cpv = $("<div></div>").text(`CPV: ${cpv_input.cpv_model}`);
-            var cpv_path = $("<div></div>").text(`Path: ${cpv_input.cpv_path.path.join(", ")}`);
-            // var input = $("<div></div>").text(`Input: ${r["cpv_inputs"][0].cpv_input}`);
-
-            container.append(cpv);
-            container.append(cpv_path);
-            // container.append(input);
-        }
-    }
-    if (r["tasks"] !== "None") {
-        for (const [ta, tasks] of Object.entries(r.tasks)) {
-            const tasks_div = $("<div></div>").text(`${ta} Tasks:`);
-            const tasks_ul = $('<ul style="margin-bottom: 0"></ul>');
-            for (const task of tasks) {
-                const task_li = $("<li></li>").text(`${task.Description} [${task["Meta-Data"].join(", ")}]`);
-                tasks_ul.append(task_li);
-            }
-            tasks_div.append(tasks_ul);
-            container.append(tasks_div);
-        }
-    }
-    var json_code = $('<code id="code" name="code" class="language-json" style="overflow-wrap: anywhere;" readonly></code>').html(
-        hljs.highlight(JSON.stringify(r, null, 4), {'language': 'json'}).value
-    );
-    var json_pre = $('<pre class="code" style="background-color: #f3f3f3;"></pre>').append(json_code);
-    var json_details = $('<details></details>').append($('<summary></summary>').text("Raw JSON")).append(json_pre);
-    container.append(json_details);
-    return container;
-}
-window.get_cpv_research_result_html = get_cpv_research_result_html;
-
-function update_cpv_search_results() {
-    if (autoUpdatePaused) {
-        console.log("Auto-update paused");
-        return; // Do nothing if auto-update is paused
-    }
-
-    const cpvResultsDiv = document.getElementById("cpv-search-results");
-    if (!cpvResultsDiv) return;
-
-    $.ajax({
-        url: "/api/cpv_search_ids",
-        success: function (result) {
-            const cpvSearchIds = result["ids"];
-
-            if (!cpvSearchIds.length) {
-                cpvResultsDiv.innerHTML = "<span>No running searches.</span>";
-                return;
-            }
-
-            cpvSearchIds.forEach((cpvSearchId) => {
-                $.ajax({
-                    url: "/api/cpv_search_result",
-                    data: { id: cpvSearchId },
-                    success: function (result) {
-                        const elemId = `cpv-search-result-${cpvSearchId}`;
-                        let resultDiv = document.getElementById(elemId);
-
-                        if (!resultDiv) {
-                            resultDiv = document.createElement("div");
-                            resultDiv.id = elemId;
-                            cpvResultsDiv.appendChild(resultDiv);
-                        }
-
-                        resultDiv.innerHTML = get_cpv_research_result_html(cpvSearchId, result);
-                    },
-                });
-            });
-        },
-    });
-}
-window.update_cpv_search_results = update_cpv_search_results;
-
-function add_blueprint(event) {
-    const name = $("#new-blueprint-name").val();
-    const blueprint = $("#new-blueprint-json").val();
-    $.post({
-        url: "/api/ingest_blueprint?name=" + encodeURIComponent(name),
-        data: blueprint,
-        contentType: "application/json",
-        dataType: "json",
-        success: (data) => {
-            const option = $("<option></option>").attr("value", data.id).text(`${data.id}: ${data.name}`);
-            $("#blueprint").append(option);
-            alert(`added blueprint ${name} successfully`);
-        },
-        error: (xhr) => {
-            alert(`adding blueprint failed: ${xhr.responseText}`);
-        },
-    })
-}
-window.add_blueprint = add_blueprint;
-
-window.remove_hypothesis_component = function(elem) {
-    elem.parentElement.remove();
-    return false;
-};
-
-function make_hypothesis_component() {
-    // janky lmao
-    const old_hypo_comp = document.querySelector(".hypothesis-component");
-    const new_hypo_comp = old_hypo_comp.cloneNode(true);
-    new_hypo_comp.querySelector("input").value = "";
-    return new_hypo_comp;
-}
-
-window.add_hypothesis_component = function(elem) {
-    document.querySelector(".hypothesis-components")
-        .appendChild(make_hypothesis_component());
-    return false;
-};
-
-function make_hypothesis(name) {
-    const link = $('<a href="#"></a>').text(name).on("click", () => select_cpv(`hypothesis/${name}`));
-    return $('<li class="list-group-item"></li>').append(link);
-}
-
-window.add_hypothesis = function() {
-    const name = $("#new-hypothesis-name").val();
-    const components = $(".hypothesis-component input").map((i, e) => e.value).toArray();
-    $.post({
-        url: "/api/add_hypothesis?name=" + encodeURIComponent(name),
-        data: JSON.stringify(components),
-        contentType: "application/json",
-        dataType: "json",
-        success: (data) => {
-            const li = make_hypothesis(name);
-            $("#cpv-list").append(li);
-            alert(`added hypothesis ${name} successfully`);
-        },
-        error: (xhr) => {
-            alert(`adding hypothesis failed: ${xhr.responseText}`);
-        },
-    })
-    return false;
-};
-
-$(document).ready(function() {
-    //setInterval(update_cpv_search_results, 1000);
+// Initialize on document load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeBlueprintSelection();
+    updateSearchButtonState();
+    clearSearchResults();
 });
+
+// Make functions available globally
+window.searchForCPVs = searchForCPVs;
+window.showCPVDetails = showCPVDetails;
+window.toggleDetail = toggleDetail;
