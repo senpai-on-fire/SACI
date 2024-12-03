@@ -19,17 +19,21 @@ component_type(generic).
 % SENSORS
 component_type(camera; compass; gps; gryoscope).
 % ACTUATORS
-component_type(motor; servo; multimotor).
+component_type(motor; servo; multimotor; steering).
 % COMMS
 component_type(wifi; mavlink; telemetry).
 % CONTROLLERS
 component_type(controller).
 
+has_external_input(camera; compass; gps; gryoscope; wifi; mavlink).
+
 % component(COMP, TYPE) declares a component COMP in the device-under-study of type TYPE.
 % At least for the moment, we assume there is only one device-under-study in the environment.
-component(COMP, generic) :- component(COMP).
+component(TYPE, TYPE) :- component(TYPE).
+:- component(COMP, TYPE), not component_type(TYPE).
 
 % connection(COMP1, COMP2, META) declares a connection from component COMP1 to COMP2 with description META.
+connection(COMP1, COMP2, unnamed) :- connection(COMP1, COMP2).
 
 % subcomponent(PARENT, CHILD, TYPE, LEVEL) declares a component CHILD of type TYPE that is a subcomponent of PARENT, but only visible at abstraction LEVEL.
 component(CHILD, TYPE) :- subcomponent(PARENT, CHILD, TYPE, LEVEL), ambient_abstraction_level(LEVEL).
@@ -42,11 +46,3 @@ subcomponent(PARENT, sub(PARENT, NAME), CHILDTYPE, LEVEL) :-
 
 % say multimotor is composed of four motors.
 subcomponent_type(multimotor, 1..4, motor, physical).
-
-
-
-
-
-% TESTING
-component(motors, multimotor).
-ambient_abstraction_level(bot).
