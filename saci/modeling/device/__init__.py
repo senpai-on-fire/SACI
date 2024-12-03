@@ -4,7 +4,7 @@ from .controller import ControllerHigh, Controller
 from .motor import MotorHigh, MotorAlgorithmic, MultiMotorHigh, MultiMotorAlgo, MultiCopterMotorHigh, MultiCopterMotorAlgo, MultiCopterMotor
 from .motor import Motor, MultiCopterMotor, MultiMotor, Servo, Steering
 from .device import Device
-from .gps import GPSReceiverHigh, GPSReceiverAlgorithm
+from .gps import GPSReceiver, GPSReceiverHigh, GPSReceiverAlgorithmic
 from .camera import CameraHigh
 from .localizer import LocalizerHigh, LocalizerAlgorithm 
 from .gyroscope import GyroscopeHigh, GyroscopeAlgorithmic

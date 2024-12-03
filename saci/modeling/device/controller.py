@@ -18,6 +18,7 @@ class ControllerHigh(CyberComponentHigh):
         super().__init__(**kwargs)
         self.operating_mode = operating_mode
         self.in_failsafe_mode = in_failsafe_mode
+        # TODO: How do we know if the controller has integrity check?
         self.has_integrity_check = has_integrity_check
 
 
