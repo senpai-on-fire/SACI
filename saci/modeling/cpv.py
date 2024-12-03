@@ -1,8 +1,10 @@
-from typing import List, Optional, Dict, Type, TextIO
+from typing import List, Any, Optional, Dict, Type, TextIO
 
 from .device import Device, CyberComponentBase
 from .state import GlobalState
 from .vulnerability import BaseVulnerability
+from .attack.base_attack_vector import BaseAttackVector
+from .attack.base_attack_impact import BaseAttackImpact
 
 
 class CPV:
@@ -18,14 +20,17 @@ class CPV:
 
     def __init__(
         self,
-        required_components: Optional[List[CyberComponentBase]] = None,
+        required_components: List[CyberComponentBase] = None,
         entry_component: CyberComponentBase = None,
         exit_component: CyberComponentBase = None,
         goals: List[CyberComponentBase] = None,
         vulnerabilities: List[BaseVulnerability] = None,
-        initial_conditions: list[str] = None,
-        final_conditions: list[str] = None,
-        steps: list[str] = None,
+        initial_conditions: dict[str, Any] = None,
+        # final_conditions: list[str] = None,
+        attack_vectors: List[BaseAttackVector] = None,  
+        attack_requirements: list[str] = None, 
+        exploit_steps: list[str] = None,
+        attack_impacts: List[BaseAttackImpact] = None,
         associated_files: list[str] = None,
         reference_urls: list[str] = None,
     ):
@@ -35,8 +40,11 @@ class CPV:
         self.goals = goals or []
         self.vulnerabilities = vulnerabilities or []
         self.initial_conditions = initial_conditions or []
-        self.final_conditions = final_conditions or []
-        self.steps = steps or []
+        # self.final_conditions = final_conditions or []
+        self.attack_vectors = attack_vectors or []
+        self.attack_requirements = attack_requirements or []
+        self.exploit_steps = exploit_steps or []
+        self.attack_impacts = attack_impacts or []
         self.associated_files = associated_files or []
         self.reference_urls = reference_urls or []
 
