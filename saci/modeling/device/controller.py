@@ -2,10 +2,10 @@ from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionL
 
 
 class ControllerHigh(CyberComponentHigh):
-    __state_slots__ = CyberComponentHigh.__state_slots__ + ("in_failsafe_mode",)
-    __slots__ = CyberComponentHigh.__slots__ + ("in_failsafe_mode",)
+    __state_slots__ = CyberComponentHigh.__state_slots__ + ("in_failsafe_mode", "has_integrity_check")
+    __slots__ = CyberComponentHigh.__slots__ + ("in_failsafe_mode", "has_integrity_check")
 
-    def __init__(self, in_failsafe_mode=False, integrity_check=False, **kwargs):
+    def __init__(self, in_failsafe_mode=False, has_integrity_check=False, **kwargs):
         """
 
 
@@ -14,7 +14,7 @@ class ControllerHigh(CyberComponentHigh):
         """
         super().__init__(**kwargs)
         self.in_failsafe_mode = in_failsafe_mode
-        self.integrity_check = integrity_check
+        self.has_integrity_check = has_integrity_check
 
 
 class Controller(CyberComponentBase):
