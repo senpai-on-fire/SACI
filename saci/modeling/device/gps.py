@@ -33,14 +33,14 @@ class GPSReceiverAlgorithmic(CyberComponentAlgorithmic):
 class GPSReceiver(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "has_external_input")
 
-    def __init__(self, has_external_input=True, protocol_name=None, **kwargs):
+    def __init__(self, has_external_input=True, supported_protocols=None, **kwargs):
         super().__init__(**kwargs)
         
         self.has_external_input = has_external_input
 
         self.ABSTRACTIONS = {
-            CyberAbstractionLevel.HIGH: GPSReceiverHigh(protocol_name=protocol_name),
-            CyberAbstractionLevel.ALGORITHMIC: GPSReceiverAlgorithmic(protocol_name=protocol_name),
+            CyberAbstractionLevel.HIGH: GPSReceiverHigh(supported_protocols=supported_protocols),
+            CyberAbstractionLevel.ALGORITHMIC: GPSReceiverAlgorithmic(supported_protocols=supported_protocols),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }

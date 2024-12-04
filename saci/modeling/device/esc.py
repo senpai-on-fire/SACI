@@ -1,4 +1,4 @@
-from ..component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
+from saci.modeling.device.component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
 
 class ESCHigh(CyberComponentHigh):
     __slots__ = CyberComponentHigh.__slots__
