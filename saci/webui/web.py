@@ -147,30 +147,64 @@ def ingest_blueprint():
     return {"id": blueprint_id, "name": device.name}
 
 @app.route("/api/get_blueprint")
+@app.route("/api/get_blueprint")
 def get_blueprint():
     blueprint_id = request.args.get("id", None)
-
+    
     if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
+    
     cps = blueprints[blueprint_id]
-
+    
     d = {
         "nodes": [],
         "links": [],
         "options": {},
     }
+    
     for node in cps.component_graph:
-        d["nodes"].append({"id": id(node), "name": repr(node)})
+        d["nodes"].append({
+        "id": id(node), 
+        "name": repr(node),
+        "entry": cps.component_graph.nodes[node].get('is_entry', False)
+        })
     for src, dst in cps.component_graph.edges:
         d["links"].append({
             "source": id(src),
             "target": id(dst),
         })
+    
     for option in cps.options:
         d["options"][option] = cps.get_option(option)
+    
     return {
         "component_graph": d
     }
+
+# def get_blueprint():
+#     blueprint_id = request.args.get("id", None)
+
+#     if blueprint_id not in blueprints:
+#         return {"error": "Blueprint not found"}
+#     cps = blueprints[blueprint_id]
+
+#     d = {
+#         "nodes": [],
+#         "links": [],
+#         "options": {},
+#     }
+#     for node in cps.component_graph:
+#         d["nodes"].append({"id": id(node), "name": repr(node)})
+#     for src, dst in cps.component_graph.edges:
+#         d["links"].append({
+#             "source": id(src),
+#             "target": id(dst),
+#         })
+#     for option in cps.options:
+#         d["options"][option] = cps.get_option(option)
+#     return {
+#         "component_graph": d
+#     }
 
 @app.post("/api/set_blueprint_option")
 def set_blueprint_option():
