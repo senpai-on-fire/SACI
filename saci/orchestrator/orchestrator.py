@@ -18,13 +18,14 @@ from saci_db.cpvs.cpv16_serial_motor_redirect import RedirectCPV
 from saci_db.cpvs.cpv17_tmagnet_compass_disorient import TemporaryCompassSpoofingCPV
 
 from saci_db.devices.ngcrover import NGCRover
-from saci.constrainers import get_constrainer, get_constrainer_and_abstract_component
-from saci.modeling import CPV, CPVHypothesis
+from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
+from saci_db.devices.gs_quadcopter import GSQuadcopter
+
+from saci.modeling.cpv import CPV
 from saci.modeling.state import GlobalState
 from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
 from saci.identifier import IdentifierCPV
-
 
 cpv_database = [MavlinkCPV(), GPSCPV(), WiFiDeauthDosCPV(), IcmpFloodCPV(), RollOverCPV(), PermanentCompassSpoofingCPV(), WebCrashCPV(),
     GPSPositionStaticCPV(), ThrottleCPV(), WebMoveCPV(), GPSPositionLoopCPV(), SerialArduinoControlCPV(), WebStopCPV(), RedirectCPV(),
@@ -66,12 +67,11 @@ def process(cps, database, initial_state):
 
     return cpv_inputs
 
-def main(hypothesis = None):
+def main():
 
     # input: the CPS model
 
     cps = NGCRover()
-
     # Search CPV from our database
     
     initial_state = GlobalState(components=cps.components)

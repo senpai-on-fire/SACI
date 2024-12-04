@@ -33,9 +33,6 @@ class IdentifierCPV:
                 starting_locations.append(c)
         
         cpv_paths = []
-        # # Check if the corresponding CPSVs exist (If CPSVs exist --> CPV is possible?)
-        # if not cpv.vulnerable(self.device):
-        #     return cpv_paths
 
         # CPV Path identification
         for start in starting_locations:

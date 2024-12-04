@@ -9,7 +9,7 @@ from io import StringIO
 from saci.modeling import CPVHypothesis
 from saci.modeling.state import GlobalState
 from saci.orchestrator import process
-from saci.orchestrator.orchestrator import identify, constrain_cpv_path, identify_from_cpsv, MOCK_TASKS_1, MOCK_TASKS_2
+#from saci.orchestrator.orchestrator import identify, constrain_cpv_path, identify_from_cpsv, MOCK_TASKS_1, MOCK_TASKS_2
 from saci.orchestrator.workers import TA1, TA2, TA3
 
 WORK_THREAD = None
