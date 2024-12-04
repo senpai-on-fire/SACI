@@ -17,3 +17,4 @@ from .serial import Serial, SerialHigh, SerialAlgorithmic
 from .wifi import Wifi, WifiHigh, WifiAlgorithmic
 from .webserver import *
 from .esc import *
+from .optical_flow import OpticalFlowSensor
