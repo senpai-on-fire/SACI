@@ -2,7 +2,7 @@ import queue
 from time import sleep
 from typing import List, Optional, Tuple
 
-from saci_db.cpvs.cpv06_roll_over import RollOverCPV
+from saci_db.cpvs.cpv06_serial_motor_rollover import RollOverCPV
 from saci_db.devices.ngcrover import NGCRover
 from saci_db.vulns.knowncreds import WifiKnownCredsVuln
 from saci_db.vulns.noaps import NoAPSVuln

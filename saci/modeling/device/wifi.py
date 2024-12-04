@@ -4,19 +4,18 @@ from ..communication import BaseCommunication
 
 
 class WifiHigh(CyberComponentHigh):
-    __slots__ = ("supported_protocols", "communication", "protection")
+    __slots__ = ("supported_protocols", "protection", "communication", "encryption_type")
 
     def __init__(self, supported_protocols=None, communication=None, protection=None, encryption_type=None, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
+        self.communication = communication
         self.encryption_type = encryption_type
         self.supported_protocols = supported_protocols
-        self.communication = communication
         self.protection = protection
-
 
 class WifiAlgorithmic(CyberComponentAlgorithmic):
 
-    __slots__ = CyberComponentAlgorithmic.__slots__
+    __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
 
     def __init__(self, supported_protocols=None, **kwargs):
         super().__init__(**kwargs)
@@ -37,14 +36,14 @@ class Wifi(CyberComponentBase):
 
     __slots__ = ("ABSTRACTIONS", "has_external_input")
 
-    def __init__(self, has_external_input=True, protection=None, **kwargs):
+    def __init__(self, has_external_input=True, supported_protocols=None, protection=None, encryption_type=None, **kwargs):
         super().__init__(**kwargs)
         
         self.has_external_input = has_external_input
 
         self.ABSTRACTIONS = {
-            CyberAbstractionLevel.HIGH: WifiHigh(protection=protection),
-            CyberAbstractionLevel.ALGORITHMIC: WifiAlgorithmic(),
+            CyberAbstractionLevel.HIGH: WifiHigh(supported_protocols=supported_protocols, protection=protection, encryption_type=encryption_type),
+            CyberAbstractionLevel.ALGORITHMIC: WifiAlgorithmic(supported_protocols=supported_protocols),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }

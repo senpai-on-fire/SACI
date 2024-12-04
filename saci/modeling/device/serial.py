@@ -6,14 +6,15 @@ from ..communication import BaseCommunication, UARTProtocol
 class SerialHigh(CyberComponentHigh):
     __slots__ = ("supported_protocols", "communication", "protection")
 
-    def __init__(self, supported_protocols=None, communication=None, **kwargs):
+    def __init__(self, supported_protocols=None, communication=None, protection=None, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
         self.supported_protocols = supported_protocols
         self.communication = communication
+        self.protection = protection
 
 
 class SerialAlgorithmic(CyberComponentAlgorithmic):
-    __slots__ = CyberComponentAlgorithmic.__slots__
+    __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
 
     def __init__(self, supported_protocols=None, **kwargs):
         super().__init__(**kwargs)
