@@ -10,7 +10,7 @@ class OpticalFlowSensorHigh(CyberComponentHigh):
 
 
 class OpticalFlowSensorAlgorithmic(CyberComponentAlgorithmic):
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ('uses_corner_detection')
+    __slots__ = CyberComponentAlgorithmic.__slots__ + ('uses_corner_detection',)
 
     def __init__(self, uses_corner_detection=True, **kwargs):
         super().__init__(**kwargs)
@@ -19,7 +19,7 @@ class OpticalFlowSensorAlgorithmic(CyberComponentAlgorithmic):
 
 
 class OpticalFlowSensor(CyberComponentBase):
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "uses_corner_detection")
+    __slots__ = ("ABSTRACTIONS", "has_external_input", "uses_corner_detection",)
 
     def __init__(self, has_external_input=True, uses_corner_detection=True, **kwargs):
         super().__init__(**kwargs)
