@@ -4,7 +4,7 @@ from ..communication import BaseCommunication, UARTProtocol
 
 
 class SerialHigh(CyberComponentHigh):
-    __slots__ = ("protocol_name", "communication", "protection")
+    __slots__ = ("supported_protocols", "communication", "protection")
 
     def __init__(self, supported_protocols=None, communication=None, **kwargs):
         super().__init__(has_external_input=True, **kwargs)

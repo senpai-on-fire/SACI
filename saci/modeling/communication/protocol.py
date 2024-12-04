@@ -1,6 +1,9 @@
 from .auth_comm import AuthenticatedCommunication
 from .unauth_comm import UnauthenticatedCommunication
 
+class GPSProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
 
 class UARTProtocol(UnauthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):

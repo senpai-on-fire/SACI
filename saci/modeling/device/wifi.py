@@ -4,24 +4,31 @@ from ..communication import BaseCommunication
 
 
 class WifiHigh(CyberComponentHigh):
-    __slots__ = ("protocol_name", "communication", "protection")
+    __slots__ = ("supported_protocols", "communication", "protection")
 
-    def __init__(self, protocol_name=None, communication=None, protection=None, **kwargs):
+    def __init__(self, supported_protocols=None, communication=None, protection=None, encryption_type=None, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
-        self.protocol_name = protocol_name
+        self.encryption_type = encryption_type
+        self.supported_protocols = supported_protocols
         self.communication = communication
         self.protection = protection
 
 
 class WifiAlgorithmic(CyberComponentAlgorithmic):
+
     __slots__ = CyberComponentAlgorithmic.__slots__
 
-    def __init__(self, **kwargs):
+    def __init__(self, supported_protocols=None, **kwargs):
         super().__init__(**kwargs)
+        self.supported_protocols = supported_protocols
 
     def accepts_communication(self, communication: BaseCommunication) -> bool:
-        return True
-
+        # TODO: depends on the protocol
+        if any(isinstance(communication, protocol) for protocol in self.supported_protocols):
+            return True
+        # TODO: depends on the protocol
+        else:
+            return False
 
 class Wifi(CyberComponentBase):
     """
