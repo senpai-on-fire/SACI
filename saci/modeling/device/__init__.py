@@ -19,3 +19,4 @@ from .webserver import *
 from .esc import *
 from .optical_flow import OpticalFlowSensor
 from .depth_camera import DepthCamera
+from .dnn import DNNHigh, DNNAlgorithmic, DNN
