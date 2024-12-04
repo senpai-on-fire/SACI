@@ -18,3 +18,4 @@ from .wifi import Wifi, WifiHigh, WifiAlgorithmic
 from .webserver import *
 from .esc import *
 from .optical_flow import OpticalFlowSensor
+from .depth_camera import DepthCameraHigh, DepthCameraAlgorithmic, DepthCamera
