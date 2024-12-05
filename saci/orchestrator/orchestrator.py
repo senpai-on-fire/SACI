@@ -37,7 +37,7 @@ cpv_database = [MavlinkCPV(), GPSCPV(), WiFiDeauthDosCPV(), ICMPFloodingCPV(), R
 
 cpv_database = [ICMPFloodingCPV(), MavlinkCPV(), GPSCPV(), GPSPositionStaticCPV(), WiFiDeauthQuadDosCPV(), MavlinkDisarmCPV()]
 
-cpv_database = [ICMPFloodingCPV()]
+cpv_database = [GPSCPV()]
 
 import logging
 l = logging.getLogger(__name__)

@@ -76,7 +76,7 @@ class CPV:
                 if type(path[i]) is type(self.required_components[i]):
                     continue
                 else:
-                    #print(f"Components {self.required_components[i]} and {path[i]} not satisfied by path")
+                    print(f"Components {self.required_components[i]} and {path[i]} not satisfied by path")
                     return False
         else: 
             return False
