@@ -5,7 +5,7 @@ from saci_db.cpvs.cpv01_sik_mavlink_motors import MavlinkCPV
 from saci_db.cpvs.cpv02_gps_position_move import GPSCPV
 from saci_db.cpvs.cpv03_deauth_dos import WiFiDeauthDosCPV
 from saci_db.cpvs.cpv04_icmp_cpv import ICMPFloodingCPV
-# from .cpv05_adv_ml_untrack import ObjectTrackCPV
+from saci_db.cpvs.cpv05_adv_ml_untrack import ObjectTrackCPV
 from saci_db.cpvs.cpv06_serial_motor_rollover import RollOverCPV
 from saci_db.cpvs.cpv07_pmagnet_compass_dos import PermanentCompassSpoofingCPV
 from saci_db.cpvs.cpv08_wifi_webserver_crash import WebCrashCPV
@@ -17,9 +17,18 @@ from saci_db.cpvs.cpv14_serial_arduino_control import SerialArduinoControlCPV
 from saci_db.cpvs.cpv15_wifi_http_stop import WebStopCPV
 from saci_db.cpvs.cpv16_serial_motor_redirect import RedirectCPV
 from saci_db.cpvs.cpv17_tmagnet_compass_disorient import TemporaryCompassSpoofingCPV
-
-from saci_db.cpvs.cpv32_deauth_quad_dos import WiFiDeauthQuadDosCPV
-from saci_db.cpvs.cpv33_wifi_mavlink_disarm import MavlinkDisarmCPV
+from saci_db.cpvs.cpv18_smbus_battery_shutdown import SMBusBatteryShutdownCPV
+from saci_db.cpvs.cpv19_debug_esc_flash import ESCFlashCPV
+from saci_db.cpvs.cpv20_serial_esc_bootloader import ESCBootloaderCPV
+from saci_db.cpvs.cpv21_serial_esc_reset import ESCResetCPV
+from saci_db.cpvs.cpv22_serial_esc_discharge import DischargeCPV
+from saci_db.cpvs.cpv23_serial_esc_bufferoverflow import OverflowCPV
+from saci_db.cpvs.cpv24_serial_esc_execcmd import ESCExeccmdCPV
+from saci_db.cpvs.cpv25_serial_motor_overheat import OverheatingCPV
+from saci_db.cpvs.cpv30_projector_opticalflow_dos import ProjectorOpticalFlowCPV
+from saci_db.cpvs.cpv31_laser_depthcamera_dos import DepthCameraDoSCPV
+from saci_db.cpvs.cpv33_deauth_quad_dos import WiFiDeauthQuadDosCPV
+from saci_db.cpvs.cpv34_wifi_mavlink_disarm import MavlinkDisarmCPV
 
 from saci_db.devices.ngcrover import NGCRover
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
@@ -33,11 +42,10 @@ from saci.identifier import IdentifierCPV
 
 cpv_database = [MavlinkCPV(), GPSCPV(), WiFiDeauthDosCPV(), ICMPFloodingCPV(), RollOverCPV(), PermanentCompassSpoofingCPV(), WebCrashCPV(),
     GPSPositionStaticCPV(), ThrottleCPV(), WebMoveCPV(), GPSPositionLoopCPV(), SerialArduinoControlCPV(), WebStopCPV(), RedirectCPV(),
-    TemporaryCompassSpoofingCPV(), WiFiDeauthQuadDosCPV(), MavlinkDisarmCPV()]
+    TemporaryCompassSpoofingCPV(), WiFiDeauthQuadDosCPV(), MavlinkDisarmCPV(), ObjectTrackCPV(), SMBusBatteryShutdownCPV(), ESCFlashCPV(),
+    ESCBootloaderCPV(), ESCResetCPV(), DischargeCPV(), OverflowCPV(), ESCExeccmdCPV(), OverheatingCPV(), ProjectorOpticalFlowCPV(), DepthCameraDoSCPV()]
 
-cpv_database = [ICMPFloodingCPV(), MavlinkCPV(), GPSCPV(), GPSPositionStaticCPV(), WiFiDeauthQuadDosCPV(), MavlinkDisarmCPV()]
-
-cpv_database = [GPSCPV()]
+cpv_database = []
 
 import logging
 l = logging.getLogger(__name__)
