@@ -1,10 +1,11 @@
 from time import sleep
 from typing import List, Optional, Tuple
 
-from saci_db.cpvs.cpv01_mavlink_motors import MavlinkCPV
+from saci_db.cpvs.cpv01_sik_mavlink_motors import MavlinkCPV
 from saci_db.cpvs.cpv02_gps_position_move import GPSCPV
 from saci_db.cpvs.cpv03_deauth_dos import WiFiDeauthDosCPV
-from saci_db.cpvs.cpv04_icmp_cpv import IcmpFloodCPV
+from saci_db.cpvs.cpv04_icmp_cpv import ICMPFloodingCPV
+# from .cpv05_adv_ml_untrack import ObjectTrackCPV
 from saci_db.cpvs.cpv06_serial_motor_rollover import RollOverCPV
 from saci_db.cpvs.cpv07_pmagnet_compass_dos import PermanentCompassSpoofingCPV
 from saci_db.cpvs.cpv08_wifi_webserver_crash import WebCrashCPV
@@ -17,6 +18,9 @@ from saci_db.cpvs.cpv15_wifi_http_stop import WebStopCPV
 from saci_db.cpvs.cpv16_serial_motor_redirect import RedirectCPV
 from saci_db.cpvs.cpv17_tmagnet_compass_disorient import TemporaryCompassSpoofingCPV
 
+from saci_db.cpvs.cpv32_deauth_quad_dos import WiFiDeauthQuadDosCPV
+from saci_db.cpvs.cpv33_wifi_mavlink_disarm import MavlinkDisarmCPV
+
 from saci_db.devices.ngcrover import NGCRover
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 from saci_db.devices.gs_quadcopter import GSQuadcopter
@@ -27,9 +31,13 @@ from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
 from saci.identifier import IdentifierCPV
 
-cpv_database = [MavlinkCPV(), GPSCPV(), WiFiDeauthDosCPV(), IcmpFloodCPV(), RollOverCPV(), PermanentCompassSpoofingCPV(), WebCrashCPV(),
+cpv_database = [MavlinkCPV(), GPSCPV(), WiFiDeauthDosCPV(), ICMPFloodingCPV(), RollOverCPV(), PermanentCompassSpoofingCPV(), WebCrashCPV(),
     GPSPositionStaticCPV(), ThrottleCPV(), WebMoveCPV(), GPSPositionLoopCPV(), SerialArduinoControlCPV(), WebStopCPV(), RedirectCPV(),
-    TemporaryCompassSpoofingCPV()]
+    TemporaryCompassSpoofingCPV(), WiFiDeauthQuadDosCPV(), MavlinkDisarmCPV()]
+
+cpv_database = [ICMPFloodingCPV(), MavlinkCPV(), GPSCPV(), GPSPositionStaticCPV(), WiFiDeauthQuadDosCPV(), MavlinkDisarmCPV()]
+
+cpv_database = [ICMPFloodingCPV()]
 
 import logging
 l = logging.getLogger(__name__)
@@ -71,7 +79,9 @@ def main():
 
     # input: the CPS model
 
-    cps = NGCRover()
+    #cps = NGCRover()
+    
+    cps = PX4Quadcopter()
     # Search CPV from our database
     
     initial_state = GlobalState(components=cps.components)
