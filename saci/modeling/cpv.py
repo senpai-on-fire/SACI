@@ -58,18 +58,8 @@ class CPV:
     def in_goal_state(self, state: GlobalState):
         return False
 
-    # def is_possible_path(self, path: List[Type[CyberComponentBase]]):
-    #     for required in self.required_components:
-    #         # Check if the exact class exists in path
-    #         if not any(p is required for p in path):
-    #             return False
-    #     return True
-
     def is_possible_path(self, path: List[CyberComponentBase]):
         
-        print('******************', path)
-        print('------------------', self.required_components)
-
         if len(path) == len(self.required_components):
 
             for i in range(len(path)):

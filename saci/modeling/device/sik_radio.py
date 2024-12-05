@@ -10,7 +10,7 @@ class SikRadio(Telemetry):
     Describes Sik radio.
     """
 
-    def __init__(self, has_external_input=False, **kwargs):
+    def __init__(self, has_external_input=True, **kwargs):
         super().__init__(has_external_input=has_external_input, **kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(

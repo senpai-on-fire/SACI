@@ -22,7 +22,7 @@ class DNNAlgorithmic(CyberComponentAlgorithmic):
 class DNN(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "has_external_input", "known_source", "known_weight")
 
-    def __init__(self, has_external_input=True, known_source=None, known_weight=None, **kwargs):
+    def __init__(self, has_external_input=False, known_source=None, known_weight=None, **kwargs):
         super().__init__(**kwargs)
         
         self.has_external_input = has_external_input

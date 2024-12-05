@@ -40,12 +40,12 @@ from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
 from saci.identifier import IdentifierCPV
 
-cpv_database = [MavlinkCPV(), GPSCPV(), WiFiDeauthDosCPV(), ICMPFloodingCPV(), RollOverCPV(), PermanentCompassSpoofingCPV(), WebCrashCPV(),
-    GPSPositionStaticCPV(), ThrottleCPV(), WebMoveCPV(), GPSPositionLoopCPV(), SerialArduinoControlCPV(), WebStopCPV(), RedirectCPV(),
-    TemporaryCompassSpoofingCPV(), WiFiDeauthQuadDosCPV(), MavlinkDisarmCPV(), ObjectTrackCPV(), SMBusBatteryShutdownCPV(), ESCFlashCPV(),
-    ESCBootloaderCPV(), ESCResetCPV(), DischargeCPV(), OverflowCPV(), ESCExeccmdCPV(), OverheatingCPV(), ProjectorOpticalFlowCPV(), DepthCameraDoSCPV()]
-
-cpv_database = []
+cpv_database = [MavlinkCPV(), WiFiDeauthDosCPV(), RollOverCPV(), PermanentCompassSpoofingCPV(), WebCrashCPV(),GPSPositionStaticCPV(), 
+                ThrottleCPV(), WebMoveCPV(), GPSPositionLoopCPV(), SerialArduinoControlCPV(), WebStopCPV(), RedirectCPV(),
+                TemporaryCompassSpoofingCPV(), 
+                SMBusBatteryShutdownCPV(), ESCFlashCPV(), ESCBootloaderCPV(), ESCResetCPV(), DischargeCPV(), OverflowCPV(), ESCExeccmdCPV(), OverheatingCPV(),
+                GPSCPV(), ICMPFloodingCPV(), MavlinkDisarmCPV(), WiFiDeauthQuadDosCPV(),
+                ObjectTrackCPV(), ProjectorOpticalFlowCPV(), DepthCameraDoSCPV()]
 
 import logging
 l = logging.getLogger(__name__)
@@ -86,10 +86,10 @@ def process(cps, database, initial_state):
 def main():
 
     # input: the CPS model
-
-    #cps = NGCRover()
     
     cps = PX4Quadcopter()
+    #cps = NGCRover()
+    #cps = GSQuadcopter()
     # Search CPV from our database
     
     initial_state = GlobalState(components=cps.components)
