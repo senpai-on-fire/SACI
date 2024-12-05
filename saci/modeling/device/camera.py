@@ -1,4 +1,5 @@
-from .component import CyberComponentHigh, CyberComponentAlgorithmic
+from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from ..communication import BaseCommunication
 
 
@@ -8,6 +9,22 @@ class CameraHigh(CyberComponentHigh):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+
+class Camera(CyberComponentBase):
+    __slots__ = ("ABSTRACTIONS", "has_external_input", "powered")
+
+    def __init__(self, has_external_input=True, powered=True, **kwargs):
+        super().__init__(**kwargs)
+
+        self.has_external_input = has_external_input
+        self.powered = powered
+
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: CameraHigh(),
+            CyberAbstractionLevel.ALGORITHMIC: CyberComponentAlgorithmic(),
+            CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
+            CyberAbstractionLevel.BINARY: CyberComponentBinary(),
+        }
 
 # class LocalizationAlgorithm(CyberComponentAlgorithmic):
 #     def __init__(self, enable=False, camera_prioritized=True, **kwargs):
