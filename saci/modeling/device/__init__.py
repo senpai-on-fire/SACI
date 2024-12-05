@@ -20,3 +20,9 @@ from .esc import *
 from .optical_flow import OpticalFlowSensor
 from .depth_camera import DepthCamera
 from .dnn import DNNHigh, DNNAlgorithmic, DNN
+from .battery import *
+from .bms import *
+from .http import *
+from .debug import *
+from .icmp import *
+from .smbus import *
