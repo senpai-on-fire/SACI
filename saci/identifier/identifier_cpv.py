@@ -36,7 +36,6 @@ class IdentifierCPV:
 
         # CPV Path identification
         for start in starting_locations:
-            print(start)
             stack = [(start, [start])]
             visited = set()
             while stack:

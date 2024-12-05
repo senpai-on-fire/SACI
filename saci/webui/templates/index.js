@@ -75,95 +75,98 @@ function searchForCPVs() {
         return;
     }
 
-    console.log(`Searching CPVs for blueprint: ${selectedBlueprintId}`);
-
-    autoUpdatePaused = true;
-    setTimeout(() => {
-        autoUpdatePaused = false;
-    }, 10000);
-
     const cpvResultsDiv = document.getElementById("cpv-search-results");
-    if (!cpvResultsDiv) {
-        console.error("CPV results container not found");
-        return;
-    }
+    cpvResultsDiv.innerHTML = '<div class="alert alert-info">Searching CPVs...</div>';
 
-    cpvResultsDiv.innerHTML = '<div class="alert alert-info p-4 bg-blue-50 text-blue-700 rounded-md">Searching CPVs...</div>';
+    fetch(`/api/cpv_search?blueprint_id=${selectedBlueprintId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                cpvResultsDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
 
-    const table = document.createElement("table");
-    table.className = "min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow-sm mt-4";
-    
-    const thead = document.createElement("thead");
-    thead.className = "bg-gray-50";
-    thead.innerHTML = `
-        <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPV ID</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPV Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blueprint</th>
-        </tr>
-    `;
-    table.appendChild(thead);
+            const cpvs = data.cpvs;
+            const table = document.createElement("table");
+            table.className = "min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow-sm mt-4";
 
-    const tbody = document.createElement("tbody");
-    tbody.className = "bg-white divide-y divide-gray-200";
+            const thead = document.createElement("thead");
+            thead.className = "bg-gray-50";
+            thead.innerHTML = `
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CPV ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CPV Name</th>
+                </tr>
+            `;
+            table.appendChild(thead);
 
-    cpvs_blueprint_1.forEach((cpv, index) => {
-        const row = document.createElement("tr");
-        row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-        row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cpv.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <button 
-                    onclick="window.showCPVDetails(${cpv.id})"
-                    class="text-blue-600 hover:text-blue-900 text-sm font-medium"
-                >${cpv.name}</button>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Blueprint ${selectedBlueprintId}</td>
-        `;
-        tbody.appendChild(row);
-    });
+            const tbody = document.createElement("tbody");
+            tbody.className = "bg-white divide-y divide-gray-200";
 
-    table.appendChild(tbody);
-    cpvResultsDiv.innerHTML = '';
-    cpvResultsDiv.appendChild(table);
+            cpvs.forEach(cpv => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm text-gray-900">${cpv.id}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <button 
+                            onclick="showCPVDetails(${cpv.id}, '${cpv.name}')"
+                            class="text-blue-600 hover:text-blue-900">
+                            ${cpv.name}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            cpvResultsDiv.innerHTML = '';
+            cpvResultsDiv.appendChild(table);
+        })
+        .catch(err => {
+            console.error(err);
+            cpvResultsDiv.innerHTML = '<div class="alert alert-danger">Error fetching CPVs</div>';
+        });
 }
 
-function showCPVDetails(cpvId) {
-    console.log(`Displaying details for CPV ID: ${cpvId}`);
-    currentCPVId = cpvId;
 
-    const selectedCPV = cpvs_blueprint_1.find(cpv => cpv.id === cpvId);
+function showCPVDetails(cpvId, clsName) {
+    console.log(`Fetching details for CPV class name: ${clsName}`); // Debugging
+
     const cpvDetailDiv = document.getElementById("cpv-detail-results");
-
     if (!cpvDetailDiv) {
         console.error("CPV detail container not found");
         return;
     }
 
-    // Create the interactive details view
-    const detailsHTML = `
-        <div class="bg-white p-6 rounded-lg shadow-sm">
-            ${selectedCPV.details.map((detail, index) => `
-                <div class="border-b last:border-b-0">
-                    <button 
-                        onclick="toggleDetail(${index})"
-                        class="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
-                    >
-                        <span class="font-medium text-gray-900">${detail}</span>
-                        <svg class="w-5 h-5 text-gray-500 transform transition-transform detail-chevron-${index}" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div id="detail-content-${index}" class="hidden px-4 py-3 bg-gray-50">
-                        <p class="text-sm text-gray-600">${getDetailDescription(detail)}</p>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
+    cpvDetailDiv.innerHTML = '<div class="alert alert-info">Loading CPV details...</div>';
 
-    cpvDetailDiv.innerHTML = detailsHTML;
+    fetch(`/api/cpv_info?name=${clsName}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("API Response:", data); // Debugging
+            if (data.error) {
+                cpvDetailDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+
+            // Render the CPV details
+            cpvDetailDiv.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-bold">${data.name}</h3>
+                    <h4 class="font-semibold mt-4">Entry Component</h4>
+                    <p>${data.entry_component}</p>
+                    <h4 class="font-semibold mt-4">Exit Component</h4>
+                    <p>${data.exit_component}</p>
+                    ...
+                </div>
+            `;
+        })
+        .catch(err => {
+            console.error("Error fetching CPV details:", err);
+            cpvDetailDiv.innerHTML = '<div class="alert alert-danger">Error loading details</div>';
+        });
 }
+
 
 function getDetailDescription(detail) {
     // Add descriptions for each detail type
