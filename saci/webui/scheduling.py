@@ -90,9 +90,8 @@ def cpv_search_worker(cps=None, search_id=None, **kwargs):
 
     # Extract CPV names and IDs only
     associated_cpvs = [
-        {"id": idx, "name": cpv_model.NAME}
-        for idx, (cpv_model, _) in enumerate(process_output)
-    ]
+    {"id": idx, "name": cpv_model.NAME, "cls_name": cpv_model.__class__.__name__}
+    for idx, (cpv_model, _) in enumerate(process_output)]
 
     if associated_cpvs:
         update_search_result(search_id, result="CPV candidates identified.", cpv_inputs=associated_cpvs)

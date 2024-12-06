@@ -57,29 +57,32 @@ def index():
 @app.route("/api/cpv_info")
 def cpv_info():
     cls_name = request.args.get("name")
-    print(f"Requested CPV class name: {cls_name}")  # Debugging
 
     for cpv in CPVS:
-        print(f"Available CPV class: {cpv.__class__.__name__}")  # Debugging
         if cpv.__class__.__name__ == cls_name:
             return {
                 "name": cpv.NAME,
                 "entry_component": cpv.entry_component.__class__.__name__ if cpv.entry_component else "N/A",
                 "exit_component": cpv.exit_component.__class__.__name__ if cpv.exit_component else "N/A",
-                "initial_conditions": cpv.initial_conditions,
+                "required_components": [comp.__class__.__name__ for comp in cpv.required_components],
+                "initial_conditions": cpv.initial_conditions or {},  # Include initial_conditions
+                "vulnerabilities": [vuln.__class__.__name__ for vuln in cpv.vulnerabilities],  # Extract vulnerabilities
+                "reference_urls": cpv.reference_urls,  # Include reference_urls directly
                 "attack_requirements": cpv.attack_requirements,
                 "attack_vectors": [
                     {
                         "name": vector.name,
                         "signal": vector.signal.modality,
                         "access_level": vector.required_access_level,
-                        "configuration": vector.configuration,
+                        "configuration": vector.configuration,  # Pass configuration as a dictionary
                     }
                     for vector in cpv.attack_vectors
                 ],
-                "impact": [impact.description for impact in cpv.attack_impacts],
+                "impact": [
+                    {"category": impact.category, "description": impact.description}
+                    for impact in cpv.attack_impacts
+                ],
                 "exploit_steps": cpv.exploit_steps,
-                "reference_urls": cpv.reference_urls,
             }
     return {"error": "CPV not found"}, 400
 

@@ -10,11 +10,6 @@ import {
     layoutGeomGraph,
 } from 'https://cdn.jsdelivr.net/npm/@msagl/core@1.1.23/+esm';
 
-// Mock data for CPVs and their details
-const cpvs_blueprint_1 = [
-    { id: 1, name: "CPV 1", details: ["Entry Component", "Required Component", "Associated CPS", "Initial System State", "Attack Vector", "Attack Impact", "Attack Requirements", "Privileges Requirements", "User-System Interactions", "Attack Steps"] },
-    { id: 2, name: "CPV 2", details: ["Entry Component 2", "Required Component 2", "Associated CPS 2", "Initial System State 2", "Attack Vector 2", "Attack Impact 2", "Attack Requirements 2", "Privileges Requirements 2", "User-System Interactions 2", "Attack Steps 2"] },
-];
 
 let currentCPVId = null;
 let autoUpdatePaused = false;
@@ -109,7 +104,7 @@ function searchForCPVs() {
                     <td class="px-6 py-4 text-sm text-gray-900">${cpv.id}</td>
                     <td class="px-6 py-4 text-sm">
                         <button 
-                            onclick="showCPVDetails(${cpv.id}, '${cpv.name}')"
+                            onclick="showCPVDetails(${cpv.id}, '${cpv.cls_name}')"
                             class="text-blue-600 hover:text-blue-900">
                             ${cpv.name}
                         </button>
@@ -129,37 +124,91 @@ function searchForCPVs() {
 }
 
 
-function showCPVDetails(cpvId, clsName) {
-    console.log(`Fetching details for CPV class name: ${clsName}`); // Debugging
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const bullet = document.querySelector(`.bullet-${sectionId}`);
 
-    const cpvDetailDiv = document.getElementById("cpv-detail-results");
-    if (!cpvDetailDiv) {
-        console.error("CPV detail container not found");
+    if (!section) {
+        console.error(`Section not found: ${sectionId}`);
         return;
     }
 
+    if (section.classList.contains('hidden')) {
+        section.classList.remove('hidden');
+        bullet.style.color = '#2563EB'; // Set bullet point color to blue
+    } else {
+        section.classList.add('hidden');
+        bullet.style.color = '#6B7280'; // Set bullet point color to gray
+    }
+}
+
+
+function showCPVDetails(cpvId, clsName) {
+    const cpvDetailDiv = document.getElementById("cpv-detail-results");
     cpvDetailDiv.innerHTML = '<div class="alert alert-info">Loading CPV details...</div>';
 
     fetch(`/api/cpv_info?name=${clsName}`)
         .then(response => response.json())
         .then(data => {
-            console.log("API Response:", data); // Debugging
             if (data.error) {
                 cpvDetailDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
                 return;
             }
 
-            // Render the CPV details
-            cpvDetailDiv.innerHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <h3 class="text-xl font-bold">${data.name}</h3>
-                    <h4 class="font-semibold mt-4">Entry Component</h4>
-                    <p>${data.entry_component}</p>
-                    <h4 class="font-semibold mt-4">Exit Component</h4>
-                    <p>${data.exit_component}</p>
-                    ...
-                </div>
+            // Template for each section
+            const createSection = (title, content, sectionId) => `
+                <div class="border-b py-2">
+                    <h4 class="font-semibold text-lg cursor-pointer" onclick="toggleSection('${sectionId}')">
+                        <span class="bullet-${sectionId} text-blue-500 font-bold">&#8226;</span> ${title}
+                    </h4>
+                    <div id="${sectionId}" class="hidden pl-4">${content}</div>
+                </div>`;
+
+            // Format required components
+            const requiredComponents = data.required_components.map((comp, index, arr) => {
+                const color = index === 0 || index === arr.length - 1 ? "text-red-500 font-bold" : "";
+                return `<span class="${color}">${comp}</span>`;
+            }).join(" &rarr; ");
+
+            // Format attack requirements
+            const attackRequirements = data.attack_requirements
+                .map(req => `<li>${req}</li>`)
+                .join("");
+
+            // Format exploit steps
+            const exploitSteps = data.exploit_steps
+                .map(step => `<li>${step}</li>`)
+                .join("");
+
+            // Format attack vectors
+            const attackVectors = data.attack_vectors.map(vector => {
+                const config = Object.entries(vector.configuration || {})
+                    .map(([key, value]) => `<span class="text-blue-600 font-semibold">${key}</span>: ${value}`)
+                    .join(", ");
+                return `
+                    <li>
+                        <strong>${vector.name}</strong>
+                        <ul class="list-disc pl-6">
+                            <li><strong>Signal:</strong> ${vector.signal}</li>
+                            <li><strong>Access Level:</strong> ${vector.access_level}</li>
+                            <li><strong>Configuration:</strong> ${config || "N/A"}</li>
+                        </ul>
+                    </li>`;
+            }).join("");
+
+            // Combine all sections
+            const detailsHTML = `
+                ${createSection('Entry Component', `<p>${data.entry_component}</p>`, 'entry-component')}
+                ${createSection('Exit Component', `<p>${data.exit_component}</p>`, 'exit-component')}
+                ${createSection('Required Components', `<p>${requiredComponents}</p>`, 'required-components')}
+                ${createSection('Attack Requirements', `<ul class="list-disc pl-6">${attackRequirements}</ul>`, 'attack-requirements')}
+                ${createSection('Exploit Steps', `<ul class="list-disc pl-6">${exploitSteps}</ul>`, 'exploit-steps')}
+                ${createSection('Attack Vectors', `<ul class="list-disc pl-6">${attackVectors}</ul>`, 'attack-vectors')}
+                ${createSection('Vulnerabilities', `<ul class="list-disc pl-6">${data.vulnerabilities.map(vuln => `<li class="text-red-600 font-semibold">${vuln}</li>`).join("")}</ul>`, 'vulnerabilities')}
+                ${createSection('References', `<ul class="list-disc pl-6">${data.reference_urls.map(url => `<li><a href="${url}" target="_blank" class="text-blue-500 underline">${url}</a></li>`).join("")}</ul>`, 'references')}
             `;
+
+            cpvDetailDiv.innerHTML = detailsHTML;
         })
         .catch(err => {
             console.error("Error fetching CPV details:", err);
@@ -167,37 +216,6 @@ function showCPVDetails(cpvId, clsName) {
         });
 }
 
-
-function getDetailDescription(detail) {
-    // Add descriptions for each detail type
-    const descriptions = {
-        "Entry Component": "The point where an attacker initially gains access to the system",
-        "Required Component": "System components that must be present for the vulnerability to be exploited",
-        "Associated CPS": "Connected cyber-physical systems that could be affected",
-        "Initial System State": "Required system conditions for the vulnerability to be present",
-        "Attack Vector": "The method or path used to exploit the vulnerability",
-        "Attack Impact": "The potential consequences of successful exploitation",
-        "Attack Requirements": "Necessary conditions and resources for successful exploitation",
-        "Privileges Requirements": "Access levels needed to exploit the vulnerability",
-        "User-System Interactions": "Required interactions between users and the system",
-        "Attack Steps": "Sequential steps involved in exploiting the vulnerability"
-    };
-    
-    return descriptions[detail] || "Description not available";
-}
-
-function toggleDetail(index) {
-    const content = document.getElementById(`detail-content-${index}`);
-    const chevron = document.querySelector(`.detail-chevron-${index}`);
-    
-    if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        chevron.style.transform = 'rotate(180deg)';
-    } else {
-        content.classList.add('hidden');
-        chevron.style.transform = 'rotate(0)';
-    }
-}
 
 function get_blueprint_component_graph(blueprint_id) {
     $("#blueprint_graph").empty();
@@ -571,4 +589,4 @@ document.addEventListener('DOMContentLoaded', function() {
 // Make functions available globally
 window.searchForCPVs = searchForCPVs;
 window.showCPVDetails = showCPVDetails;
-window.toggleDetail = toggleDetail;
+window.toggleSection = toggleSection;
