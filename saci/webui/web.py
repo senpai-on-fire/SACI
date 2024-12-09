@@ -58,35 +58,34 @@ def index():
 def cpv_info():
     cls_name = request.args.get("name")
 
-    if not cls_name:
-        return {"error": "Name is required"}, 400
+    for cpv in CPVS:
+        if cpv.__class__.__name__ == cls_name:
+            return {
+                "name": cpv.NAME,
+                "entry_component": cpv.entry_component.__class__.__name__ if cpv.entry_component else "N/A",
+                "exit_component": cpv.exit_component.__class__.__name__ if cpv.exit_component else "N/A",
+                "required_components": [comp.__class__.__name__ for comp in cpv.required_components],
+                "initial_conditions": cpv.initial_conditions or {},  # Include initial_conditions
+                "vulnerabilities": [vuln.__class__.__name__ for vuln in cpv.vulnerabilities],  # Extract vulnerabilities
+                "reference_urls": cpv.reference_urls,  # Include reference_urls directly
+                "attack_requirements": cpv.attack_requirements,
+                "attack_vectors": [
+                    {
+                        "name": vector.name,
+                        "signal": vector.signal.modality,
+                        "access_level": vector.required_access_level,
+                        "configuration": vector.configuration,  # Pass configuration as a dictionary
+                    }
+                    for vector in cpv.attack_vectors
+                ],
+                "impact": [
+                    {"category": impact.category, "description": impact.description}
+                    for impact in cpv.attack_impacts
+                ],
+                "exploit_steps": cpv.exploit_steps,
+            }
+    return {"error": "CPV not found"}, 400
 
-    if cls_name.startswith("hypothesis/"):
-        hypothesis_name = cls_name[len("hypothesis/"):]
-        if hypothesis_name not in hypotheses:
-            return {"error": "Hypothesis doesn't exist"}, 400
-        hypothesis = hypotheses[hypothesis_name]
-        name = hypothesis_name
-        components = hypothesis.required_components
-    else:
-        for cpv in CPVS:
-            if cpv.__class__.__name__ == cls_name:
-                break
-        else:
-            return {"error": "CPV not found"}, 400
-        name = cpv.NAME
-        components = cpv.required_components
-
-    return {
-        "name": name,
-        "cls_name": cls_name,
-        "components": [
-            {
-                "name": comp.name,
-                "abstractions": get_component_abstractions(comp),
-            } for comp in components
-        ],
-    }
 
 def lookup_blueprint(raw):
     try:
@@ -149,28 +148,37 @@ def ingest_blueprint():
 @app.route("/api/get_blueprint")
 def get_blueprint():
     blueprint_id = request.args.get("id", None)
-
+    
     if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
+    
     cps = blueprints[blueprint_id]
-
+    
     d = {
         "nodes": [],
         "links": [],
         "options": {},
     }
+    
     for node in cps.component_graph:
-        d["nodes"].append({"id": id(node), "name": repr(node)})
+        d["nodes"].append({
+        "id": id(node), 
+        "name": repr(node),
+        "entry": cps.component_graph.nodes[node].get('is_entry', False)
+        })
     for src, dst in cps.component_graph.edges:
         d["links"].append({
             "source": id(src),
             "target": id(dst),
         })
+    
     for option in cps.options:
         d["options"][option] = cps.get_option(option)
+    
     return {
         "component_graph": d
     }
+
 
 @app.post("/api/set_blueprint_option")
 def set_blueprint_option():
@@ -184,37 +192,28 @@ def set_blueprint_option():
     value = request.get_json()
 
     cps.set_option(option, value)
-    print(cps.steering.has_aps)
+    #print(cps.steering.has_aps)
 
     return {}
 
 @app.route("/api/cpv_search")
 def cpv_search():
-    # TODO: Getting the components from the front end
-
     blueprint_id = request.args.get("blueprint_id", None)
     if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
+
     cps = blueprints[blueprint_id]
+    search_id = add_search(cps=cps)
 
-    cpv_name = request.args.get("cpv_name", None)
-    if cpv_name is None:
-        return {"error": "CPV name must be provided"}
+    # Wait briefly for the worker to start
+    time.sleep(1)
 
-    if cpv_name.startswith("hypothesis/"):
-        hypothesis_name = cpv_name[len("hypothesis/"):]
-        if hypothesis_name not in hypotheses:
-            return {"error": "Hypothesis doesn't exist"}, 400
-        hypothesis = hypotheses[hypothesis_name]
-        # TODO: watch out for thread safety with this cps reference...
-        search_id = add_search(hypothesis=hypothesis, cps=cps)
-    else:
-        search_id = add_search(cpv=cpv_name, cps=cps)
+    search = SEARCHES.get(search_id, {})
+    if not search.get("cpv_inputs"):
+        return {"error": "No CPVs found for this CPS."}
 
-    return {
-        "search_id": search_id,
-    }
-
+    # Return only ID and name of each CPV
+    return {"cpvs": search["cpv_inputs"]}
 
 @app.route("/api/cpv_search_ids")
 def cpv_search_ids():
@@ -224,7 +223,6 @@ def cpv_search_ids():
     return {
         "ids": ids,
     }
-
 
 @app.route("/api/cpv_search_result")
 def cpv_search_result():

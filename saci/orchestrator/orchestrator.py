@@ -1,68 +1,61 @@
-import queue
 from time import sleep
 from typing import List, Optional, Tuple
 
-from saci_db.cpvs.cpv06_roll_over import RollOverCPV
+from saci_db.cpvs.cpv01_sik_mavlink_motors import MavlinkCPV
+from saci_db.cpvs.cpv02_gps_position_move import GPSCPV
+from saci_db.cpvs.cpv03_deauth_dos import WiFiDeauthDosCPV
+from saci_db.cpvs.cpv04_icmp_cpv import ICMPFloodingCPV
+from saci_db.cpvs.cpv05_adv_ml_untrack import ObjectTrackCPV
+from saci_db.cpvs.cpv06_serial_motor_rollover import RollOverCPV
+from saci_db.cpvs.cpv07_pmagnet_compass_dos import PermanentCompassSpoofingCPV
+from saci_db.cpvs.cpv08_wifi_webserver_crash import WebCrashCPV
+from saci_db.cpvs.cpv09_gps_position_static import GPSPositionStaticCPV
+from saci_db.cpvs.cpv11_serial_motor_throttle import ThrottleCPV
+from saci_db.cpvs.cpv12_wifi_http_move import WebMoveCPV
+from saci_db.cpvs.cpv13_gps_position_loop import GPSPositionLoopCPV
+from saci_db.cpvs.cpv14_serial_arduino_control import SerialArduinoControlCPV
+from saci_db.cpvs.cpv15_wifi_http_stop import WebStopCPV
+from saci_db.cpvs.cpv16_serial_motor_redirect import RedirectCPV
+from saci_db.cpvs.cpv17_tmagnet_compass_disorient import TemporaryCompassSpoofingCPV
+from saci_db.cpvs.cpv18_smbus_battery_shutdown import SMBusBatteryShutdownCPV
+from saci_db.cpvs.cpv19_debug_esc_flash import ESCFlashCPV
+from saci_db.cpvs.cpv20_serial_esc_bootloader import ESCBootloaderCPV
+from saci_db.cpvs.cpv21_serial_esc_reset import ESCResetCPV
+from saci_db.cpvs.cpv22_serial_esc_discharge import DischargeCPV
+from saci_db.cpvs.cpv23_serial_esc_bufferoverflow import OverflowCPV
+from saci_db.cpvs.cpv24_serial_esc_execcmd import ESCExeccmdCPV
+from saci_db.cpvs.cpv25_serial_motor_overheat import OverheatingCPV
+from saci_db.cpvs.cpv30_projector_opticalflow_dos import ProjectorOpticalFlowCPV
+from saci_db.cpvs.cpv31_laser_depthcamera_dos import DepthCameraDoSCPV
+from saci_db.cpvs.cpv33_deauth_quad_dos import WiFiDeauthQuadDosCPV
+from saci_db.cpvs.cpv34_wifi_mavlink_disarm import MavlinkDisarmCPV
+
 from saci_db.devices.ngcrover import NGCRover
-from saci_db.vulns.knowncreds import WifiKnownCredsVuln
-from saci_db.vulns.noaps import NoAPSVuln
-from ..constrainers import get_constrainer, get_constrainer_and_abstract_component
-from ..modeling import CPV, CPVHypothesis
-from ..modeling.device import ComponentBase, TelemetryHigh
-from ..modeling.state import GlobalState
-from ..modeling.behavior import Behaviors
-from ..modeling.cpvpath import CPVPath
-from ..identifier import IdentifierCPV, IdentifierCPSV
-
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
-from saci_db.cpvs import MavlinkCPV
-from saci_db.vulns import MavlinkCPSV, SiKCPSV, MavlinkOverflow
+from saci_db.devices.gs_quadcopter import GSQuadcopter
 
-from .workers import TA1, TA2, TA3
+from saci.modeling.cpv import CPV
+from saci.modeling.state import GlobalState
+from saci.modeling.behavior import Behaviors
+from saci.modeling.cpvpath import CPVPath
+from saci.identifier import IdentifierCPV
+
+cpv_database = [MavlinkCPV(), WiFiDeauthDosCPV(), RollOverCPV(), PermanentCompassSpoofingCPV(), WebCrashCPV(),GPSPositionStaticCPV(), 
+                ThrottleCPV(), WebMoveCPV(), GPSPositionLoopCPV(), SerialArduinoControlCPV(), WebStopCPV(), RedirectCPV(),
+                TemporaryCompassSpoofingCPV(), 
+                SMBusBatteryShutdownCPV(), ESCFlashCPV(), ESCBootloaderCPV(), ESCResetCPV(), DischargeCPV(), OverflowCPV(), ESCExeccmdCPV(), OverheatingCPV(),
+                GPSCPV(), ICMPFloodingCPV(), MavlinkDisarmCPV(), WiFiDeauthQuadDosCPV(),
+                ObjectTrackCPV(), ProjectorOpticalFlowCPV(), DepthCameraDoSCPV()]
 
 import logging
 l = logging.getLogger(__name__)
-# l.setLevel('DEBUG')
 
-MOCK_TASKS_1 = {
-    "TA1": [{
-        "Description": "Check if a controller interface exists",
-        "Meta-Data": []
-    }],
-    "TA2": [{
-        "Description": "Simulate roll-over",
-        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
-    }],
-    "TA3": []
-}
-
-MOCK_TASKS_2 = {
-    "TA1": [{
-        "Description": "Check if a controller interface exists",
-        "Meta-Data": []
-    }],
-    "TA2": [{
-        "Description": "Simulate roll-over",
-        "Meta-Data": ["Speed", "Inclined Degree", "Friction"] # this comes from atom
-    }],
-    "TA3": [{
-        "Description": "Measure please! (Resource: chatgpt)",
-        "Meta-Data": ["CoM", "Base of Support", "Moment of Inertia", "Shape and Geometry"]
-    }]
-}
-
-
-def identify(cps, initial_state,
-             cpv_model: Optional[CPV] = None,
-             ta1 = None,
-             ta2 = None,
-             ta3 = None,
-             queue = None) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
+def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
     """
     Identify if the given CPV model may exist in the CPS model.
     Return a CPV description if it exists, otherwise return None.
     """
-    identifier = IdentifierCPV(cps, initial_state, ta1=ta1, ta2=ta2, ta3=ta3, queue=queue)
+    identifier = IdentifierCPV(cps, initial_state)
     to_return = []
     for path in identifier.identify(cpv_model):
         to_return.append(CPVPath(path, Behaviors([])))
@@ -71,184 +64,47 @@ def identify(cps, initial_state,
     else:
         return None, None
 
-def identify_from_cpsv(cps, cpsvs, initial_state) -> List[Tuple[CPV, List[CPVPath]]]:
-    """
-    Return: create a new CPV and return that with the CPVPath  
-    """
-    identifier = IdentifierCPSV(cps, initial_state)
-    return identifier.identify(cpsvs)
-
-def constrain_cpv_path(cps, cpv_model, cpv_path, output) -> Optional:
-    """
-    Constrain a CPV path on a CPV model with the goal of generating
-    """
-    behaviors = cpv_path.final_behaviors
-    state = None  # TODO:
-    constraints = set()  # TODO:
-
-    if hasattr(cpv_path, 'cpv_inputs'):
-        return cpv_path.cpv_inputs
-    prior_input = output
-    inputs = [ ]
-    for component in reversed(cpv_path.path):
-        if hasattr(component, "ABSTRACTIONS"):
-            # this is a combo component
-            constrainercls_and_abstractions = list(get_constrainer_and_abstract_component(component))
-            if not constrainercls_and_abstractions:
-                inputs.insert(0, None)
-                continue
-
-        else:
-            # this is an abstracted component
-            constrainer_clses = list(get_constrainer(component))
-            if not constrainer_clses:
-                inputs.insert(0, None)
-                continue
-
-            constrainercls_and_abstractions = [(cls, component) for cls in constrainer_clses]
-
-        for constrainer_cls, abstraction in constrainercls_and_abstractions:
-            constrainer = constrainer_cls()
-
-            print(f"... Constrainer {constrainer} for component {abstraction}")
-
-            r, info = constrainer.solve(abstraction, prior_input, state, behaviors, constraints)
-            if r is False:
-                # unsat
-                return None
-            # sat!
-            behaviors = info["behaviors"]
-            state = info["input_state"]
-            input = info["input"]
-            constraints = info["constraints"]
-
-            if input is not None:
-                inputs.insert(0, info | {"constrainer": constrainer_cls.__name__})
-                prior_input = input
-                break
-        else:
-            print(f"... No constrainer can constrain component {component}. You should provide better constrainers!")
-            inputs.insert(0, None)
-
-    return inputs
-
-
-def verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input) -> bool:
-    """
-    Verify the existence of a CPV input in a customized simulation.
-    """
-    return False
-
-
-def process(cps, database, initial_state, ta1=None, ta2=None, ta3=None, queue=None):
+def process(cps, database, initial_state):
+    
     identified_cpv_and_paths = [ ]
-
-    ##### Hypothesis Matching ######
-    # TODO: the hypothesis might be CPSV-based and connected with the other CPSVs in the future
-    # But this may not be that important, because IV&V said the hypothesis will specify a physical effect 
-    if database['hypotheses'] is not None:
-        identified_cpv_and_paths = [ ]
-        for cpv_model_base in database["hypotheses"]:
-            cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base, ta1=ta1, ta2=ta2, ta3=ta3, queue=queue)
-            if cpv_paths is not None:
-                identified_cpv_and_paths.append((cpv_model, cpv_paths))
     
     ##### CPV Matching #####
-    # identify potential CPV in CPS
     l.info("Identifying CPVs from existed CPV database\n")
-    for cpv_model_base in database["cpv_model"]:
+    for cpv_model_base in database:
         cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base)
         if cpv_paths is not None:
             identified_cpv_and_paths.append((cpv_model, cpv_paths))
-
-    l.info("Identifying CPVs from existed CPSV database\n")
-    ##### CPSV Matching #####
-    # for each CPSV, identify potenetial combinations on the target CPS
-    # 1. identify if the CPS contains the CPSV
-    potential_cpsvs = list(filter(lambda cpsv: cpsv.exists(cps), database['cpsv_model']))
-    l.info(f"Potential CPSVs: {potential_cpsvs}\n")
-    # 2. generate combinations of CPSVs into CPV 
-    identified_cpv_and_paths += identify_from_cpsv(cps, potential_cpsvs, initial_state)
-    # for each identified CPV, constrain further with back-propagated output and constraints to find a possible input
     
     cpv_inputs = [ ]
     for cpv_model, cpv_paths in identified_cpv_and_paths:
         for cpv_path in cpv_paths:
-            cpv_input = constrain_cpv_path(cps, cpv_model, cpv_path, {"goal": "alter_motor_speed"})
-            if cpv_input is not None:
-                cpv_inputs.append((cpv_model, cpv_path, cpv_input))
-
-    # TODO NOW: right now a single mavlink authentication cannot crash the drone.
-    # We need to add SiK specification, and component identification
-
+            cpv_inputs.append((cpv_model, cpv_path))
         
-    # verify each CPV input in customized simulation
-    # TODO: connect this with TA2
-    l.info("Simulating Identified CPVs\n")
-    all_cpvs = []
-    for cpv_model, cpv_desc, cpv_input in cpv_inputs:
-        verified = verify_in_simulation(cps, cpv_model, cpv_desc, cpv_input)
-        all_cpvs.append((cps, cpv_model, cpv_desc, cpv_input, verified))
 
-    return all_cpvs
+    return cpv_inputs
 
-def reverse_engineer(cps):
-    # TODO: this will be replaced by the actual TA3 output.
-    # TODO: this should be parallel
-    # TODO: this can be on demand, i.e., SACI has a specific task to TA3
-    pass
+def main():
 
-
-def test_hypothesis(h):
-    """
-    Test hypothesis
-    """
-
-def main(hypothesis = None):
-    ta4_queue = queue.Queue()
-    ta1 = TA1(ta4_queue)
-    ta2 = TA2(ta4_queue)
-    ta3 = TA3(ta4_queue)
     # input: the CPS model
-    cps_components = ...
-
-    # cps = PX4Quadcopter()
-    cps = NGCRover()
-
-    # components = [c() for c in cps.components]
     
-    # hypothesis will be system and ports
-    # e.g., name: Arduino R4, ports: wifi
-    # effect: system level, physics, like the 6 degree of freedom 
-    # if there is a hypothesis, test the hypothesis 
-    if hypothesis is not None:
-        with open(hypothesis, 'r') as f:
-            cpv_hypothesis = CPVHypothesis(f)
-
-
-    # otherwise, just search CPV from our database
+    cps = PX4Quadcopter()
+    #cps = NGCRover()
+    #cps = GSQuadcopter()
+    # Search CPV from our database
     
-    reverse_engineer(cps)
-
     initial_state = GlobalState(components=cps.components)
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
-        # "cpv_model": [MavlinkCPV()],
-        # "cpsv_model": [MavlinkCPSV(), MavlinkOverflow()],
-        "cpv_model": [],
-        # "cpv_model": [RollOverCPV()],
-        "cpsv_model": [WifiKnownCredsVuln(), NoAPSVuln()],
-        # "cpsv_model": [],
-        # "cpsv_model": [MavlinkCPSV(), SiKCPSV(), MavlinkOverflow()],
+        "cpv_model": cpv_database,
         "cps_vuln": [],
-        "hypotheses": [cpv_hypothesis]
+        "hypotheses": []
     }
 
-    all_cpvs = process(cps, database, initial_state, ta1=ta1, ta2=ta2, ta3=ta3, queue=ta4_queue)
+    all_cpvs = process(cps, database, initial_state)
 
-
-    print(all_cpvs[0])
+    for i, cpv in enumerate(all_cpvs, start=0):
+        print(cpv)
 
 if __name__ == "__main__":
     # TODO: orchestrator should keep receiving new hypotheses and new inputs from each TA.

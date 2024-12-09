@@ -26,8 +26,9 @@ class Telemetry(CyberComponentBase):
 class TelemetryHigh(CyberComponentHigh):
     __slots__ = ("protocol_name", "communication", )
 
-    def __init__(self, protocol_name=None, communication=None, **kwargs):
+    def __init__(self, type=None, protocol_name=None, communication=None, **kwargs):
         super().__init__(has_external_input=True, **kwargs)
+        self.type = type
         self.protocol_name = protocol_name
         self.communication = communication
 

@@ -7,5 +7,5 @@ from .cyber import (
 )
 from .hardware import (
     HardwareAbstractionLevel, HARDWARE_ABSTRACTION_LEVELS, HardwareComponentBase, HardwareHigh, HardwarePackage,
-    HardwareTechnology, SensorCircuit
+    HardwareTechnology, SensorCircuit, HardwareCircuit
 )

@@ -4,3 +4,4 @@ from .component_hw_high import HardwareHigh
 from .component_hw_package import HardwarePackage
 from .component_hw_technology import HardwareTechnology
 from .component_sensor_circuit import SensorCircuit
+from .component_hw_circuit import HardwareCircuit

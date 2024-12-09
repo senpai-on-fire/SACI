@@ -1,10 +1,10 @@
 from typing import List, Optional, Dict, Type, Any, Tuple
 
-from ..modeling import Device, CPV, ComponentBase, CPSV
-from ..modeling.state import GlobalState
-from ..modeling.device.component import CyberComponentHigh
-from ..modeling.behavior import Behaviors
-from ..modeling.cpvpath import CPVPath
+from saci.modeling import Device, CPV, ComponentBase, CPSV
+from saci.modeling.state import GlobalState
+from saci.modeling.device.component import CyberComponentHigh
+from saci.modeling.behavior import Behaviors
+from saci.modeling.cpvpath import CPVPath
 
 from clorm import FactBase
 from clorm.clingo import Control
@@ -39,7 +39,7 @@ def create_CPV_class(name, **attributes):
     # Create a new class with the given name, base classes, and attributes
     return type(name, CPV, attributes)
 
-class Identifier:
+class IdentifierCPSV:
     def __init__(self, device: Device, initial_state: GlobalState):
         self.device = device
         self.initial_state = initial_state

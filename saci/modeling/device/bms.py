@@ -1,0 +1,22 @@
+from saci.modeling.device.component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
+
+class BMSHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+class BMSAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+class BMS(CyberComponentBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ABSTRACTIONS = {
+            CyberAbstractionLevel.HIGH: BMSHigh(),
+            CyberAbstractionLevel.ALGORITHMIC: BMSAlgorithmic(),
+        }
