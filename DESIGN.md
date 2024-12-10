@@ -1,3 +1,9 @@
+A device is the core unit of analysis in SACI. It describes the system being analyzed. It is made up of many components with a connectivity multi-digraph between them.
+
+A component has a rough type associated with it that is used to guide its modelling. However, it also contains attributes that describe its particular instance, like part model numbers, physical dimensions, or firmware images.
+
+A hypothesis describes an intentional investigation a reverse engineer is performing in search of an exploit. Hypotheses can be suggested by CPVs in the SACI database or entered purely manually. A hypothesis contains a plan of the exploit--initially starting at a high level, but eventually containing any code or artifacts needed to simulate and deploy the exploit. A hypothesis crucially controls the *abstraction levels* different components operate at.
+
 # Modeling
 
 ## Abstraction Levels
