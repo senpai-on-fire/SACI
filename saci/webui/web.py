@@ -6,14 +6,21 @@ import importlib
 from io import StringIO
 from pathlib import Path
 import os
+from typing import Annotated
 
-from flask import Flask, render_template, send_file, request, abort
+# from flask import Flask, render_template, send_file, request, abort
+from fastapi import FastAPI, Query, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
 from ..modeling import CPVHypothesis
 
-app = Flask(__name__)
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="saci/webui/static"), name="static")
+templates = Jinja2Templates(directory="saci/webui/templates")
+
 start_work_thread()
 
 hypotheses = {}
@@ -50,16 +57,18 @@ def json_serialize(obj) -> int | str | bool | list | dict:
 
 
 @app.route('/')
-def index():
-    return render_template("index.html", cpvs=CPVS, blueprints=blueprints)
+def index(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"cpvs": CPVS, "blueprints": blueprints},
+    )
 
 
-@app.route("/api/cpv_info")
-def cpv_info():
-    cls_name = request.args.get("name")
-
+@app.get("/api/cpv_info")
+def cpv_info(name: str):
     for cpv in CPVS:
-        if cpv.__class__.__name__ == cls_name:
+        if cpv.__class__.__name__ == name:
             return {
                 "name": cpv.NAME,
                 "entry_component": cpv.entry_component.__class__.__name__ if cpv.entry_component else "N/A",
@@ -97,15 +106,9 @@ def lookup_blueprint(raw):
         return None
 
 @app.post("/api/add_hypothesis")
-def add_hypothesis():
-    if "name" not in request.args:
-        return {"error": "must give name argument"}, 400
-    name = request.args["name"]
+def add_hypothesis(name: str, required_components: list[str]):
     if name in hypotheses:
         return {"error": "hypothesis name already taken"}, 400
-    required_components = request.get_json(silent=True)
-    if required_components is None:
-        return {"error": "must give json body"}, 400
     # TODO: why are we stringifying here...
     hypotheses[name] = CPVHypothesis(StringIO(json.dumps({
         "Name": name,
@@ -116,16 +119,9 @@ def add_hypothesis():
     return {}
 
 @app.post("/api/ingest_blueprint")
-def ingest_blueprint():
-    if "name" not in request.args:
-        return {"error": "must give name argument"}, 400
-    name = request.args["name"]
+def ingest_blueprint(name: str, serialized: dict, force: bool = False):
     if name in blueprints:
         return {"error": "exists"}, 400
-    force = request.args.get("force", False)
-    serialized = request.get_json(silent=True)
-    if serialized is None:
-        return {"error": "must give json body"}, 400
     try:
         # TODO: move this to another thread and return a promise?
         ingest(serialized, INGESTION_DIR / name, force=force)
@@ -145,10 +141,8 @@ def ingest_blueprint():
 
     return {"id": blueprint_id, "name": device.name}
 
-@app.route("/api/get_blueprint")
-def get_blueprint():
-    blueprint_id = request.args.get("id", None)
-    
+@app.get("/api/get_blueprint")
+def get_blueprint(blueprint_id: Annotated[str, Query(alias="id")]):
     if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
     
@@ -181,24 +175,22 @@ def get_blueprint():
 
 
 @app.post("/api/set_blueprint_option")
-def set_blueprint_option():
-    blueprint_id = request.args.get("id", None)
-
+def set_blueprint_option(
+    blueprint_id: Annotated[str, Query(alias="id")],
+    option: str,
+    value: dict,
+):
     if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
     cps = blueprints[blueprint_id]
-
-    option = request.args.get("option", None)
-    value = request.get_json()
 
     cps.set_option(option, value)
     #print(cps.steering.has_aps)
 
     return {}
 
-@app.route("/api/cpv_search")
-def cpv_search():
-    blueprint_id = request.args.get("blueprint_id", None)
+@app.get("/api/cpv_search")
+def cpv_search(blueprint_id: str):
     if blueprint_id not in blueprints:
         return {"error": "Blueprint not found"}
 
@@ -215,7 +207,7 @@ def cpv_search():
     # Return only ID and name of each CPV
     return {"cpvs": search["cpv_inputs"]}
 
-@app.route("/api/cpv_search_ids")
+@app.get("/api/cpv_search_ids")
 def cpv_search_ids():
 
     ids = list(SEARCHES)
@@ -224,10 +216,8 @@ def cpv_search_ids():
         "ids": ids,
     }
 
-@app.route("/api/cpv_search_result")
-def cpv_search_result():
-    search_id = request.args.get("id", None)
-
+@app.get("/api/cpv_search_result")
+def cpv_search_result(search_id: Annotated[str, Query(alias="id")]):
     if search_id is None:
         return {
             "error": "Search ID cannot be None",
@@ -253,12 +243,6 @@ def cpv_search_result():
     }
 
     return json_serialize(result)
-
-
-@app.route("/index.js")
-def js():
-    # TODO: Serve it as a static file
-    return send_file("templates/index.js")
 
 
 # delayed import
