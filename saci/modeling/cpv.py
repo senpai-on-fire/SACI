@@ -1,4 +1,5 @@
 import re
+from io import StringIO
 from typing import List, Any, Optional, Dict, Type, TextIO
 
 from .device import Device, CyberComponentBase
@@ -101,7 +102,7 @@ class CPV:
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
 
-    def to_asp(self):
+    def write_asp(self, f):
         """Aid conversion of CPV definitions to ASP.
 
         This is not meant to be left in here for programmatic use. If
@@ -110,34 +111,57 @@ class CPV:
 
         ident = _camel_to_snake_case(type(self).__name__[:-3])
 
-        out = ""
-        out += f"cpv({ident}).\n"
+        print(f"cpv({ident}).", file=f)
         for req in self.required_components:
-            out += f"cpv({ident}, required_component, {_comp_type_to_asp(req)}).\n"
+            print(f"cpv({ident}, required_component, {_comp_type_to_asp(req)}).", file=f)
         if self.entry_component:
-            out += f"cpv({ident}, entry_component, {_comp_type_to_asp(self.entry_component)}).\n"
+            print(f"cpv({ident}, entry_component, {_comp_type_to_asp(self.entry_component)}).", file=f)
         if self.exit_component:
-            out += f"cpv({ident}, exit_component, {_comp_type_to_asp(self.exit_component)}).\n"
+            print(f"cpv({ident}, exit_component, {_comp_type_to_asp(self.exit_component)}).", file=f)
         # what is a goal?
         for goal in self.goals:
-            out += f"cpv({ident}, goal_component, {_comp_type_to_asp(goal)}).\n"
+            print(f"cpv({ident}, goal_component, {_comp_type_to_asp(goal)}).", file=f)
         for vuln in self.vulnerabilities:
-            out += f"cpv({ident}, vulnerability, {_vuln_type_to_asp(vuln)}).\n"
+            print(f"cpv({ident}, vulnerability, {_vuln_type_to_asp(vuln)}).", file=f)
         for thing, condition in self.initial_conditions.items():
-            out += f"cpv({ident}, initial_condition({_asp_string(thing)}), {_asp_string(condition)}).\n"
+            print(f"cpv({ident}, initial_condition({_asp_string(thing)}), {_asp_string(condition)}).", file=f)
         for requirement in self.attack_requirements:
-            out += f"cpv({ident}, attack_requirement, {_asp_string(requirement)}).\n"
-        for vector in self.attack_vectors:
-            # TODO: actually flesh this out
-            out += f"cpv({ident}, attack_vector, {_asp_string(repr(vector))}).\n"
-        for impact in self.attack_impacts:
-            # TODO: actually flesh this out
-            out += f"cpv({ident}, attack_vector, {_asp_string(repr(impact))}).\n"
+            print(f"cpv({ident}, attack_requirement, {_asp_string(requirement)}).", file=f)
+        for i, vector in enumerate(self.attack_vectors):
+            # TODO: generate this ID better?
+            vector_id = f"vector_{ident}_{i}"
+            print(f"attack_vector({vector_id}).", file=f)
+            print(f"attack_vector({vector_id}, name, {_asp_string(vector.name)}).", file=f)
+            signal_id = f"signal_{ident}_{i}"
+            print(f"attack_signal({signal_id}).", file=f)
+            # TODO: tie these src/dst to the required_components?
+            print(f"attack_signal({signal_id}, src, {_comp_type_to_asp(vector.signal.src)}).", file=f)
+            print(f"attack_signal({signal_id}, dst, {_comp_type_to_asp(vector.signal.dst)}).", file=f)
+            # TODO: check to make sure this is a valid ASP symbol
+            print(f"attack_signal({signal_id}, modality, {vector.signal.modality}).", file=f)
+            if vector.signal.data is not None:
+                print(f"attack_signal({signal_id}, data, {_asp_string(vector.signal.data)}).", file=f)
+            print(f"attack_vector({vector_id}, signal, {signal_id}).", file=f)
+            print(f"attack_vector({vector_id}, required_access_level, {_asp_string(vector.required_access_level)}).", file=f)
+            for conf_key, conf_value in vector.configuration.items():
+                print(f"attack_vector({vector_id}, configuration({_asp_string(conf_key)}), {_asp_string(conf_value)}).", file=f)
+            print(f"attack_vector({vector_id}, name, {_asp_string(vector.name)}).", file=f)
+            print(f"cpv({ident}, attack_vector, {vector_id}).", file=f)
+        for i, impact in enumerate(self.attack_impacts):
+            # TODO: generate this ID better?
+            impact_id = f"impact_{ident}_{i}"
+            print(f"attack_impact({impact_id}).", file=f)
+            print(f"attack_impact({impact_id}, category, {_asp_string(impact.category)}).", file=f)
+            print(f"attack_impact({impact_id}, description, {_asp_string(impact.description)}).", file=f)
+            print(f"cpv({ident}, attack_vector, {impact_id}).", file=f)
         for i, step in enumerate(self.exploit_steps):
-            out += f"cpv({ident}, exploit_step({i}), {_asp_string(step)}).\n"
+            print(f"cpv({ident}, exploit_step({i}), {_asp_string(step)}).", file=f)
         for url in self.associated_files:
-            out += f"cpv({ident}, associated_file, {_asp_string(url)}.\n"
+            print(f"cpv({ident}, associated_file, {_asp_string(url)}.", file=f)
         for url in self.reference_urls:
-            out += f"cpv({ident}, reference_url, {_asp_string(url)}).\n"
+            print(f"cpv({ident}, reference_url, {_asp_string(url)}).", file=f)
 
-        return out
+    def to_asp(self):
+        f = StringIO()
+        self.write_asp(f)
+        return f.getvalue()

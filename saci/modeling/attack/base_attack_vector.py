@@ -6,7 +6,7 @@ class BaseAttackVector:
                  name: str,
                  signal:BaseAttackSignal, 
                  required_access_level: str,
-                 configuration: tuple[str, ...] = (),
+                 configuration: dict[str, str] = {},
                  options: tuple[str, ...] = (),
     ):
         
