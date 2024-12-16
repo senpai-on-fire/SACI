@@ -137,8 +137,7 @@ class CPV:
             # TODO: tie these src/dst to the required_components?
             print(f"attack_signal({signal_id}, src, {_comp_type_to_asp(vector.signal.src)}).", file=f)
             print(f"attack_signal({signal_id}, dst, {_comp_type_to_asp(vector.signal.dst)}).", file=f)
-            # TODO: check to make sure this is a valid ASP symbol
-            print(f"attack_signal({signal_id}, modality, {vector.signal.modality}).", file=f)
+            print(f"attack_signal({signal_id}, modality, {_asp_string(vector.signal.modality)}).", file=f)
             if vector.signal.data is not None:
                 print(f"attack_signal({signal_id}, data, {_asp_string(vector.signal.data)}).", file=f)
             print(f"attack_vector({vector_id}, signal, {signal_id}).", file=f)

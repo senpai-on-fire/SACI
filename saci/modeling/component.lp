@@ -17,20 +17,23 @@ ambient_abstraction_level(X) :- abstracter(X, Y), ambient_abstraction_level(Y).
 % GENERIC
 component_type(generic).
 % SENSORS
-component_type(camera; compass; gps; gryoscope).
+component_type(camera; compass_sensor; gps_receiver; gryoscope).
 % ACTUATORS
 component_type(motor; servo; multimotor; steering).
 % COMMS
-component_type(wifi; mavlink; telemetry).
+component_type(wifi; mavlink; telemetry; serial).
 % CONTROLLERS
-component_type(controller).
+component_type(controller; esc).
 
-has_external_input(camera; compass; gps; gryoscope; wifi; mavlink).
+has_external_input(camera; compass_sensor; gps_receiver; gryoscope; wifi; mavlink).
 
 % component(COMP, TYPE) declares a component COMP in the device-under-study of type TYPE.
 % At least for the moment, we assume there is only one device-under-study in the environment.
 component(TYPE, TYPE) :- component(TYPE).
-:- component(COMP, TYPE), not component_type(TYPE).
+
+#program validation.
+invalid(component_type_not_declared(TYPE)) :- component(COMP, TYPE), not component_type(TYPE).
+#program base.
 
 % connection(COMP1, COMP2, META) declares a connection from component COMP1 to COMP2 with description META.
 connection(COMP1, COMP2, unnamed) :- connection(COMP1, COMP2).
