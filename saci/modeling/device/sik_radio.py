@@ -10,13 +10,15 @@ class SikRadio(Telemetry):
     Describes Sik radio.
     """
 
-    def __init__(self, has_external_input=True, **kwargs):
-        super().__init__(has_external_input=has_external_input, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(
                 name="Sik Radio High",
-                protocol_name="sik",
-                communication=AuthenticatedCommunication(identifier="netid"),
+                parameters=dict(
+                    protocol_name="sik",
+                    communication=AuthenticatedCommunication(identifier="netid"),
+                ),
             ),
             CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),

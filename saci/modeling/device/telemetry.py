@@ -1,3 +1,6 @@
+from typing import Optional
+
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
 from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from ..communication import BaseCommunication
@@ -9,36 +12,41 @@ class Telemetry(CyberComponentBase):
     This is the base class for all telemetry components.
     """
 
-    __slots__ = ("has_external_input", "ABSTRACTIONS")
+    __slots__ = CyberComponentBase.__slots__ + ("ABSTRACTIONS",)
 
-    def __init__(self, has_external_input=False, **kwargs):
-        super().__init__(**kwargs)
-
-        self.has_external_input = has_external_input
+    def __init__(self, ports: Optional[Ports]=None, **kwargs):
+        super().__init__(
+            ports=union_ports({
+                "RF": Port(direction=PortDirection.INOUT),
+                "Control": Port(direction=PortDirection.OUT),
+                "Logging": Port(direction=PortDirection.IN),
+            }, ports),
+            **kwargs
+        )
 
         self.ABSTRACTIONS = {
-            CyberAbstractionLevel.HIGH: TelemetryHigh(),
-            CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(),
+            CyberAbstractionLevel.HIGH: TelemetryHigh(**kwargs),
+            CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(**kwargs),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
+    @property
+    def parameter_types(self):
+        return {
+            "protocol_name": str,
+            "communication": BaseCommunication,
+        }
+
 class TelemetryHigh(CyberComponentHigh):
-    __slots__ = ("protocol_name", "communication", )
-
-    def __init__(self, type=None, protocol_name=None, communication=None, **kwargs):
-        super().__init__(has_external_input=True, **kwargs)
-        self.type = type
-        self.protocol_name = protocol_name
-        self.communication = communication
-
+    @property
+    def parameter_types(self):
+        return {
+            "protocol_name": str,
+            "communication": BaseCommunication,
+        }
 
 class TelemetryAlgorithmic(CyberComponentAlgorithmic):
-    __slots__ = CyberComponentAlgorithmic.__slots__
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     def accepts_communication(self, communication: BaseCommunication) -> bool:
         return True
 

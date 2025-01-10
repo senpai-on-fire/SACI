@@ -8,22 +8,18 @@ from .component import HardwarePackage, HardwareComponentBase, HardwareAbstracti
 # Example of Chip name: "M4"
 
 class MicroController(HardwarePackage):
+    #TODO -- Consider adding more hardware features later
 
-    __slots__ = HardwareComponentBase.__slots__ + ("chip_vendor", "chip_series", "chip_subname")
-
-    def __init__(self, chip_vendor, chip_series, chip_name, trustzone_enabled, mpu_enabled, base_clk_freq, **kwargs):
-        super().__init__(**kwargs)
-
-        self.chip_name = chip_name
-        self.chip_series = chip_series
-        self.chip_vendor = chip_vendor
-
-        self.trustzone_enabled = trustzone_enabled
-        self.mpu_enabled = mpu_enabled
-
-        self.base_clk_freq = base_clk_freq
-
-        #TODO -- Consider adding more hardware features later
+    @property
+    def parameter_types(self):
+        return {
+            "chip_name": str,
+            "chip_series": str,
+            "chip_vendor": str,
+            "trustzone_enabled": bool,
+            "mpu_enabled": bool,
+            "base_clk_freq": int,
+        }
 
 
 ###### Parameters Meaning ######
@@ -35,16 +31,16 @@ class MicroController(HardwarePackage):
 
 
 class VoltageGlitcher(HardwarePackage):
+    #TODO -- Consider adding how the voltage glitcher circuit is connected to the micro-controller
 
-    __slots__ = HardwareComponentBase.__slots__ + ("glitch_type", "glitch_objective")
-
-    def __init__(self, clock, trigger, offset, width, **kwargs):
-        super().__init__(**kwargs)
-
-        self.clock = clock
-        self.trigger = trigger
-        self.offset = offset
-        self.width = width
-
-        #TODO -- Consider adding how the voltage glitcher circuit is connected to the micro-controller
+    @property
+    def parameter_types(self):
+        return {
+            "glitch_type": str,
+            "glitch_objective": str,
+            "clock": int,
+            "trigger": int,
+            "offset": int,
+            "width": int,
+        }
 

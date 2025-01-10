@@ -1,3 +1,4 @@
+from saci.modeling.device.component.component_base import Port, PortDirection, union_ports
 from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from ..communication import BaseCommunication
@@ -13,8 +14,14 @@ class CameraHigh(CyberComponentHigh):
 class Camera(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "has_external_input", "powered")
 
-    def __init__(self, has_external_input=True, powered=True, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, has_external_input=True, powered=True, ports=None, **kwargs):
+        super().__init__(
+            ports=union_ports({
+                "Field of View": Port(direction=PortDirection.IN),
+                "Output": Port(direction=PortDirection.OUT),
+            }, ports),
+            **kwargs
+        )
 
         self.has_external_input = has_external_input
         self.powered = powered

@@ -1,3 +1,4 @@
+from saci.modeling.device.component.component_base import Port, PortDirection
 from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
@@ -6,7 +7,7 @@ class CompassSensorHigh(CyberComponentHigh):
     __slots__ = CyberComponentHigh.__slots__
 
     def __init__(self, **kwargs):
-        super().__init__(has_external_input=True, **kwargs)
+        super().__init__(**kwargs)
 
 class CompassSensorAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__
@@ -16,12 +17,17 @@ class CompassSensorAlgorithmic(CyberComponentAlgorithmic):
 
 
 class CompassSensor(CyberComponentBase):
-    __slots__ = ("has_external_input", "ABSTRACTIONS")
+    __slots__ = ("ABSTRACTIONS")
 
-    def __init__(self, has_external_input=True, **kwargs):
-        super().__init__(**kwargs)
+    has_external_input = True
 
-        self.has_external_input = has_external_input
+    def __init__(self, **kwargs):
+        super().__init__(
+            ports={
+                "Magnetic Field": Port(direction=PortDirection.IN),
+            },
+            **kwargs
+        )
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: CompassSensorHigh(),

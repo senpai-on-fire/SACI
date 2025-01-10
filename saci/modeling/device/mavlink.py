@@ -10,13 +10,15 @@ class Mavlink(Telemetry):
     Describes the Mavlink component.
     """
 
-    def __init__(self, has_external_input=False, **kwargs):
-        super().__init__(has_external_input=has_external_input, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(
                 name="Mavlink High",
-                protocol_name="mavlink",
-                communication=AuthenticatedCommunication(identifier="system_id"),
+                parameters=dict(
+                    protocol_name="mavlink",
+                    communication=AuthenticatedCommunication(identifier="system_id"),
+                ),
             ),
             CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
