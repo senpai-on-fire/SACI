@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
 import { ReactFlow } from '@xyflow/react';
 import { useSWR } from 'swr';
 import ELK from 'elkjs/lib/elk-api';
@@ -13,23 +11,86 @@ const elk = new ELK({
     new Worker(new URL('elkjs/lib/elk-worker.min.js', import.meta.url)),
 });
 
-const initialNodes = {
-  '1': { data: { label: '1' } },
-  '2': { data: { label: '2' } }
+const ROVER1 = {
+  name: "Rover",
+  components: {
+    'wifi': {
+      'parameters': {
+      },
+    },
+    'serial': {
+      'parameters': {
+      },
+    },
+    'webserver': {},
+    'gps': {},
+    'compass': {},
+    'uno_r4': {},
+    'esc': {},
+    'motor': {},
+    'steering': {},
+    'uno_r3': {},
+  },
+  connections: [
+    ['wifi', 'webserver'],
+    ['webserver', 'uno_r4'],
+    ['gps', 'uno_r4'],
+    ['compass', 'uno_r4'],
+    ['serial', 'uno_r4'],
+    ['uno_r4', 'uno_r3'],
+    ['uno_r3', 'esc'],    
+    ['uno_r3', 'steering'],
+    ['esc', 'motor'],
+  ],
 };
-const initialEdges = {
-  'e1-2': { source: '1', target: '2' }
+const ROVER2 = {
+  name: "Rover 2",
+  components: {
+    'wifi': {
+      'parameters': {
+      },
+    },
+    'serial': {
+      'parameters': {
+      },
+    },
+    'webserver': {},
+    'gps': {},
+    'magnetometer': {},
+    'uno_r4': {},
+    'esc': {},
+    'motor': {},
+    'steering': {},
+    'uno_r3': {},
+  },
+  connections: [
+    ['wifi', 'webserver'],
+    ['webserver', 'uno_r4'],
+    ['gps', 'uno_r4'],
+    ['magnetometer', 'uno_r4'],
+    ['serial', 'uno_r4'],
+    ['uno_r4', 'uno_r3'],
+    ['uno_r3', 'esc'],    
+    ['uno_r3', 'steering'],
+    ['esc', 'motor'],
+  ],
 };
+const DEVICES = [ROVER1, ROVER2];
 
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
-function Flow({graph}) {
+function Hypothesis({hypothesis}) {
+  return (
+    <> </>
+  );
+}
+
+function Flow({device}) {
   type GraphLayoutState =
     {state: "laying"} |
     {state: "laid", nodes: any, edges: any} |
     {state: "error"};
   const [state, setState] = useState<GraphLayoutState>({state: "laying"});
-  console.log(graph);
 
   useEffect(() => {
     const elkGraph = {
@@ -39,15 +100,15 @@ function Flow({graph}) {
         'elk.direction': 'DOWN',
         'elk.spacing.nodeNode': 200,
         'elk.spacing.edgeNode': 200,
-        'elk.layered.spacing.nodeNodeBetweenLayers': 200
+        'elk.layered.spacing.nodeNodeBetweenLayers': 75
       },
-      children: Object.keys(graph.nodes).map(id => ({
+      children: Object.keys(device.components).map(id => ({
         id
       })),
-      edges: Object.entries(graph.edges).map(([id, e]) => ({
-        id,
-        sources: [e.source],
-        targets: [e.target]
+      edges: device.connections.map(([source, target]) => ({
+        id: `${source}-${target}`,
+        sources: [source],
+        targets: [target]
       }))
     };
     elk.layout(elkGraph)
@@ -56,17 +117,17 @@ function Flow({graph}) {
            state: "laid",
            nodes: layout.children.map(n => ({
              id: n.id,
+             data: {label: n.id},
              position: {
                x: n.x,
                y: n.y
              },
-             ...graph.nodes[n.id]
+             ...device.components[n.id]
            })),
            edges: layout.edges.map(e => ({
              id: e.id,
              source: e.sources[0],
              target: e.targets[0],
-             ...graph.edges[e.id]
            }))
          });
        })
@@ -74,44 +135,42 @@ function Flow({graph}) {
         console.log(e);
         setState({state: "error"});
       });
-  }, [graph]);
+  }, [device]);
 
   if (state.state === "laying") {
     return <p>laying out the graph...</p>;
   } else if (state.state == "error") {
     return <p>error laying it out??</p>;
   } else {
-    return <ReactFlow nodes={state.nodes} edges={state.edges} />;
+    return (
+      <ReactFlow nodes={state.nodes} edges={state.edges}>
+      </ReactFlow>
+    );
   }
 }
 
+function DeviceSelector({selected, onSelection}: {selected: number, onSelection: (idx: number) => void}) {
+  // TODO: do a request here? or should that be bubbled up higher?
+  const options = DEVICES.map((d, i) => <option key={i} value={`${i}`}>{d.name}</option>);
+  return (
+    <label>
+      Device under examination:
+      <select value={`${selected}`} onChange={e => onSelection(parseInt(e.target.value))}>
+        {options}
+      </select>
+    </label>
+  );
+}
+
 function App() {
-  const [count, setCount] = useState(0);
+  const [deviceIdx, setDeviceIdx] = useState(0);
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is now {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <div style={{ width: '600px', height: '400px'}}>
-        <Flow graph={{nodes: initialNodes, edges: initialEdges}} />
+      <h1>SACI</h1>
+      <DeviceSelector selected={deviceIdx} onSelection={setDeviceIdx} />
+      <div style={{ width: '800px', height: '400px'}}>
+        <Flow device={DEVICES[deviceIdx]} />
       </div>
     </>
   );
