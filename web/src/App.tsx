@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ReactFlow, Background, Controls } from '@xyflow/react';
+import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
 import { useSWR } from 'swr';
 import ELK from 'elkjs/lib/elk-api';
  
@@ -20,6 +20,7 @@ const ROVER1 = {
     },
     'serial': {
       'parameters': {
+        'baud rate': 115200
       },
     },
     'webserver': {},
@@ -172,17 +173,50 @@ function DeviceSelector({selected, onSelection}: {selected: number, onSelection:
   );
 }
 
+function Component({component}) {
+  const parameters = Object.entries(component.parameters ?? {}).map(([id, val]) =>
+    <li key={id}>{id}: {val}</li>
+  );
+  return (
+    <>
+      <h2>{component.name}</h2>
+      <ul>
+        {parameters}
+      </ul>
+      <button>Start Simulation</button>
+    </>
+  );
+}
+
 function App() {
   const [deviceIdx, setDeviceIdx] = useState(0);
+  const device = DEVICES[deviceIdx];
+
+  type PanelState =
+    {state: "nothing"} |
+    {state: "component", id: string};
+  const [panel, setPanel] = useState<PanelState>({state: "nothing"});
+
+  let panelComponent;
+  if (panel.state === "nothing") {
+    panelComponent = <> </>;
+  } else if (panel.state === "component") {
+    panelComponent = (
+      <Panel className="bg-white" position="bottom-center">
+        <Component component={{name: panel.id, ...device.components[panel.id]}} />
+      </Panel>
+    );
+  }
 
   return (
     <>
       <div style={{ width: '100vw', height: '100vh'}}>
-        <Flow device={DEVICES[deviceIdx]} onComponentClick={c => console.log(c)}>
+        <Flow device={device} onComponentClick={id => setPanel({state: "component", id})}>
           <div className="m-8">
             <h1 className="font-bold">SACI</h1>
             <DeviceSelector selected={deviceIdx} onSelection={setDeviceIdx} />
           </div>
+          {panelComponent}
         </Flow>
       </div>
     </>
