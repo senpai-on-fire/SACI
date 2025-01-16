@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ReactFlow } from '@xyflow/react';
+import { ReactFlow, Background, Controls } from '@xyflow/react';
 import { useSWR } from 'swr';
 import ELK from 'elkjs/lib/elk-api';
  
@@ -85,7 +85,7 @@ function Hypothesis({hypothesis}) {
   );
 }
 
-function Flow({device}) {
+function Flow({device, onComponentClick, children}) {
   type GraphLayoutState =
     {state: "laying"} |
     {state: "laid", nodes: any, edges: any} |
@@ -143,7 +143,15 @@ function Flow({device}) {
     return <p>error laying it out??</p>;
   } else {
     return (
-      <ReactFlow nodes={state.nodes} edges={state.edges}>
+      <ReactFlow
+        onNodeClick={(_e, n) => onComponentClick(n.id)}
+        colorMode="system"
+        nodes={state.nodes}
+        edges={state.edges}
+      >
+        <Background />
+        <Controls />
+        {children}
       </ReactFlow>
     );
   }
@@ -153,12 +161,14 @@ function DeviceSelector({selected, onSelection}: {selected: number, onSelection:
   // TODO: do a request here? or should that be bubbled up higher?
   const options = DEVICES.map((d, i) => <option key={i} value={`${i}`}>{d.name}</option>);
   return (
-    <label>
-      Device under examination:
-      <select value={`${selected}`} onChange={e => onSelection(parseInt(e.target.value))}>
-        {options}
-      </select>
-    </label>
+    <div>
+      <label>
+        Device:&nbsp;
+        <select value={`${selected}`} onChange={e => onSelection(parseInt(e.target.value))}>
+          {options}
+        </select>
+      </label>
+    </div>
   );
 }
 
@@ -167,10 +177,13 @@ function App() {
 
   return (
     <>
-      <h1>SACI</h1>
-      <DeviceSelector selected={deviceIdx} onSelection={setDeviceIdx} />
-      <div style={{ width: '800px', height: '400px'}}>
-        <Flow device={DEVICES[deviceIdx]} />
+      <div style={{ width: '100vw', height: '100vh'}}>
+        <Flow device={DEVICES[deviceIdx]} onComponentClick={c => console.log(c)}>
+          <div className="m-8">
+            <h1 className="font-bold">SACI</h1>
+            <DeviceSelector selected={deviceIdx} onSelection={setDeviceIdx} />
+          </div>
+        </Flow>
       </div>
     </>
   );
