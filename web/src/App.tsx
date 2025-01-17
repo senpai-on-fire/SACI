@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
-import { useSWR } from 'swr';
+import useSWR from 'swr';
 import ELK from 'elkjs/lib/elk-api';
  
 import './App.css';
@@ -78,7 +78,18 @@ const ROVER2 = {
 };
 const DEVICES = [ROVER1, ROVER2];
 
-const fetcher = (...args) => fetch(...args).then(res => res.json());
+const fetcher = async (...args) => {
+  const res = await fetch(...args);
+
+  if (res.ok) {
+    return await res.json();
+  } else {
+    const error = new Error('error while fetching');
+    error.info = await res.json();
+    error.status = res.status;
+    throw error;
+  }
+};
 
 function Hypothesis({hypothesis}) {
   return (
@@ -188,25 +199,43 @@ function Component({component}) {
   );
 }
 
+function CPV({name}) {
+  const { data, error, isLoading } = useSWR(`/api/cpv_info?name=${name}`, fetcher);
+  console.log(error);
+
+  if (error) {
+    return <div>Error loading CPV {name}</div>;
+  } else if (isLoading) {
+    return <div>Loading CPV {name}</div>;
+  } else {
+    return (
+      <div>
+        {data.name} has entry {data.entry_component} and exit {data.exit_component}
+      </div>
+    );
+  }
+}
+
 function App() {
   const [deviceIdx, setDeviceIdx] = useState(0);
   const device = DEVICES[deviceIdx];
 
   type PanelState =
-    {state: "nothing"} |
+    {state: "cpv", id: string} |
     {state: "component", id: string};
-  const [panel, setPanel] = useState<PanelState>({state: "nothing"});
+  const [panel, setPanel] = useState<PanelState>({state: "cpv", id: "MavlinkCPV"});
 
-  let panelComponent;
-  if (panel.state === "nothing") {
-    panelComponent = <> </>;
+  let panelInnerComp;
+  if (panel.state === "cpv") {
+    panelInnerComp = <CPV name={panel.id} />;
   } else if (panel.state === "component") {
-    panelComponent = (
-      <Panel className="bg-white" position="bottom-center">
-        <Component component={{name: panel.id, ...device.components[panel.id]}} />
-      </Panel>
-    );
+    panelInnerComp = <Component component={{name: panel.id, ...device.components[panel.id]}} />;
   }
+  const panelComponent = (
+    <Panel className="bg-white dark:bg-neutral-900 p-4" position="bottom-center">
+      {panelInnerComp}
+    </Panel>
+  );
 
   return (
     <>
