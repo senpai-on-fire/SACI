@@ -116,6 +116,7 @@ async def launch_analysis(bp_id: str, analysis_id: str):
     if analysis_id not in ANALYSES:
         return {"error": "analysis not found"}, 400
     analysis = ANALYSES[analysis_id]
+    return "https://www.example.com"
     async with httpx.AsyncClient() as client:
         create_resp = await client.post(f"{APP_CONTROLLER_URL}/app", data=analysis.as_appconfig())
         if not create_resp.is_success:

@@ -215,7 +215,7 @@ function CPV({name}) {
   }
 }
 
-function AnalysisLauncher({bpId, analysisId, analysisInfo}) {
+function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}) {
   type LaunchStatus =
     "unlaunched" |
     "launching" |
@@ -235,9 +235,9 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo}) {
       const errResp = await resp.json();
       console.log(`error details: ${errResp.error}`);
     }
-    const data = await resp.json();
-    // do something with data.url?
+    const url = await resp.json();
     setLaunchStatus("launched");
+    onLaunch(url);
   };
 
   let icon;
@@ -273,7 +273,7 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo}) {
   );
 }
 
-function Analyses({deviceIdx}) {
+function Analyses({deviceIdx, onLaunch}) {
   // TODO: replace deviceIdx with a blueprint ID. for now it doesn't matter anyway
   const { data, error, isLoading } = useSWR(`/api/blueprints/${deviceIdx}/analyses`, fetcher);
 
@@ -283,7 +283,9 @@ function Analyses({deviceIdx}) {
     return <div>Loading analyses...</div>;
   } else {
     const analyses = Object.entries(data).map(([id, analysisInfo]) =>
-      <li className="m-1" key={id}><AnalysisLauncher analysisId={id} analysisInfo={analysisInfo} /></li>
+      <li className="m-1" key={id}>
+        <AnalysisLauncher analysisId={id} analysisInfo={analysisInfo} onLaunch={url => onLaunch(analysisInfo.name, url)} />
+      </li>
     );
     return (
       <div>
@@ -294,6 +296,14 @@ function Analyses({deviceIdx}) {
       </div>
     );
   }
+}
+
+function AnalysisPanel({name, url, onClose}) {
+  // TODO: fix this hacky width/height calc somehow?
+  return <Panel className="flex flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
+    <div className="flex-none text-xl"><button onClick={onClose}>✕</button> {name}</div>
+    <iframe className="flex-1" src={url}  />
+  </Panel>;
 }
 
 function App() {
@@ -317,6 +327,11 @@ function App() {
     </Panel>
   );
 
+  const [showingAnalysis, setShowingAnalysis] = useState(null);
+  const analysisPanel = showingAnalysis ?
+    <AnalysisPanel name={showingAnalysis.name} url={showingAnalysis.url} onClose={() => setShowingAnalysis(null)} /> :
+    <> </>;
+
   return (
     <>
       <div style={{ width: '100vw', height: '100vh'}}>
@@ -326,9 +341,10 @@ function App() {
             <DeviceSelector selected={deviceIdx} onSelection={setDeviceIdx} />
           </div>
           <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
-            <Analyses deviceIdx={deviceIdx} />
+            <Analyses deviceIdx={deviceIdx} onLaunch={(name, url) => setShowingAnalysis({name, url})} />
           </Panel>
           {panelComponent}
+          {analysisPanel}
         </Flow>
       </div>
     </>
