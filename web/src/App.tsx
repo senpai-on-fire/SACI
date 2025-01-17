@@ -201,16 +201,96 @@ function Component({component}) {
 
 function CPV({name}) {
   const { data, error, isLoading } = useSWR(`/api/cpv_info?name=${name}`, fetcher);
-  console.log(error);
 
   if (error) {
-    return <div>Error loading CPV {name}</div>;
+    return <div>Error loading CPV {name}: {error}</div>;
   } else if (isLoading) {
-    return <div>Loading CPV {name}</div>;
+    return <div>Loading CPV {name}...</div>;
   } else {
     return (
       <div>
         {data.name} has entry {data.entry_component} and exit {data.exit_component}
+      </div>
+    );
+  }
+}
+
+function AnalysisLauncher({bpId, analysisId, analysisInfo}) {
+  type LaunchStatus =
+    "unlaunched" |
+    "launching" |
+    "launched" |
+    "error";
+  const [launchStatus, setLaunchStatus] = useState<LaunchStatus>("unlaunched");
+  const launchAnalysis = async () => {
+    console.log(`launching analysis ${analysisId}`);
+    setLaunchStatus("launching");
+    const resp = await fetch(
+      `/api/blueprints/${bpId}/analyses/${analysisId}/launch`,
+      {method: "POST"},
+    );
+    if (!resp.ok) {
+      console.log("failed to launch analysis");
+      setLaunchStatus("error");
+      const errResp = await resp.json();
+      console.log(`error details: ${errResp.error}`);
+    }
+    const data = await resp.json();
+    // do something with data.url?
+    setLaunchStatus("launched");
+  };
+
+  let icon;
+  switch (launchStatus) {
+  case "unlaunched":
+    icon = "▶";
+    break;
+  case "launching":
+    icon = <div className="inline-block h-4 w-4 \
+             animate-spin rounded-full \
+             border-4 border-solid border-current border-e-transparent \
+             align-[-0.125em] text-surface dark:text-white">
+           </div>;
+    break;
+  case "launched":
+    icon = "✓";
+    break;
+  case "error":
+    icon = "✕";
+    break;
+  }
+
+  return (
+    <button
+      className="px-3 py-1 \
+        bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 \
+        disabled:bg-indigo-200 disabled:hover:border-transparent
+        text-white"
+      onClick={launchAnalysis}
+      disabled={launchStatus !== "unlaunched"} >
+      {analysisInfo.name} {icon}
+    </button>
+  );
+}
+
+function Analyses({deviceIdx}) {
+  // TODO: replace deviceIdx with a blueprint ID. for now it doesn't matter anyway
+  const { data, error, isLoading } = useSWR(`/api/blueprints/${deviceIdx}/analyses`, fetcher);
+
+  if (error) {
+    return <div>Error loading analyses: {error}</div>;
+  } else if (isLoading) {
+    return <div>Loading analyses...</div>;
+  } else {
+    const analyses = Object.entries(data).map(([id, analysisInfo]) =>
+      <li className="m-1" key={id}><AnalysisLauncher analysisId={id} analysisInfo={analysisInfo} /></li>
+    );
+    return (
+      <div>
+        <h3 className="text-2xl font-bold">Analyses</h3>
+        <ul>
+          {analyses}
+        </ul>
       </div>
     );
   }
@@ -245,6 +325,9 @@ function App() {
             <h1 className="font-bold">SACI</h1>
             <DeviceSelector selected={deviceIdx} onSelection={setDeviceIdx} />
           </div>
+          <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
+            <Analyses deviceIdx={deviceIdx} />
+          </Panel>
           {panelComponent}
         </Flow>
       </div>

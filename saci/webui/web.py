@@ -1,4 +1,6 @@
 from __future__ import annotations
+from dataclasses import dataclass
+from enum import StrEnum
 
 import json
 import time
@@ -8,10 +10,13 @@ from pathlib import Path
 import os
 from typing import Annotated
 
+import httpx
+
 # from flask import Flask, render_template, send_file, request, abort
 from fastapi import FastAPI, Query, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
@@ -24,6 +29,8 @@ templates = Jinja2Templates(directory="saci/webui/templates")
 start_work_thread()
 
 hypotheses = {}
+
+APP_CONTROLLER_URL = "http://localhost:4321"
 
 
 def get_component_abstractions(comp) -> dict[str, str]:
@@ -64,6 +71,60 @@ def index(request: Request):
         context={"cpvs": CPVS, "blueprints": blueprints},
     )
 
+class AnalysisUserInfo(BaseModel):
+    """User-level metadata associated with an analysis type the user can run."""
+    name: str
+
+class InteractionModel(StrEnum):
+    UNKNOWN = "Unknown"
+    X11 = "X11"
+
+@dataclass(frozen=True)
+class Analysis:
+    """All the information associated with an analysis type, including what the system needs to know to launch it."""
+    user_info: AnalysisUserInfo
+    interaction_model: InteractionModel
+    image: str
+
+    def as_appconfig(self):
+        return {
+            "interaction_model": self.interaction_model,
+            "image": self.image,
+        }
+
+ANALYSES = {
+    "taveren_model": Analysis(
+        user_info=AnalysisUserInfo(name="Ta'veren Model"),
+        interaction_model=InteractionModel.X11,
+        image="???",
+    ),
+    "taveren_sim": Analysis(
+        user_info=AnalysisUserInfo(name="Ta'veren Simulation"),
+        interaction_model=InteractionModel.X11,
+        image="???",
+    ),
+}
+
+@app.get("/api/blueprints/{bp_id}/analyses")
+def get_analyses(bp_id: str) -> dict[str, AnalysisUserInfo]:
+    # for now ignore bp_id, but eventually analyses will be available per-device or something.
+    # return mapping of analysis ID to analysis info
+    return {id_: analysis.user_info for id_, analysis in ANALYSES.items()}
+
+@app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
+async def launch_analysis(bp_id: str, analysis_id: str):
+    if analysis_id not in ANALYSES:
+        return {"error": "analysis not found"}, 400
+    analysis = ANALYSES[analysis_id]
+    async with httpx.AsyncClient() as client:
+        create_resp = await client.post(f"{APP_CONTROLLER_URL}/app", data=analysis.as_appconfig())
+        if not create_resp.is_success:
+            return {"error": "couldn't create analysis"}, 500
+        app = create_resp.json()
+        start_resp = await client.post(f"{APP_CONTROLLER_URL}/app/{app['id']}/start")
+        if not start_resp.is_success:
+            return {"error": "couldn't start analysis"}, 500
+        return start_resp.json()["url"]
 
 @app.get("/api/cpv_info")
 def cpv_info(name: str):
