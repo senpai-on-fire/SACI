@@ -22,59 +22,6 @@ type Device = {
   connections: [from: string, to: string][],
 };
 
-const ROVER1: Device = {
-  name: "Rover",
-  components: {
-    'wifi': {
-      'name': 'Wifi',
-      'parameters': {
-      },
-    },
-    'serial': {
-      'name': 'Serial',
-      'parameters': {
-        'baud rate': 115200
-      },
-    },
-    'webserver': {
-      name: 'Webserver',
-    },
-    'gps': {
-      name: 'GPS',
-    },
-    'compass': {
-      name: 'Compass',
-    },
-    'uno_r4': {
-      name: 'Uno R4',
-    },
-    'esc': {
-      name: 'ESC',
-    },
-    'motor': {
-      name: 'Motor',
-    },
-    'steering': {
-      name: 'Steering',
-    },
-    'uno_r3': {
-      name: 'Uno R3',
-    },
-  },
-  connections: [
-    ['wifi', 'webserver'],
-    ['webserver', 'uno_r4'],
-    ['gps', 'uno_r4'],
-    ['compass', 'uno_r4'],
-    ['serial', 'uno_r4'],
-    ['uno_r4', 'uno_r3'],
-    ['uno_r3', 'esc'],    
-    ['uno_r3', 'steering'],
-    ['esc', 'motor'],
-  ],
-};
-const DEVICES: Device[] = [ROVER1, {...ROVER1, name: 'Rover 2'}];
-
 class FetchError extends Error {
   info: any;
   status?: number;
@@ -102,7 +49,7 @@ function Hypothesis({hypothesis}) {
  */
 
 type FlowProps = {
-  device: Device,
+  device?: Device,
   onComponentClick: (componentName: string) => void,
   children: ReactNode,
 };
@@ -110,10 +57,15 @@ function Flow({device, onComponentClick, children}: FlowProps) {
   type GraphLayoutState =
     {state: "laying"} |
     {state: "laid", nodes: any, edges: any} |
-    {state: "error"};
+    {state: "error"} |
+    {state: "nodevice"};
   const [state, setState] = useState<GraphLayoutState>({state: "laying"});
 
   useEffect(() => {
+    if (!device) {
+      setState({state: "nodevice"});
+      return;
+    }
     const elkGraph = {
       id: "root",
       layoutOptions: {
@@ -138,12 +90,11 @@ function Flow({device, onComponentClick, children}: FlowProps) {
            state: "laid",
            nodes: (layout.children ?? []).map(n => ({
              id: n.id,
-             data: {label: n.id},
+             data: {label: device.components[n.id].name},
              position: {
                x: n.x,
                y: n.y
              },
-             ...device.components[n.id]
            })),
            edges: (layout.edges ?? []).map(e => ({
              id: e.id,
@@ -162,8 +113,11 @@ function Flow({device, onComponentClick, children}: FlowProps) {
   if (state.state === "laying") {
     statusPanel = <Panel position="bottom-right">laying out the graph...</Panel>;
     nodes = edges = [];
-  } else if (state.state == "error") {
+  } else if (state.state === "error") {
     statusPanel = <Panel position="bottom-right">error laying it out??</Panel>;
+    nodes = edges = [];
+  } else if (state.state === "nodevice") {
+    statusPanel = <Panel position="bottom-right">waiting for device...</Panel>;
     nodes = edges = [];
   } else {
     statusPanel = <> </>;
@@ -186,14 +140,24 @@ function Flow({device, onComponentClick, children}: FlowProps) {
   );
 }
 
-function DeviceSelector({selected, onSelection}: {selected: number, onSelection: (idx: number) => void}) {
+type DeviceSelectorProps = {
+  devices?: Device[], /// should be null/undefined when devices are still loading
+  selected: number,
+  onSelection: (idx: number) => void,
+};
+function DeviceSelector({devices, selected, onSelection}: DeviceSelectorProps) {
   // TODO: do a request here? or should that be bubbled up higher?
-  const options = DEVICES.map((d, i) => <option key={i} value={`${i}`}>{d.name}</option>);
+  const options = devices ?
+    devices.map((d, i) => <option key={i} value={`${i}`}>{d.name}</option>) :
+    [<option key={0} value="0">loading...</option>];
   return (
     <div>
       <label>
         Device:&nbsp;
-        <select value={`${selected}`} onChange={e => onSelection(parseInt(e.target.value))}>
+          <select
+            value={`${devices ? selected : 0}`}
+            onChange={e => onSelection(parseInt(e.target.value))}
+            disabled={!devices} >
           {options}
         </select>
       </label>
@@ -344,8 +308,10 @@ function AnalysisPanel({name, url, onClose}: AnalysisPanelProps) {
 }
 
 function App() {
+  const { data: devices } = useSWR("/api/blueprints", fetcher);
+
   const [deviceIdx, setDeviceIdx] = useState(0);
-  const device = DEVICES[deviceIdx];
+  const device = devices ? devices[deviceIdx] : null;
 
   type PanelState =
     {state: "cpv", id: string} |
@@ -376,7 +342,7 @@ function App() {
         <Flow device={device} onComponentClick={id => setPanel({state: "component", id})}>
           <div className="m-8">
             <h1 className="font-bold">SACI</h1>
-            <DeviceSelector selected={deviceIdx} onSelection={setDeviceIdx} />
+            <DeviceSelector devices={devices} selected={deviceIdx} onSelection={setDeviceIdx} />
           </div>
           <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
             <Analyses deviceIdx={deviceIdx} onLaunch={(name, url) => setShowingAnalysis({name, url})} />

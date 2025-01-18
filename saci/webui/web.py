@@ -20,7 +20,7 @@ from pydantic import BaseModel
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
-from ..modeling import CPVHypothesis
+from ..modeling import CPVHypothesis, Device, ComponentBase
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="saci/webui/static"), name="static")
@@ -71,6 +71,36 @@ def index(request: Request):
         context={"cpvs": CPVS, "blueprints": blueprints},
     )
 
+class ComponentModel(BaseModel):
+    name: str
+    parameters: dict[str, object]
+
+def component_to_model(comp: ComponentBase) -> ComponentModel:
+    return ComponentModel(
+        name=comp.name,
+        parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
+    )
+
+class DeviceModel(BaseModel):
+    name: str
+    components: dict[str, ComponentModel]
+    connections: list[tuple[str, str]]
+
+def blueprint_to_model(bp: Device) -> DeviceModel:
+    def comp_id(comp: ComponentBase) -> str:
+        # the graph is based on object identity, so i don't really see a better option here
+        return str(id(comp))
+    return DeviceModel(
+        name=bp.name,
+        components={comp_id(comp): component_to_model(comp) for comp in bp.components},
+        connections=[(comp_id(from_), comp_id(to_)) for (from_, to_) in bp.component_graph.edges],
+    )
+
+@app.get('/api/blueprints')
+def get_blueprints() -> list[DeviceModel]:
+    # TODO: eventually we won't want to send all this data at once
+    return [blueprint_to_model(bp) for bp in blueprints.values()]
+
 class AnalysisUserInfo(BaseModel):
     """User-level metadata associated with an analysis type the user can run."""
     name: str
@@ -93,6 +123,11 @@ class Analysis:
         }
 
 ANALYSES = {
+    "example": Analysis(
+        user_info=AnalysisUserInfo(name="Example"),
+        interaction_model=InteractionModel.UNKNOWN,
+        image="???",
+    ),
     "taveren_model": Analysis(
         user_info=AnalysisUserInfo(name="Ta'veren Model"),
         interaction_model=InteractionModel.X11,
@@ -113,10 +148,11 @@ def get_analyses(bp_id: str) -> dict[str, AnalysisUserInfo]:
 
 @app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
 async def launch_analysis(bp_id: str, analysis_id: str):
+    if analysis_id == "example":
+        return "https://www.example.com"
     if analysis_id not in ANALYSES:
         return {"error": "analysis not found"}, 400
     analysis = ANALYSES[analysis_id]
-    return "https://www.example.com"
     async with httpx.AsyncClient() as client:
         create_resp = await client.post(f"{APP_CONTROLLER_URL}/app", data=analysis.as_appconfig())
         if not create_resp.is_success:
