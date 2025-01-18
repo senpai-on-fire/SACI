@@ -340,10 +340,10 @@ function App() {
     <>
       <div style={{ width: '100vw', height: '100vh'}}>
         <Flow device={device} onComponentClick={id => setPanel({state: "component", id})}>
-          <div className="m-8">
+          <Panel className="p-4" position="top-left">
             <h1 className="font-bold">SACI</h1>
             <DeviceSelector devices={devices} selected={deviceIdx} onSelection={setDeviceIdx} />
-          </div>
+          </Panel>
           <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
             <Analyses deviceIdx={deviceIdx} onLaunch={(name, url) => setShowingAnalysis({name, url})} />
           </Panel>
