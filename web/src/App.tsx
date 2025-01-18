@@ -149,24 +149,32 @@ function Flow({device, onComponentClick, children}) {
       });
   }, [device]);
 
+  let statusPanel, nodes, edges;
   if (state.state === "laying") {
-    return <p>laying out the graph...</p>;
+    statusPanel = <Panel position="bottom-right">laying out the graph...</Panel>;
+    nodes = edges = [];
   } else if (state.state == "error") {
-    return <p>error laying it out??</p>;
+    statusPanel = <Panel position="bottom-right">error laying it out??</Panel>;
+    nodes = edges = [];
   } else {
-    return (
-      <ReactFlow
-        onNodeClick={(_e, n) => onComponentClick(n.id)}
-        colorMode="system"
-        nodes={state.nodes}
-        edges={state.edges}
-      >
-        <Background />
-        <Controls />
-        {children}
-      </ReactFlow>
-    );
+    statusPanel = <> </>;
+    nodes = state.nodes;
+    edges = state.edges;
   }
+
+  return (
+    <ReactFlow
+      onNodeClick={(_e, n) => onComponentClick(n.id)}
+      colorMode="system"
+      nodes={nodes}
+      edges={edges}
+    >
+      <Background />
+      <Controls />
+      {children}
+      {statusPanel}
+    </ReactFlow>
+  );
 }
 
 function DeviceSelector({selected, onSelection}: {selected: number, onSelection: (idx: number) => void}) {
