@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
 import useSWR from 'swr';
 import ELK from 'elkjs/lib/elk-api';
@@ -11,26 +11,55 @@ const elk = new ELK({
     new Worker(new URL('elkjs/lib/elk-worker.min.js', import.meta.url)),
 });
 
-const ROVER1 = {
+type Component = {
+  name: string,
+  parameters?: {[name: string]: any},
+};
+
+type Device = {
+  name: string,
+  components: {[name: string]: Component},
+  connections: [from: string, to: string][],
+};
+
+const ROVER1: Device = {
   name: "Rover",
   components: {
     'wifi': {
+      'name': 'Wifi',
       'parameters': {
       },
     },
     'serial': {
+      'name': 'Serial',
       'parameters': {
         'baud rate': 115200
       },
     },
-    'webserver': {},
-    'gps': {},
-    'compass': {},
-    'uno_r4': {},
-    'esc': {},
-    'motor': {},
-    'steering': {},
-    'uno_r3': {},
+    'webserver': {
+      name: 'Webserver',
+    },
+    'gps': {
+      name: 'GPS',
+    },
+    'compass': {
+      name: 'Compass',
+    },
+    'uno_r4': {
+      name: 'Uno R4',
+    },
+    'esc': {
+      name: 'ESC',
+    },
+    'motor': {
+      name: 'Motor',
+    },
+    'steering': {
+      name: 'Steering',
+    },
+    'uno_r3': {
+      name: 'Uno R3',
+    },
   },
   connections: [
     ['wifi', 'webserver'],
@@ -44,60 +73,40 @@ const ROVER1 = {
     ['esc', 'motor'],
   ],
 };
-const ROVER2 = {
-  name: "Rover 2",
-  components: {
-    'wifi': {
-      'parameters': {
-      },
-    },
-    'serial': {
-      'parameters': {
-      },
-    },
-    'webserver': {},
-    'gps': {},
-    'magnetometer': {},
-    'uno_r4': {},
-    'esc': {},
-    'motor': {},
-    'steering': {},
-    'uno_r3': {},
-  },
-  connections: [
-    ['wifi', 'webserver'],
-    ['webserver', 'uno_r4'],
-    ['gps', 'uno_r4'],
-    ['magnetometer', 'uno_r4'],
-    ['serial', 'uno_r4'],
-    ['uno_r4', 'uno_r3'],
-    ['uno_r3', 'esc'],    
-    ['uno_r3', 'steering'],
-    ['esc', 'motor'],
-  ],
-};
-const DEVICES = [ROVER1, ROVER2];
+const DEVICES: Device[] = [ROVER1, {...ROVER1, name: 'Rover 2'}];
 
-const fetcher = async (...args) => {
-  const res = await fetch(...args);
+class FetchError extends Error {
+  info: any;
+  status?: number;
+}
+
+const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const res = await fetch(input, init);
 
   if (res.ok) {
     return await res.json();
   } else {
-    const error = new Error('error while fetching');
+    const error = new FetchError('error while fetching');
     error.info = await res.json();
     error.status = res.status;
     throw error;
   }
 };
 
+/*
 function Hypothesis({hypothesis}) {
   return (
     <> </>
   );
 }
+ */
 
-function Flow({device, onComponentClick, children}) {
+type FlowProps = {
+  device: Device,
+  onComponentClick: (componentName: string) => void,
+  children: ReactNode,
+};
+function Flow({device, onComponentClick, children}: FlowProps) {
   type GraphLayoutState =
     {state: "laying"} |
     {state: "laid", nodes: any, edges: any} |
@@ -110,9 +119,9 @@ function Flow({device, onComponentClick, children}) {
       layoutOptions: {
         'elk.algorithm': 'layered',
         'elk.direction': 'DOWN',
-        'elk.spacing.nodeNode': 200,
-        'elk.spacing.edgeNode': 200,
-        'elk.layered.spacing.nodeNodeBetweenLayers': 75
+        'elk.spacing.nodeNode': '200',
+        'elk.spacing.edgeNode': '200',
+        'elk.layered.spacing.nodeNodeBetweenLayers': '75',
       },
       children: Object.keys(device.components).map(id => ({
         id
@@ -127,7 +136,7 @@ function Flow({device, onComponentClick, children}) {
        .then(layout => {
          setState({
            state: "laid",
-           nodes: layout.children.map(n => ({
+           nodes: (layout.children ?? []).map(n => ({
              id: n.id,
              data: {label: n.id},
              position: {
@@ -136,7 +145,7 @@ function Flow({device, onComponentClick, children}) {
              },
              ...device.components[n.id]
            })),
-           edges: layout.edges.map(e => ({
+           edges: (layout.edges ?? []).map(e => ({
              id: e.id,
              source: e.sources[0],
              target: e.targets[0],
@@ -192,7 +201,7 @@ function DeviceSelector({selected, onSelection}: {selected: number, onSelection:
   );
 }
 
-function Component({component}) {
+function Component({component}: {component: Component}) {
   const parameters = Object.entries(component.parameters ?? {}).map(([id, val]) =>
     <li key={id}>{id}: {val}</li>
   );
@@ -207,7 +216,7 @@ function Component({component}) {
   );
 }
 
-function CPV({name}) {
+function CPV({name}: {name: string}) {
   const { data, error, isLoading } = useSWR(`/api/cpv_info?name=${name}`, fetcher);
 
   if (error) {
@@ -223,7 +232,14 @@ function CPV({name}) {
   }
 }
 
-function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}) {
+type AnalysisInfo = {name: string};
+type AnalysisLauncherProps = {
+  bpId: string,
+  analysisId: string,
+  analysisInfo: AnalysisInfo,
+  onLaunch: (url: string) => void,
+};
+function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}: AnalysisLauncherProps) {
   type LaunchStatus =
     "unlaunched" |
     "launching" |
@@ -244,7 +260,7 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}) {
       console.log(`error details: ${errResp.error}`);
     }
     const url = await resp.json();
-    setLaunchStatus("launched");
+    setLaunchStatus("unlaunched");
     onLaunch(url);
   };
 
@@ -281,7 +297,11 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}) {
   );
 }
 
-function Analyses({deviceIdx, onLaunch}) {
+type AnalysesProps = {
+  deviceIdx: number,
+  onLaunch: (name: string, url: string) => void,
+};
+function Analyses({deviceIdx, onLaunch}: AnalysesProps) {
   // TODO: replace deviceIdx with a blueprint ID. for now it doesn't matter anyway
   const { data, error, isLoading } = useSWR(`/api/blueprints/${deviceIdx}/analyses`, fetcher);
 
@@ -292,7 +312,11 @@ function Analyses({deviceIdx, onLaunch}) {
   } else {
     const analyses = Object.entries(data).map(([id, analysisInfo]) =>
       <li className="m-1" key={id}>
-        <AnalysisLauncher analysisId={id} analysisInfo={analysisInfo} onLaunch={url => onLaunch(analysisInfo.name, url)} />
+        <AnalysisLauncher
+          bpId=""
+          analysisId={id}
+          analysisInfo={analysisInfo as AnalysisInfo}
+          onLaunch={url => onLaunch((analysisInfo as AnalysisInfo).name, url)} />
       </li>
     );
     return (
@@ -306,7 +330,12 @@ function Analyses({deviceIdx, onLaunch}) {
   }
 }
 
-function AnalysisPanel({name, url, onClose}) {
+type AnalysisPanelProps = {
+  name: string,
+  url: string,
+  onClose: () => void,
+};
+function AnalysisPanel({name, url, onClose}: AnalysisPanelProps) {
   // TODO: fix this hacky width/height calc somehow?
   return <Panel className="flex flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
     <div className="flex-none text-xl"><button onClick={onClose}>✕</button> {name}</div>
@@ -327,7 +356,7 @@ function App() {
   if (panel.state === "cpv") {
     panelInnerComp = <CPV name={panel.id} />;
   } else if (panel.state === "component") {
-    panelInnerComp = <Component component={{name: panel.id, ...device.components[panel.id]}} />;
+    panelInnerComp = <Component component={device.components[panel.id]} />;
   }
   const panelComponent = (
     <Panel className="bg-white dark:bg-neutral-900 p-4" position="bottom-center">
@@ -335,7 +364,8 @@ function App() {
     </Panel>
   );
 
-  const [showingAnalysis, setShowingAnalysis] = useState(null);
+  type RunningAnalysis = {name: string, url: string};
+  const [showingAnalysis, setShowingAnalysis] = useState<RunningAnalysis | null>(null);
   const analysisPanel = showingAnalysis ?
     <AnalysisPanel name={showingAnalysis.name} url={showingAnalysis.url} onClose={() => setShowingAnalysis(null)} /> :
     <> </>;
