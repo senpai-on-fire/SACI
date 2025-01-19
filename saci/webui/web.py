@@ -15,6 +15,7 @@ import httpx
 # from flask import Flask, render_template, send_file, request, abort
 from fastapi import FastAPI, Query, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
@@ -24,6 +25,7 @@ from ..modeling import CPVHypothesis, Device, ComponentBase
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="saci/webui/static"), name="static")
+app.mount("/assets", StaticFiles(directory="web/dist/assets"), name="assets")
 templates = Jinja2Templates(directory="saci/webui/templates")
 
 start_work_thread()
@@ -70,6 +72,10 @@ def index(request: Request):
         name="index.html",
         context={"cpvs": CPVS, "blueprints": blueprints},
     )
+
+@app.get("/frontend")
+async def serve_frontend_root():
+    return FileResponse("web/dist/index.html")
 
 class ComponentModel(BaseModel):
     name: str
@@ -341,7 +347,6 @@ def cpv_search_result(search_id: Annotated[str, Query(alias="id")]):
     }
 
     return json_serialize(result)
-
 
 # delayed import
 from saci_db.devices import devices, ingested
