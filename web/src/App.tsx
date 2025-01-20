@@ -50,7 +50,7 @@ function Hypothesis({hypothesis}) {
 
 type FlowProps = {
   device?: Device,
-  onComponentClick: (componentName: string) => void,
+  onComponentClick?: (componentName: string) => void,
   children: ReactNode,
 };
 function Flow({device, onComponentClick, children}: FlowProps) {
@@ -127,7 +127,7 @@ function Flow({device, onComponentClick, children}: FlowProps) {
 
   return (
     <ReactFlow
-      onNodeClick={(_e, n) => onComponentClick(n.id)}
+      onNodeClick={(_e, n) => onComponentClick ? onComponentClick(n.id) : undefined}
       colorMode="system"
       nodes={nodes}
       edges={edges}
@@ -344,6 +344,18 @@ function AnalysisPanel({name, url, onClose}: AnalysisPanelProps) {
   </Panel>;
 }
 
+type HypothesisPanelProps = {
+  device: Device,
+  hypothesis: Hypothesis,
+};
+function HypothesisPanel({device, hypothesis}: HypothesisPanelProps) {
+  return <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="bottom-right">
+    <h3 className="text-2xl font-bold">Hypothesis: {hypothesis.name}</h3>
+    <div>Entry: {device.components[hypothesis.entry_component].name}</div>
+    <div>Exit: {device.components[hypothesis.exit_component].name}</div>
+  </Panel>;
+}
+
 function App() {
   const { data: devices } = useSWR("/api/blueprints", fetcher);
 
@@ -358,34 +370,21 @@ function App() {
   const device = devices && bpId ? devices[bpId] : null;
 
   const [hypId, setHypId] = useState<HypothesisId | null>(null);
-
-  type PanelState =
-    {state: "cpv", id: string} |
-    {state: "component", id: string};
-  const [panel, setPanel] = useState<PanelState>({state: "cpv", id: "MavlinkCPV"});
-
-  let panelInnerComp;
-  if (panel.state === "cpv") {
-    panelInnerComp = <CPV name={panel.id} />;
-  } else if (panel.state === "component") {
-    panelInnerComp = <Component component={device.components[panel.id]} />;
-  }
-  const panelComponent = (
-    <Panel className="bg-white dark:bg-neutral-900 p-4" position="bottom-center">
-      {panelInnerComp}
-    </Panel>
-  );
+  const hypothesis = device && hypId ? device.hypotheses[hypId] : null;
 
   type RunningAnalysis = {name: string, url: string};
   const [showingAnalysis, setShowingAnalysis] = useState<RunningAnalysis | null>(null);
   const analysisPanel = showingAnalysis ?
     <AnalysisPanel name={showingAnalysis.name} url={showingAnalysis.url} onClose={() => setShowingAnalysis(null)} /> :
     <> </>;
+  const hypothesisPanel = device && hypothesis ?
+    <HypothesisPanel device={device} hypothesis={hypothesis} /> :
+    <> </>;
 
   return (
     <>
       <div style={{ width: '100vw', height: '100vh'}}>
-        <Flow device={device} onComponentClick={id => setPanel({state: "component", id})}>
+        <Flow device={device}>
           <Panel className="p-4" position="top-left">
             <h1 className="font-bold">SACI</h1>
             <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
@@ -395,8 +394,8 @@ function App() {
             <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
               <Analyses bpId={bpId} onLaunch={(name, url) => setShowingAnalysis({name, url})} />
             </Panel> : <> </>}
-          {panelComponent}
           {analysisPanel}
+          {hypothesisPanel}
         </Flow>
       </div>
     </>
