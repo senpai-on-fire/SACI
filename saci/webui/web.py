@@ -367,7 +367,7 @@ def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentBase:
 hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict, {
     "ngcrover": {
         "webserver_stop": HypothesisModel(
-            name="Stop from Webserver",
+            name="From the webserver, stop the rover.",
             entry_component=comp_id(_find_comp(blueprints["ngcrover"], Wifi)),
             exit_component=comp_id(_find_comp(blueprints["ngcrover"], Motor)),
         ),

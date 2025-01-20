@@ -140,6 +140,7 @@ function Flow({device, onComponentClick, children}: FlowProps) {
   );
 }
 
+type BlueprintID = string;
 type DeviceSelectorProps = {
   devices?: {[bpId: string]: Device}, /// should be null/undefined when devices are still loading
   selected?: string | null,
@@ -345,15 +346,18 @@ function AnalysisPanel({name, url, onClose}: AnalysisPanelProps) {
 }
 
 type HypothesisPanelProps = {
+  bpId: BlueprintID,
   device: Device,
   hypothesis: Hypothesis,
+  onAnalysisLaunch: (name: string, url: string) => void,
 };
-function HypothesisPanel({device, hypothesis}: HypothesisPanelProps) {
-  return <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="bottom-right">
+function HypothesisPanel({bpId, device, hypothesis, onAnalysisLaunch}: HypothesisPanelProps) {
+  return <>
     <h3 className="text-2xl font-bold">Hypothesis: {hypothesis.name}</h3>
     <div>Entry: {device.components[hypothesis.entry_component].name}</div>
     <div>Exit: {device.components[hypothesis.exit_component].name}</div>
-  </Panel>;
+    <Analyses bpId={bpId} onLaunch={onAnalysisLaunch} />
+  </>;
 }
 
 function App() {
@@ -377,9 +381,20 @@ function App() {
   const analysisPanel = showingAnalysis ?
     <AnalysisPanel name={showingAnalysis.name} url={showingAnalysis.url} onClose={() => setShowingAnalysis(null)} /> :
     <> </>;
-  const hypothesisPanel = device && hypothesis ?
-    <HypothesisPanel device={device} hypothesis={hypothesis} /> :
-    <> </>;
+  let hypothesisPanel;
+  if (bpId) {
+    hypothesisPanel = <Panel className="bg-white dark:bg-neutral-900 p-4 max-w-md border-2 border-indigo-600 rounded" position="bottom-right">
+      {device && hypothesis ?
+        <HypothesisPanel
+          bpId={bpId}
+          device={device}
+          hypothesis={hypothesis}
+          onAnalysisLaunch={(name, url) => setShowingAnalysis({name, url})} /> :
+        <Analyses bpId={bpId} onLaunch={(name, url) => setShowingAnalysis({name, url})} />}
+    </Panel>;
+  } else {
+    hypothesisPanel = <> </>;
+  }
 
   return (
     <>
@@ -390,12 +405,8 @@ function App() {
             <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
             <HypothesisSelector hypotheses={device?.hypotheses} selected={hypId} onSelection={setHypId} />
           </Panel>
-          {bpId ?
-            <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
-              <Analyses bpId={bpId} onLaunch={(name, url) => setShowingAnalysis({name, url})} />
-            </Panel> : <> </>}
-          {analysisPanel}
           {hypothesisPanel}
+          {analysisPanel}
         </Flow>
       </div>
     </>
