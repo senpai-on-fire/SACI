@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from collections import defaultdict
 from enum import StrEnum
 
 import json
@@ -20,15 +21,14 @@ from pydantic import BaseModel
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
-from ..modeling import CPVHypothesis, Device, ComponentBase
+from ..modeling import Device, ComponentBase
+from ..modeling.device import Wifi, Motor
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="saci/webui/static"), name="static")
 templates = Jinja2Templates(directory="saci/webui/templates")
 
 start_work_thread()
-
-hypotheses = {}
 
 APP_CONTROLLER_URL = "http://localhost:4321"
 
@@ -81,25 +81,40 @@ def component_to_model(comp: ComponentBase) -> ComponentModel:
         parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
     )
 
+ComponentID = str
+
+def comp_id(comp: ComponentBase) -> ComponentID:
+    # the graph is based on object identity, so i don't really see a better option here
+    return str(id(comp))
+
+class HypothesisModel(BaseModel):
+    name: str
+    entry_component: ComponentID
+    exit_component: ComponentID
+
+HypothesisID = str
+
 class DeviceModel(BaseModel):
     name: str
-    components: dict[str, ComponentModel]
-    connections: list[tuple[str, str]]
+    components: dict[ComponentID, ComponentModel]
+    connections: list[tuple[ComponentID, ComponentID]]
+    hypotheses: dict[HypothesisID, HypothesisModel]
 
-def blueprint_to_model(bp: Device) -> DeviceModel:
-    def comp_id(comp: ComponentBase) -> str:
-        # the graph is based on object identity, so i don't really see a better option here
-        return str(id(comp))
+def blueprint_to_model(bp: Device, hypotheses: dict[HypothesisID, HypothesisModel]) -> DeviceModel:
     return DeviceModel(
         name=bp.name,
         components={comp_id(comp): component_to_model(comp) for comp in bp.components},
         connections=[(comp_id(from_), comp_id(to_)) for (from_, to_) in bp.component_graph.edges],
+        hypotheses=hypotheses,
     )
 
+BlueprintID = str
+
 @app.get('/api/blueprints')
-def get_blueprints() -> list[DeviceModel]:
+def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
-    return [blueprint_to_model(bp) for bp in blueprints.values()]
+    # TODO: store the hypotheses per-blueprint
+    return {bp_id: blueprint_to_model(bp, hypotheses[bp_id]) for bp_id, bp in blueprints.items()}
 
 class AnalysisUserInfo(BaseModel):
     """User-level metadata associated with an analysis type the user can run."""
@@ -202,19 +217,6 @@ def lookup_blueprint(raw):
         return blueprints[blueprint_id]
     except (TypeError, ValueError):
         return None
-
-@app.post("/api/add_hypothesis")
-def add_hypothesis(name: str, required_components: list[str]):
-    if name in hypotheses:
-        return {"error": "hypothesis name already taken"}, 400
-    # TODO: why are we stringifying here...
-    hypotheses[name] = CPVHypothesis(StringIO(json.dumps({
-        "Name": name,
-        "Required Components": required_components,
-        "Kinetic Effect": "do something, or not",
-        "Vulnerabilities": [],
-    })))
-    return {}
 
 @app.post("/api/ingest_blueprint")
 def ingest_blueprint(name: str, serialized: dict, force: bool = False):
@@ -353,4 +355,21 @@ else:
     INGESTION_DIR = Path(ingested.__file__).resolve().parent
 del dirname
 
-blueprints = devices | ingested.devices
+blueprints: dict[BlueprintID, Device] = devices | ingested.devices
+
+# TODO: this is hacky and an indication that we should have a better way of doing this...
+def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentBase:
+    for comp in device.components:
+        if isinstance(comp, comp_type):
+            return comp
+    raise ValueError(f"device {device!r} has no component of type {comp_type}")
+
+hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict, {
+    "ngcrover": {
+        "webserver_stop": HypothesisModel(
+            name="Stop from Webserver",
+            entry_component=comp_id(_find_comp(blueprints["ngcrover"], Wifi)),
+            exit_component=comp_id(_find_comp(blueprints["ngcrover"], Motor)),
+        ),
+    },
+})

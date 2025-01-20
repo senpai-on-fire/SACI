@@ -141,23 +141,59 @@ function Flow({device, onComponentClick, children}: FlowProps) {
 }
 
 type DeviceSelectorProps = {
-  devices?: Device[], /// should be null/undefined when devices are still loading
-  selected: number,
-  onSelection: (idx: number) => void,
+  devices?: {[bpId: string]: Device}, /// should be null/undefined when devices are still loading
+  selected?: string | null,
+  onSelection: (bpId: string) => void,
 };
 function DeviceSelector({devices, selected, onSelection}: DeviceSelectorProps) {
   // TODO: do a request here? or should that be bubbled up higher?
   const options = devices ?
-    devices.map((d, i) => <option key={i} value={`${i}`}>{d.name}</option>) :
-    [<option key={0} value="0">loading...</option>];
+    Object.entries(devices).map(([bpId, d]) => <option key={bpId} value={bpId}>{d.name}</option>) :
+    [<option key={null} value="0">loading...</option>];
   return (
     <div>
       <label>
         Device:&nbsp;
           <select
             value={`${devices ? selected : 0}`}
-            onChange={e => onSelection(parseInt(e.target.value))}
+            onChange={e => onSelection(e.target.value)}
             disabled={!devices} >
+          {options}
+        </select>
+      </label>
+    </div>
+  );
+}
+
+type HypothesisId = string;
+type Hypothesis = {
+  name: string,
+  entry_component: string,
+  exit_component: string,
+};
+type HypothesisSelectorProps = {
+  hypotheses?: {[hypId: HypothesisId]: Hypothesis} | null,
+  selected: string | null,
+  onSelection: (hypId: HypothesisId) => void,
+};
+function HypothesisSelector({hypotheses, selected, onSelection}: HypothesisSelectorProps) {
+  // TODO: this JSON.stringify for the value seems like a hack. Is there a better way of storing
+  // non-string values for the value? Or a way to access the key?
+  const options = hypotheses ?
+    [<option key={null} value="null">none</option>].concat(
+      Object.entries(hypotheses).map(([hypId, d]) =>
+        <option key={hypId} value={JSON.stringify(hypId)}>{d.name}</option>
+      )
+    ) :
+    [<option key={null} value="null">loading...</option>];
+  return (
+    <div>
+      <label>
+        Hypothesis:&nbsp;
+          <select
+            value={`${hypotheses ? JSON.stringify(selected) : null}`}
+            onChange={e => onSelection(JSON.parse(e.target.value))}
+            disabled={!hypotheses} >
           {options}
         </select>
       </label>
@@ -221,11 +257,12 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}: AnalysisLa
       console.log("failed to launch analysis");
       setLaunchStatus("error");
       const errResp = await resp.json();
-      console.log(`error details: ${errResp.error}`);
+      console.log(`error details: ${JSON.stringify(errResp)}`);
+    } else {
+      const url = await resp.json();
+      setLaunchStatus("unlaunched");
+      onLaunch(url);
     }
-    const url = await resp.json();
-    setLaunchStatus("unlaunched");
-    onLaunch(url);
   };
 
   let icon;
@@ -262,12 +299,12 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}: AnalysisLa
 }
 
 type AnalysesProps = {
-  deviceIdx: number,
+  bpId: string,
   onLaunch: (name: string, url: string) => void,
 };
-function Analyses({deviceIdx, onLaunch}: AnalysesProps) {
+function Analyses({bpId, onLaunch}: AnalysesProps) {
   // TODO: replace deviceIdx with a blueprint ID. for now it doesn't matter anyway
-  const { data, error, isLoading } = useSWR(`/api/blueprints/${deviceIdx}/analyses`, fetcher);
+  const { data, error, isLoading } = useSWR(`/api/blueprints/${bpId}/analyses`, fetcher);
 
   if (error) {
     return <div>Error loading analyses: {error}</div>;
@@ -277,7 +314,7 @@ function Analyses({deviceIdx, onLaunch}: AnalysesProps) {
     const analyses = Object.entries(data).map(([id, analysisInfo]) =>
       <li className="m-1" key={id}>
         <AnalysisLauncher
-          bpId=""
+          bpId="foo"
           analysisId={id}
           analysisInfo={analysisInfo as AnalysisInfo}
           onLaunch={url => onLaunch((analysisInfo as AnalysisInfo).name, url)} />
@@ -310,8 +347,17 @@ function AnalysisPanel({name, url, onClose}: AnalysisPanelProps) {
 function App() {
   const { data: devices } = useSWR("/api/blueprints", fetcher);
 
-  const [deviceIdx, setDeviceIdx] = useState(0);
-  const device = devices ? devices[deviceIdx] : null;
+  const [bpId, setBpId] = useState<string | null>(null);
+  // TODO: is there a less janky way to have this "default"?
+  useEffect(() => {
+    const bpIds = devices ? Object.keys(devices) : [];
+    if (!bpId && bpIds.length > 0) {
+      setBpId(bpIds[0]);
+    }
+  }, [devices]);
+  const device = devices && bpId ? devices[bpId] : null;
+
+  const [hypId, setHypId] = useState<HypothesisId | null>(null);
 
   type PanelState =
     {state: "cpv", id: string} |
@@ -342,11 +388,13 @@ function App() {
         <Flow device={device} onComponentClick={id => setPanel({state: "component", id})}>
           <Panel className="p-4" position="top-left">
             <h1 className="font-bold">SACI</h1>
-            <DeviceSelector devices={devices} selected={deviceIdx} onSelection={setDeviceIdx} />
+            <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
+            <HypothesisSelector hypotheses={device?.hypotheses} selected={hypId} onSelection={setHypId} />
           </Panel>
-          <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
-            <Analyses deviceIdx={deviceIdx} onLaunch={(name, url) => setShowingAnalysis({name, url})} />
-          </Panel>
+          {bpId ?
+            <Panel className="bg-white dark:bg-neutral-900 p-4 border-2 border-indigo-600 rounded" position="top-right">
+              <Analyses bpId={bpId} onLaunch={(name, url) => setShowingAnalysis({name, url})} />
+            </Panel> : <> </>}
           {panelComponent}
           {analysisPanel}
         </Flow>
