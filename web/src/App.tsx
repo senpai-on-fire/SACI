@@ -202,6 +202,7 @@ function HypothesisSelector({hypotheses, selected, onSelection}: HypothesisSelec
   );
 }
 
+/*
 function Component({component}: {component: Component}) {
   const parameters = Object.entries(component.parameters ?? {}).map(([id, val]) =>
     <li key={id}>{id}: {val}</li>
@@ -232,6 +233,7 @@ function CPV({name}: {name: string}) {
     );
   }
 }
+ */
 
 type AnalysisInfo = {name: string};
 type AnalysisLauncherProps = {

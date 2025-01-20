@@ -65,15 +65,7 @@ def json_serialize(obj) -> int | str | bool | list | dict:
             return repr(obj)
 
 
-@app.route('/')
-def index(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={"cpvs": CPVS, "blueprints": blueprints},
-    )
-
-@app.get("/frontend")
+@app.get("/")
 async def serve_frontend_root():
     return FileResponse("web/dist/index.html")
 
