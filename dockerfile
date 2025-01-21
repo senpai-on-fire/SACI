@@ -2,7 +2,7 @@
 FROM node:21 AS frontend-build
 WORKDIR /build
 COPY web/package*.json ./
-RUN npm install
+RUN npm install --force
 COPY web/ ./
 RUN npm run build
 
