@@ -60,5 +60,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ghcr.io/twizmwazin/saci/saci
+          tags: ghcr.io/senpai-on-fire/saci/saci
           file: Dockerfile
