@@ -58,7 +58,7 @@ jobs:
 
       - name: Rewrite git ssh urls to https
         run: |
-          git config url.https://github.com/.insteadOf git@github.com:
+          sed -i 's,git@github.com:,https://github.com/:,g' .gitmodules
 
       - name: Build and push
         uses: docker/build-push-action@v6
