@@ -38,7 +38,7 @@ templates = Jinja2Templates(directory="saci/webui/templates")
 
 start_work_thread()
 
-APP_CONTROLLER_URL = "http://localhost:3000/api"
+APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
 
 
 def get_component_abstractions(comp) -> dict[str, str]:
@@ -157,12 +157,12 @@ async def launch_analysis(bp_id: str, analysis_id: str) -> int:
         raise HTTPException(status_code=400, detail="analysis not found")
     analysis = analyses[analysis_id]
     async with httpx.AsyncClient() as client:
-        create_resp = await client.post(f"{APP_CONTROLLER_URL}/app", json=analysis.as_appconfig())
+        create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=analysis.as_appconfig())
         if not create_resp.is_success:
             print(f"got error {create_resp.text} when trying to create analysis")
             raise HTTPException(status_code=500, detail="couldn't create analysis")
         app = create_resp.json()
-        start_resp = await client.post(f"{APP_CONTROLLER_URL}/app/{app['id']}/start")
+        start_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app/{app['id']}/start")
         if not start_resp.is_success:
             raise HTTPException(status_code=500, detail="couldn't start analysis")
         return app['id']
@@ -183,7 +183,7 @@ async def ws_proxy_from(ws1: WebSocket, ws2: WsClientConnection):
 @app.websocket("/api/vnc")
 async def vnc_proxy(*, websocket: WebSocket, app_id: int):
     try:
-        async with ws_connect(f"{APP_CONTROLLER_URL}/x11-proxy/{app_id}") as app_websocket:
+        async with ws_connect(f"{APP_CONTROLLER_URL}/api/x11-proxy/{app_id}") as app_websocket:
             await websocket.accept()
             async with asyncio.TaskGroup() as tg:
                 _to_task = tg.create_task(ws_proxy_to(websocket, app_websocket))
