@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from collections import defaultdict
 from enum import StrEnum
+import asyncio
 
 import json
 import time
@@ -14,14 +15,16 @@ from typing import Annotated
 import httpx
 
 # from flask import Flask, render_template, send_file, request, abort
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
-from saci.modeling.device.compass import CompassSensor
+from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
+from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
 from saci.modeling.device.controller import Controller
+from saci.modeling.device.compass import CompassSensor
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
@@ -147,9 +150,9 @@ def get_analyses(bp_id: str) -> dict[str, AnalysisUserInfo]:
     return {id_: analysis.user_info for id_, analysis in analyses.items()}
 
 @app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
-async def launch_analysis(bp_id: str, analysis_id: str):
+async def launch_analysis(bp_id: str, analysis_id: str) -> int:
     if analysis_id == "example":
-        return "https://www.example.com"
+        return 0
     if analysis_id not in analyses:
         raise HTTPException(status_code=400, detail="analysis not found")
     analysis = analyses[analysis_id]
@@ -162,7 +165,37 @@ async def launch_analysis(bp_id: str, analysis_id: str):
         start_resp = await client.post(f"{APP_CONTROLLER_URL}/app/{app['id']}/start")
         if not start_resp.is_success:
             raise HTTPException(status_code=500, detail="couldn't start analysis")
-        return start_resp.json()["url"]
+        return app['id']
+
+async def ws_proxy_to(ws1: WebSocket, ws2: WsClientConnection):
+    while True:
+        buf = await ws1.receive_bytes()
+        await ws2.send(buf)
+
+async def ws_proxy_from(ws1: WebSocket, ws2: WsClientConnection):
+    async for buf in ws2:
+        if not isinstance(buf, bytes):
+            raise ValueError("should only get bytes in this websocket proxy")
+        await ws1.send_bytes(buf)
+
+# when deployed we should have nginx handle this proxying, but in development it's convenient to have just this one
+# server handling everything. this is certainly not very performant but hopefully it's good enough for a dev proxy.
+@app.websocket("/api/vnc")
+async def vnc_proxy(*, websocket: WebSocket, app_id: int):
+    try:
+        async with ws_connect(f"{APP_CONTROLLER_URL}/x11-proxy/{app_id}") as app_websocket:
+            await websocket.accept()
+            async with asyncio.TaskGroup() as tg:
+                _to_task = tg.create_task(ws_proxy_to(websocket, app_websocket))
+                _from_task = tg.create_task(ws_proxy_from(websocket, app_websocket))
+    except* WsInvalidStatus:
+        raise HTTPException(status_code=404, detail="no such app")
+    except* WsConnectionClosedOK:
+        pass
+    except* WebSocketDisconnect as e:
+        _, rest = e.split(lambda e: isinstance(e, WebSocketDisconnect) and e.code in (1000, 1001))
+        if rest is not None:
+            raise rest
 
 @app.get("/api/cpv_info")
 def cpv_info(name: str):

@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
 import useSWR from 'swr';
 import ELK from 'elkjs/lib/elk-api';
+import { VncScreen } from 'react-vnc';
  
 import './App.css';
 import '@xyflow/react/dist/style.css';
@@ -93,9 +94,9 @@ function Flow({device, onComponentClick, children, highlights}: FlowProps) {
     };
     elk.layout(elkGraph)
        .then(layout => {
-         const compLayout = {};
+         const compLayout: {[compId: string]: {x: number, y: number}} = {};
          for (const node of layout.children ?? []) {
-           compLayout[node.id] = {x: node.x, y: node.y};
+           compLayout[node.id] = {x: node.x ?? 0, y: node.y ?? 0};
          }
          setState({
            state: "laid",
@@ -109,7 +110,7 @@ function Flow({device, onComponentClick, children, highlights}: FlowProps) {
       });
   }, [device]);
 
-  let statusPanel, nodes, edges;
+  let statusPanel, nodes, edges: {id: string, source: string, target: string}[];
   if (state.state === "laying") {
     statusPanel = <Panel position="bottom-right">laying out the graph...</Panel>;
     nodes = edges = [];
@@ -268,7 +269,7 @@ type AnalysisLauncherProps = {
   bpId: string,
   analysisId: string,
   analysisInfo: AnalysisInfo,
-  onLaunch: (url: string) => void,
+  onLaunch: (app: number) => void,
   onHover?: () => void,
   onUnhover?: () => void,
 };
@@ -292,9 +293,9 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch, onHover, on
       const errResp = await resp.json();
       console.log(`error details: ${JSON.stringify(errResp)}`);
     } else {
-      const url = await resp.json();
+      const app = await resp.json();
       setLaunchStatus("unlaunched");
-      onLaunch(url);
+      onLaunch(app);
     }
   };
 
@@ -335,7 +336,7 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch, onHover, on
 
 type AnalysesProps = {
   bpId: string,
-  onLaunch: (analysisInfo: AnalysisInfo, url: string) => void,
+  onLaunch: (analysisInfo: AnalysisInfo, app: number) => void,
   onHover?: (analysisInfo: AnalysisInfo) => void,
   onUnhover?: () => void,
 };
@@ -354,7 +355,7 @@ function Analyses({bpId, onLaunch, onHover, onUnhover}: AnalysesProps) {
           bpId="foo"
           analysisId={id}
           analysisInfo={analysisInfo as AnalysisInfo}
-          onLaunch={url => onLaunch(analysisInfo as AnalysisInfo, url)}
+          onLaunch={app => onLaunch(analysisInfo as AnalysisInfo, app)}
           onHover={() => onHover ? onHover(analysisInfo as AnalysisInfo) : undefined}
           onUnhover={onUnhover} />
       </li>
@@ -372,14 +373,14 @@ function Analyses({bpId, onLaunch, onHover, onUnhover}: AnalysesProps) {
 
 type AnalysisPanelProps = {
   name: string,
-  url: string,
+  app: number,
   onClose: () => void,
 };
-function AnalysisPanel({name, url, onClose}: AnalysisPanelProps) {
+function AnalysisPanel({name, app, onClose}: AnalysisPanelProps) {
   // TODO: fix this hacky width/height calc somehow?
   return <Panel className="flex flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
     <div className="flex-none text-xl"><button onClick={onClose}>✕</button> {name}</div>
-    <iframe className="flex-1" src={url}  />
+    <VncScreen className="flex-1" url={`/api/vnc?app_id=${app}`} scaleViewport />
   </Panel>;
 }
 
@@ -387,7 +388,7 @@ type HypothesisPanelProps = {
   bpId: BlueprintID,
   device: Device,
   hypothesis: Hypothesis,
-  onAnalysisLaunch: (analysisInfo: AnalysisInfo, url: string) => void,
+  onAnalysisLaunch: (analysisInfo: AnalysisInfo, app: number) => void,
   onAnalysisHover?: (analysisInfo: AnalysisInfo) => void,
   onAnalysisUnhover?: () => void,
 };
@@ -418,10 +419,10 @@ function App() {
 
   const [hoveringAnalysis, setHoveringAnalysis] = useState<AnalysisInfo | null>(null);
 
-  type RunningAnalysis = {name: string, url: string};
+  type RunningAnalysis = {name: string, app: number};
   const [showingAnalysis, setShowingAnalysis] = useState<RunningAnalysis | null>(null);
   const analysisPanel = showingAnalysis ?
-    <AnalysisPanel name={showingAnalysis.name} url={showingAnalysis.url} onClose={() => setShowingAnalysis(null)} /> :
+    <AnalysisPanel name={showingAnalysis.name} app={showingAnalysis.app} onClose={() => setShowingAnalysis(null)} /> :
     <> </>;
   let hypothesisPanel;
   if (bpId) {
@@ -431,12 +432,12 @@ function App() {
           bpId={bpId}
           device={device}
           hypothesis={hypothesis}
-          onAnalysisLaunch={(analysis, url) => setShowingAnalysis({name: analysis.name, url})}
+          onAnalysisLaunch={(analysis, app) => setShowingAnalysis({name: analysis.name, app})}
           onAnalysisHover={setHoveringAnalysis}
           onAnalysisUnhover={() => setHoveringAnalysis(null)} /> :
         <Analyses
           bpId={bpId}
-          onLaunch={(analysis, url) => setShowingAnalysis({name: analysis.name, url})}
+          onLaunch={(analysis, app) => setShowingAnalysis({name: analysis.name, app})}
           onHover={setHoveringAnalysis}
           onUnhover={() => setHoveringAnalysis(null)} />}
     </Panel>;
