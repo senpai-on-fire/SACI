@@ -56,10 +56,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Rewrite git ssh urls to https
-        run: |
-          sed -i 's,git@github.com:,https://github.com/:,g' .gitmodules .git/modules/*/config
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
