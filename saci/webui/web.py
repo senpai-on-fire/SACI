@@ -35,7 +35,7 @@ templates = Jinja2Templates(directory="saci/webui/templates")
 
 start_work_thread()
 
-APP_CONTROLLER_URL = "http://localhost:3000"
+APP_CONTROLLER_URL = "http://localhost:3000/api"
 
 
 def get_component_abstractions(comp) -> dict[str, str]:
@@ -135,6 +135,7 @@ class Analysis:
 
     def as_appconfig(self):
         return {
+            "name": "app",
             "interaction_model": self.interaction_model,
             "image": self.image,
         }
@@ -153,7 +154,7 @@ async def launch_analysis(bp_id: str, analysis_id: str):
         raise HTTPException(status_code=400, detail="analysis not found")
     analysis = analyses[analysis_id]
     async with httpx.AsyncClient() as client:
-        create_resp = await client.post(f"{APP_CONTROLLER_URL}/app", data=analysis.as_appconfig())
+        create_resp = await client.post(f"{APP_CONTROLLER_URL}/app", json=analysis.as_appconfig())
         if not create_resp.is_success:
             print(f"got error {create_resp.text} when trying to create analysis")
             raise HTTPException(status_code=500, detail="couldn't create analysis")
