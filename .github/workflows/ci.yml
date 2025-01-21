@@ -56,9 +56,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull submodules
+      - name: Rewrite git ssh urls to https
         run: |
-          git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init
+          git config url.https://github.com/.insteadOf git@github.com:
 
       - name: Build and push
         uses: docker/build-push-action@v6
