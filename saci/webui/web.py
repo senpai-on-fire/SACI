@@ -14,11 +14,14 @@ from typing import Annotated
 import httpx
 
 # from flask import Flask, render_template, send_file, request, abort
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from saci.modeling.device.compass import CompassSensor
+
+from saci.modeling.device.controller import Controller
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
@@ -32,7 +35,7 @@ templates = Jinja2Templates(directory="saci/webui/templates")
 
 start_work_thread()
 
-APP_CONTROLLER_URL = "http://localhost:4321"
+APP_CONTROLLER_URL = "http://localhost:3000"
 
 
 def get_component_abstractions(comp) -> dict[str, str]:
@@ -117,6 +120,7 @@ def get_blueprints() -> dict[BlueprintID, DeviceModel]:
 class AnalysisUserInfo(BaseModel):
     """User-level metadata associated with an analysis type the user can run."""
     name: str
+    components_included: list[ComponentID] = Field(default_factory=list)
 
 class InteractionModel(StrEnum):
     UNKNOWN = "Unknown"
@@ -135,45 +139,28 @@ class Analysis:
             "image": self.image,
         }
 
-ANALYSES = {
-    "example": Analysis(
-        user_info=AnalysisUserInfo(name="Example"),
-        interaction_model=InteractionModel.UNKNOWN,
-        image="???",
-    ),
-    "taveren_model": Analysis(
-        user_info=AnalysisUserInfo(name="Ta'veren Model"),
-        interaction_model=InteractionModel.X11,
-        image="???",
-    ),
-    "taveren_sim": Analysis(
-        user_info=AnalysisUserInfo(name="Ta'veren Simulation"),
-        interaction_model=InteractionModel.X11,
-        image="???",
-    ),
-}
-
 @app.get("/api/blueprints/{bp_id}/analyses")
 def get_analyses(bp_id: str) -> dict[str, AnalysisUserInfo]:
     # for now ignore bp_id, but eventually analyses will be available per-device or something.
     # return mapping of analysis ID to analysis info
-    return {id_: analysis.user_info for id_, analysis in ANALYSES.items()}
+    return {id_: analysis.user_info for id_, analysis in analyses.items()}
 
 @app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
 async def launch_analysis(bp_id: str, analysis_id: str):
     if analysis_id == "example":
         return "https://www.example.com"
-    if analysis_id not in ANALYSES:
-        return {"error": "analysis not found"}, 400
-    analysis = ANALYSES[analysis_id]
+    if analysis_id not in analyses:
+        raise HTTPException(status_code=400, detail="analysis not found")
+    analysis = analyses[analysis_id]
     async with httpx.AsyncClient() as client:
         create_resp = await client.post(f"{APP_CONTROLLER_URL}/app", data=analysis.as_appconfig())
         if not create_resp.is_success:
-            return {"error": "couldn't create analysis"}, 500
+            print(f"got error {create_resp.text} when trying to create analysis")
+            raise HTTPException(status_code=500, detail="couldn't create analysis")
         app = create_resp.json()
         start_resp = await client.post(f"{APP_CONTROLLER_URL}/app/{app['id']}/start")
         if not start_resp.is_success:
-            return {"error": "couldn't start analysis"}, 500
+            raise HTTPException(status_code=500, detail="couldn't start analysis")
         return start_resp.json()["url"]
 
 @app.get("/api/cpv_info")
@@ -355,18 +342,61 @@ del dirname
 blueprints: dict[BlueprintID, Device] = devices | ingested.devices
 
 # TODO: this is hacky and an indication that we should have a better way of doing this...
-def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentBase:
-    for comp in device.components:
-        if isinstance(comp, comp_type):
-            return comp
-    raise ValueError(f"device {device!r} has no component of type {comp_type}")
+def _find_comps(device: Device, comp_type: type[ComponentBase]) -> list[ComponentBase]:
+    return [comp for comp in device.components if isinstance(comp, comp_type)]
 
+def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentBase:
+    comps = _find_comps(device, comp_type)
+    if len(comps) == 0:
+        raise ValueError(f"device {device!r} has no component of type {comp_type}")
+    elif len(comps) > 1:
+        raise ValueError(f"device {device!r} has more than one component of type {comp_type}")
+    else:
+        return comps[0]
+
+rover = blueprints["ngcrover"]
 hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict, {
     "ngcrover": {
         "webserver_stop": HypothesisModel(
             name="From the webserver, stop the rover.",
-            entry_component=comp_id(_find_comp(blueprints["ngcrover"], Wifi)),
-            exit_component=comp_id(_find_comp(blueprints["ngcrover"], Motor)),
+            entry_component=comp_id(_find_comp(rover, Wifi)),
+            exit_component=comp_id(_find_comp(rover, Motor)),
         ),
     },
 })
+
+analyses = {
+    "example": Analysis(
+        user_info=AnalysisUserInfo(name="Example"),
+        interaction_model=InteractionModel.UNKNOWN,
+        image="???",
+    ),
+    "taveren_model": Analysis(
+        user_info=AnalysisUserInfo(
+            name="Ta'veren Model",
+            # TODO: hackyyyyy... should either give the different controllers different names or have some nice query mechanism
+            components_included=[comp_id(_find_comps(rover, Controller)[0])],
+        ),
+        interaction_model=InteractionModel.X11,
+        image="???",
+    ),
+    "taveren_sim": Analysis(
+        user_info=AnalysisUserInfo(
+            name="Ta'veren Simulation",
+            components_included=[comp_id(_find_comps(rover, Controller)[0])],
+        ),
+        interaction_model=InteractionModel.X11,
+        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
+    ),
+    "gazebo_compass": Analysis(
+        user_info=AnalysisUserInfo(
+            name="Gazebo Compass Model",
+            components_included=[
+                comp_id(_find_comps(rover, Controller)[0]),
+                comp_id(_find_comp(rover, CompassSensor)),
+            ],
+        ),
+        interaction_model=InteractionModel.X11,
+        image="???",
+    ),
+}

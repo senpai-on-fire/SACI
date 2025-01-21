@@ -48,15 +48,21 @@ function Hypothesis({hypothesis}) {
 }
  */
 
+type HighlightProps = {
+  entry?: string | null,
+  exit?: string | null,
+  involved?: string[] | null,
+};
 type FlowProps = {
   device?: Device,
   onComponentClick?: (componentName: string) => void,
   children: ReactNode,
+  highlights?: HighlightProps,
 };
-function Flow({device, onComponentClick, children}: FlowProps) {
+function Flow({device, onComponentClick, children, highlights}: FlowProps) {
   type GraphLayoutState =
     {state: "laying"} |
-    {state: "laid", nodes: any, edges: any} |
+    {state: "laid", compLayout: {[compId: string]: {x: number, y: number}}, forDevice: Device} |
     {state: "error"} |
     {state: "nodevice"};
   const [state, setState] = useState<GraphLayoutState>({state: "laying"});
@@ -66,6 +72,7 @@ function Flow({device, onComponentClick, children}: FlowProps) {
       setState({state: "nodevice"});
       return;
     }
+    setState({state: "laying"});
     const elkGraph = {
       id: "root",
       layoutOptions: {
@@ -86,21 +93,14 @@ function Flow({device, onComponentClick, children}: FlowProps) {
     };
     elk.layout(elkGraph)
        .then(layout => {
+         const compLayout = {};
+         for (const node of layout.children ?? []) {
+           compLayout[node.id] = {x: node.x, y: node.y};
+         }
          setState({
            state: "laid",
-           nodes: (layout.children ?? []).map(n => ({
-             id: n.id,
-             data: {label: device.components[n.id].name},
-             position: {
-               x: n.x,
-               y: n.y
-             },
-           })),
-           edges: (layout.edges ?? []).map(e => ({
-             id: e.id,
-             source: e.sources[0],
-             target: e.targets[0],
-           }))
+           forDevice: device,
+           compLayout,
          });
        })
       .catch(e => {
@@ -119,10 +119,35 @@ function Flow({device, onComponentClick, children}: FlowProps) {
   } else if (state.state === "nodevice") {
     statusPanel = <Panel position="bottom-right">waiting for device...</Panel>;
     nodes = edges = [];
+  } else if (device && Object.is(device, state.forDevice)) {
+    statusPanel = <> </>;
+    nodes = Object.entries(device.components).map(([compId, comp]) => {
+      let className;
+      if (compId === highlights?.entry) {
+        className = "!border-green-500";
+      } else if (compId === highlights?.exit) {
+        className = "!border-red-500";
+      } else if (!highlights?.involved || highlights?.involved?.includes(compId)) {
+        className = "";
+      } else {
+        className = "!border-neutral-300 !text-neutral-300";
+      }
+      return {
+        id: compId,
+        data: {label: comp.name},
+        position: state.compLayout[compId],
+        className,
+      };
+    });
+    edges = device.connections.map(([source, target]) => ({
+      id: `${source}-${target}`,
+      source,
+      target,
+    }));
   } else {
     statusPanel = <> </>;
-    nodes = state.nodes;
-    edges = state.edges;
+    // wait for the nodevice state to take hold...
+    nodes = edges = [];
   }
 
   return (
@@ -235,14 +260,19 @@ function CPV({name}: {name: string}) {
 }
  */
 
-type AnalysisInfo = {name: string};
+type AnalysisInfo = {
+  name: string,
+  components_included: string[],
+};
 type AnalysisLauncherProps = {
   bpId: string,
   analysisId: string,
   analysisInfo: AnalysisInfo,
   onLaunch: (url: string) => void,
+  onHover?: () => void,
+  onUnhover?: () => void,
 };
-function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}: AnalysisLauncherProps) {
+function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch, onHover, onUnhover}: AnalysisLauncherProps) {
   type LaunchStatus =
     "unlaunched" |
     "launching" |
@@ -295,6 +325,8 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}: AnalysisLa
         disabled:bg-indigo-200 disabled:hover:border-transparent
         text-white"
       onClick={launchAnalysis}
+      onMouseEnter={() => onHover ? onHover() : undefined}
+      onMouseLeave={() => onUnhover ? onUnhover() : undefined}
       disabled={launchStatus !== "unlaunched"} >
       {analysisInfo.name} {icon}
     </button>
@@ -303,9 +335,11 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch}: AnalysisLa
 
 type AnalysesProps = {
   bpId: string,
-  onLaunch: (name: string, url: string) => void,
+  onLaunch: (analysisInfo: AnalysisInfo, url: string) => void,
+  onHover?: (analysisInfo: AnalysisInfo) => void,
+  onUnhover?: () => void,
 };
-function Analyses({bpId, onLaunch}: AnalysesProps) {
+function Analyses({bpId, onLaunch, onHover, onUnhover}: AnalysesProps) {
   // TODO: replace deviceIdx with a blueprint ID. for now it doesn't matter anyway
   const { data, error, isLoading } = useSWR(`/api/blueprints/${bpId}/analyses`, fetcher);
 
@@ -320,7 +354,9 @@ function Analyses({bpId, onLaunch}: AnalysesProps) {
           bpId="foo"
           analysisId={id}
           analysisInfo={analysisInfo as AnalysisInfo}
-          onLaunch={url => onLaunch((analysisInfo as AnalysisInfo).name, url)} />
+          onLaunch={url => onLaunch(analysisInfo as AnalysisInfo, url)}
+          onHover={() => onHover ? onHover(analysisInfo as AnalysisInfo) : undefined}
+          onUnhover={onUnhover} />
       </li>
     );
     return (
@@ -351,14 +387,16 @@ type HypothesisPanelProps = {
   bpId: BlueprintID,
   device: Device,
   hypothesis: Hypothesis,
-  onAnalysisLaunch: (name: string, url: string) => void,
+  onAnalysisLaunch: (analysisInfo: AnalysisInfo, url: string) => void,
+  onAnalysisHover?: (analysisInfo: AnalysisInfo) => void,
+  onAnalysisUnhover?: () => void,
 };
-function HypothesisPanel({bpId, device, hypothesis, onAnalysisLaunch}: HypothesisPanelProps) {
+function HypothesisPanel({bpId, device, hypothesis, onAnalysisLaunch, onAnalysisHover, onAnalysisUnhover}: HypothesisPanelProps) {
   return <>
     <h3 className="text-2xl font-bold">Hypothesis: {hypothesis.name}</h3>
     <div>Entry: {device.components[hypothesis.entry_component].name}</div>
     <div>Exit: {device.components[hypothesis.exit_component].name}</div>
-    <Analyses bpId={bpId} onLaunch={onAnalysisLaunch} />
+    <Analyses bpId={bpId} onLaunch={onAnalysisLaunch} onHover={onAnalysisHover} onUnhover={onAnalysisUnhover} />
   </>;
 }
 
@@ -378,6 +416,8 @@ function App() {
   const [hypId, setHypId] = useState<HypothesisId | null>(null);
   const hypothesis = device && hypId ? device.hypotheses[hypId] : null;
 
+  const [hoveringAnalysis, setHoveringAnalysis] = useState<AnalysisInfo | null>(null);
+
   type RunningAnalysis = {name: string, url: string};
   const [showingAnalysis, setShowingAnalysis] = useState<RunningAnalysis | null>(null);
   const analysisPanel = showingAnalysis ?
@@ -391,17 +431,29 @@ function App() {
           bpId={bpId}
           device={device}
           hypothesis={hypothesis}
-          onAnalysisLaunch={(name, url) => setShowingAnalysis({name, url})} /> :
-        <Analyses bpId={bpId} onLaunch={(name, url) => setShowingAnalysis({name, url})} />}
+          onAnalysisLaunch={(analysis, url) => setShowingAnalysis({name: analysis.name, url})}
+          onAnalysisHover={setHoveringAnalysis}
+          onAnalysisUnhover={() => setHoveringAnalysis(null)} /> :
+        <Analyses
+          bpId={bpId}
+          onLaunch={(analysis, url) => setShowingAnalysis({name: analysis.name, url})}
+          onHover={setHoveringAnalysis}
+          onUnhover={() => setHoveringAnalysis(null)} />}
     </Panel>;
   } else {
     hypothesisPanel = <> </>;
   }
 
+  const highlights = {
+    entry: hypothesis?.entry_component,
+    exit: hypothesis?.exit_component,
+    involved: hoveringAnalysis?.components_included,
+  };
+
   return (
     <>
       <div style={{ width: '100vw', height: '100vh'}}>
-        <Flow device={device}>
+        <Flow device={device} highlights={highlights}>
           <Panel className="p-4" position="top-left">
             <h1 className="font-bold">SACI</h1>
             <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
