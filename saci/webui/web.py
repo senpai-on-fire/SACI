@@ -148,13 +148,13 @@ class Analysis:
     """All the information associated with an analysis type, including what the system needs to know to launch it."""
     user_info: AnalysisUserInfo
     interaction_model: InteractionModel
-    image: str
+    images: list[str]
 
     def as_appconfig(self):
         return {
             "name": "app",
             "interaction_model": self.interaction_model,
-            "image": self.image,
+            "images": self.images,
         }
 
 @app.get("/api/blueprints/{bp_id}/analyses")
@@ -438,7 +438,7 @@ analyses = {
             ],
         ),
         interaction_model=InteractionModel.X11,
-        image="taveren:latest",
+        images=["taveren:latest"],
     ),
     "binsync_re": Analysis(
         user_info=AnalysisUserInfo(
@@ -446,7 +446,7 @@ analyses = {
             components_included=[comp_id(_find_comps(rover, Controller)[0])],
         ),
         interaction_model=InteractionModel.X11,
-        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
+        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
     ),
     "hybrid_automata": Analysis(
         user_info=AnalysisUserInfo(
@@ -462,7 +462,7 @@ analyses = {
             ],
         ),
         interaction_model=InteractionModel.X11,
-        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
+        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
     ),
     "gazebo_hybrid_automata": Analysis(
         user_info=AnalysisUserInfo(
@@ -478,7 +478,7 @@ analyses = {
             ],
         ),
         interaction_model=InteractionModel.X11,
-        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
+        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
     ),
     "gazebo_firmware": Analysis(
         user_info=AnalysisUserInfo(
@@ -494,6 +494,6 @@ analyses = {
             ],
         ),
         interaction_model=InteractionModel.X11,
-        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
+        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
     ),
 }
