@@ -10,7 +10,7 @@ import importlib
 from io import StringIO
 from pathlib import Path
 import os
-from typing import Annotated
+from typing import Annotated, Optional
 
 import httpx
 
@@ -107,8 +107,8 @@ def comp_id(comp: ComponentBase) -> ComponentID:
 
 class HypothesisModel(BaseModel):
     name: str
-    entry_component: ComponentID
-    exit_component: ComponentID
+    entry_component: Optional[ComponentID]
+    exit_component: Optional[ComponentID]
 
 HypothesisID = str
 
@@ -423,6 +423,16 @@ hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict
             name="From the webserver, stop the rover.",
             entry_component=comp_id(_find_comp(rover, Wifi)),
             exit_component=comp_id(_find_comp(rover, Motor)),
+        ),
+        "emi_compass": HypothesisModel(
+            name="Using EMI, influence the compass to affect the mission.",
+            entry_component=comp_id(_find_comp(rover, CompassSensor)),
+            exit_component=None,
+        ),
+        "wifi_rollover": HypothesisModel(
+            name="Over WiFi, subvert the control system to roll the rover.",
+            entry_component=comp_id(_find_comp(rover, Wifi)),
+            exit_component=comp_id(_find_comp(rover, Steering)),
         ),
     },
 })
