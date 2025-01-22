@@ -57,10 +57,11 @@ type HighlightProps = {
 type FlowProps = {
   device?: Device,
   onComponentClick?: (componentName: string) => void,
+  onPaneClick?: () => void,
   children: ReactNode,
   highlights?: HighlightProps,
 };
-function Flow({device, onComponentClick, children, highlights}: FlowProps) {
+function Flow({device, onComponentClick, onPaneClick, children, highlights}: FlowProps) {
   type GraphLayoutState =
     {state: "laying"} |
     {state: "laid", compLayout: {[compId: string]: {x: number, y: number}}, forDevice: Device} |
@@ -154,6 +155,7 @@ function Flow({device, onComponentClick, children, highlights}: FlowProps) {
   return (
     <ReactFlow
       onNodeClick={(_e, n) => onComponentClick ? onComponentClick(n.id) : undefined}
+      onPaneClick={onPaneClick}
       colorMode="system"
       nodes={nodes}
       edges={edges}
@@ -229,21 +231,6 @@ function HypothesisSelector({hypotheses, selected, onSelection}: HypothesisSelec
 }
 
 /*
-function Component({component}: {component: Component}) {
-  const parameters = Object.entries(component.parameters ?? {}).map(([id, val]) =>
-    <li key={id}>{id}: {val}</li>
-  );
-  return (
-    <>
-      <h2>{component.name}</h2>
-      <ul>
-        {parameters}
-      </ul>
-      <button>Start Simulation</button>
-    </>
-  );
-}
-
 function CPV({name}: {name: string}) {
   const { data, error, isLoading } = useSWR(`/api/cpv_info?name=${name}`, fetcher);
 
@@ -336,11 +323,12 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch, onHover, on
 
 type AnalysesProps = {
   bpId: string,
-  onLaunch: (analysisInfo: AnalysisInfo, app: number) => void,
-  onHover?: (analysisInfo: AnalysisInfo) => void,
-  onUnhover?: () => void,
+  analysisFilter?: (analysisInfo: AnalysisInfo) => boolean,
+  onAnalysisLaunch: (analysisInfo: AnalysisInfo, app: number) => void,
+  onAnalysisHover?: (analysisInfo: AnalysisInfo) => void,
+  onAnalysisUnhover?: () => void,
 };
-function Analyses({bpId, onLaunch, onHover, onUnhover}: AnalysesProps) {
+function Analyses({bpId, analysisFilter, onAnalysisLaunch, onAnalysisHover, onAnalysisUnhover}: AnalysesProps) {
   // TODO: replace deviceIdx with a blueprint ID. for now it doesn't matter anyway
   const { data, error, isLoading } = useSWR(`/api/blueprints/${bpId}/analyses`, fetcher);
 
@@ -349,16 +337,18 @@ function Analyses({bpId, onLaunch, onHover, onUnhover}: AnalysesProps) {
   } else if (isLoading) {
     return <div>Loading analyses...</div>;
   } else {
-    const analyses = Object.entries(data).map(([id, analysisInfo]) =>
-      <li className="m-1" key={id}>
-        <AnalysisLauncher
-          bpId="foo"
-          analysisId={id}
-          analysisInfo={analysisInfo as AnalysisInfo}
-          onLaunch={app => onLaunch(analysisInfo as AnalysisInfo, app)}
-          onHover={() => onHover ? onHover(analysisInfo as AnalysisInfo) : undefined}
-          onUnhover={onUnhover} />
-      </li>
+    const analyses = Object.entries(data).flatMap(([id, analysisInfo]) =>
+      !analysisFilter || analysisFilter(analysisInfo) ?
+        [<li className="m-1" key={id}>
+           <AnalysisLauncher
+             bpId="foo"
+             analysisId={id}
+             analysisInfo={analysisInfo as AnalysisInfo}
+             onLaunch={app => onAnalysisLaunch(analysisInfo as AnalysisInfo, app)}
+             onHover={() => onAnalysisHover ? onAnalysisHover(analysisInfo as AnalysisInfo) : undefined}
+             onUnhover={onAnalysisUnhover} />
+         </li>] :
+        []
     );
     return (
       <div>
@@ -369,6 +359,28 @@ function Analyses({bpId, onLaunch, onHover, onUnhover}: AnalysesProps) {
       </div>
     );
   }
+}
+
+type ComponentPanelProps = {
+  componentId: string,
+  component: Component,
+} & AnalysesProps;
+function ComponentPanel({componentId, component, analysisFilter, ...analysesProps}: ComponentPanelProps) {
+  const parameters = Object.entries(component.parameters ?? {}).map(([id, val]) =>
+    <li key={id}>{id}: {val}</li>
+  );
+  return (
+    <>
+      <h3 className="text-2xl font-bold">Component: {component.name}</h3>
+      <ul>
+        {parameters}
+      </ul>
+        <Analyses
+        analysisFilter={info => info.components_included.includes(componentId) &&
+                                (!analysisFilter || analysisFilter(info))}
+          {...analysesProps} />
+    </>
+  );
 }
 
 type AnalysisPanelProps = {
@@ -385,13 +397,9 @@ function AnalysisPanel({name, app, onClose}: AnalysisPanelProps) {
 }
 
 type HypothesisPanelProps = {
-  bpId: BlueprintID,
   device: Device,
   hypothesis: Hypothesis,
-  onAnalysisLaunch: (analysisInfo: AnalysisInfo, app: number) => void,
-  onAnalysisHover?: (analysisInfo: AnalysisInfo) => void,
-  onAnalysisUnhover?: () => void,
-};
+} & AnalysesProps;
 function HypothesisPanel({bpId, device, hypothesis, onAnalysisLaunch, onAnalysisHover, onAnalysisUnhover}: HypothesisPanelProps) {
   return <>
     <h3 className="text-2xl font-bold">Hypothesis: {hypothesis.name}</h3>
@@ -423,31 +431,44 @@ function App() {
 
   const [hoveringAnalysis, setHoveringAnalysis] = useState<AnalysisInfo | null>(null);
 
+  const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
+
   type RunningAnalysis = {name: string, app: number};
   const [showingAnalysis, setShowingAnalysis] = useState<RunningAnalysis | null>(null);
   const analysisPanel = showingAnalysis ?
     <AnalysisPanel name={showingAnalysis.name} app={showingAnalysis.app} onClose={() => setShowingAnalysis(null)} /> :
     <> </>;
-  let hypothesisPanel;
-  if (bpId) {
-    hypothesisPanel = <Panel className="bg-white dark:bg-neutral-900 p-4 max-w-md border-2 border-indigo-600 rounded" position="bottom-right">
-      {device && hypothesis ?
+
+
+  let panelInner = null;
+  if (bpId && device) {
+    const analysesProps: AnalysesProps = {
+      bpId,
+      onAnalysisLaunch: (analysis, app) => setShowingAnalysis({name: analysis.name, app}),
+      onAnalysisHover: setHoveringAnalysis,
+      onAnalysisUnhover: () => setHoveringAnalysis(null),
+    };
+    if (selectedComponent) {
+      panelInner =
+        <ComponentPanel
+          componentId={selectedComponent}
+          component={device.components[selectedComponent]}
+          {...analysesProps} />;
+    } else if (hypothesis) {
+      panelInner = 
         <HypothesisPanel
-          bpId={bpId}
           device={device}
           hypothesis={hypothesis}
-          onAnalysisLaunch={(analysis, app) => setShowingAnalysis({name: analysis.name, app})}
-          onAnalysisHover={setHoveringAnalysis}
-          onAnalysisUnhover={() => setHoveringAnalysis(null)} /> :
-        <Analyses
-          bpId={bpId}
-          onLaunch={(analysis, app) => setShowingAnalysis({name: analysis.name, app})}
-          onHover={setHoveringAnalysis}
-          onUnhover={() => setHoveringAnalysis(null)} />}
-    </Panel>;
-  } else {
-    hypothesisPanel = <> </>;
+          {...analysesProps} />;
+    } else {
+      panelInner = <Analyses {...analysesProps} />;
+    }
   }
+  const panel = panelInner ?
+    <Panel className="bg-white dark:bg-neutral-900 p-4 max-w-md border-2 border-indigo-600 rounded" position="bottom-right">
+      {panelInner}
+    </Panel> :
+    <> </>;
 
   const highlights = {
     entry: hypothesis?.entry_component,
@@ -458,13 +479,17 @@ function App() {
   return (
     <>
       <div style={{ width: '100vw', height: '100vh'}}>
-        <Flow device={device} highlights={highlights}>
+        <Flow
+          device={device}
+          highlights={highlights}
+          onComponentClick={setSelectedComponent}
+          onPaneClick={() => setSelectedComponent(null)} >
           <Panel className="p-4" position="top-left">
             <h1 className="font-bold">SACI</h1>
             <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
             <HypothesisSelector hypotheses={device?.hypotheses} selected={hypId} onSelection={setHypId} />
           </Panel>
-          {hypothesisPanel}
+          {panel}
           {analysisPanel}
         </Flow>
       </div>
