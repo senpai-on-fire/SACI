@@ -253,7 +253,7 @@ type AnalysisInfo = {
   components_included: string[],
 };
 type AnalysisLauncherProps = {
-  bpId: string,
+  bpId: BlueprintID,
   analysisId: string,
   analysisInfo: AnalysisInfo,
   onLaunch: (app: number) => void,
@@ -337,7 +337,7 @@ function Analyses({bpId, analysisFilter, onAnalysisLaunch, onAnalysisHover, onAn
   } else if (isLoading) {
     return <div>Loading analyses...</div>;
   } else {
-    const analyses = Object.entries(data).flatMap(([id, analysisInfo]) =>
+    const analyses = Object.entries(data as {[name: string]: AnalysisInfo}).flatMap(([id, analysisInfo]) =>
       !analysisFilter || analysisFilter(analysisInfo) ?
         [<li className="m-1" key={id}>
            <AnalysisLauncher
@@ -400,7 +400,7 @@ type HypothesisPanelProps = {
   device: Device,
   hypothesis: Hypothesis,
 } & AnalysesProps;
-function HypothesisPanel({bpId, device, hypothesis, onAnalysisLaunch, onAnalysisHover, onAnalysisUnhover}: HypothesisPanelProps) {
+function HypothesisPanel({bpId, device, hypothesis, ...analysesProps}: HypothesisPanelProps) {
   return <>
     <h3 className="text-2xl font-bold">Hypothesis: {hypothesis.name}</h3>
     {hypothesis.entry_component ?
@@ -409,7 +409,7 @@ function HypothesisPanel({bpId, device, hypothesis, onAnalysisLaunch, onAnalysis
     {hypothesis.exit_component ?
       <div>Exit: {device.components[hypothesis.exit_component].name}</div> :
       <> </>}
-    <Analyses bpId={bpId} onLaunch={onAnalysisLaunch} onHover={onAnalysisHover} onUnhover={onAnalysisUnhover} />
+    <Analyses bpId={bpId} {...analysesProps} />
   </>;
 }
 
