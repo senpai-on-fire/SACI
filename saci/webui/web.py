@@ -105,6 +105,8 @@ def comp_id(comp: ComponentBase) -> ComponentID:
     # the graph is based on object identity, so i don't really see a better option here
     return str(id(comp))
 
+AnalysisID = str
+
 class HypothesisModel(BaseModel):
     name: str
     entry_component: Optional[ComponentID]
@@ -159,7 +161,7 @@ class Analysis:
         }
 
 @app.get("/api/blueprints/{bp_id}/analyses")
-def get_analyses(bp_id: str) -> dict[str, AnalysisUserInfo]:
+def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
     # for now ignore bp_id, but eventually analyses will be available per-device or something.
     # return mapping of analysis ID to analysis info
     return {id_: analysis.user_info for id_, analysis in analyses.items()}
@@ -418,27 +420,8 @@ def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentBase:
         return comps[0]
 
 rover = blueprints["ngcrover"]
-hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict, {
-    "ngcrover": {
-        "webserver_stop": HypothesisModel(
-            name="From the webserver, stop the rover.",
-            entry_component=comp_id(_find_comp(rover, Wifi)),
-            exit_component=comp_id(_find_comp(rover, Motor)),
-        ),
-        "emi_compass": HypothesisModel(
-            name="Using EMI, influence the compass to affect the mission.",
-            entry_component=comp_id(_find_comp(rover, CompassSensor)),
-            exit_component=None,
-        ),
-        "wifi_rollover": HypothesisModel(
-            name="Over WiFi, subvert the control system to roll the rover.",
-            entry_component=comp_id(_find_comp(rover, Wifi)),
-            exit_component=comp_id(_find_comp(rover, Steering)),
-        ),
-    },
-})
 
-analyses = {
+analyses: dict[AnalysisID, Analysis] = {
     "taveren_model": Analysis(
         user_info=AnalysisUserInfo(
             name="Model: Ta'veren Controller",
@@ -508,3 +491,23 @@ analyses = {
         images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
     ),
 }
+
+hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict, {
+    "ngcrover": {
+        "webserver_stop": HypothesisModel(
+            name="From the webserver, stop the rover.",
+            entry_component=comp_id(_find_comp(rover, Wifi)),
+            exit_component=comp_id(_find_comp(rover, Motor)),
+        ),
+        "emi_compass": HypothesisModel(
+            name="Using EMI, influence the compass to affect the mission.",
+            entry_component=comp_id(_find_comp(rover, CompassSensor)),
+            exit_component=None,
+        ),
+        "wifi_rollover": HypothesisModel(
+            name="Over WiFi, subvert the control system to roll the rover.",
+            entry_component=comp_id(_find_comp(rover, Wifi)),
+            exit_component=comp_id(_find_comp(rover, Steering)),
+        ),
+    },
+})
