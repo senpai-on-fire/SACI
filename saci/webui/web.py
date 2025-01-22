@@ -155,6 +155,7 @@ class Analysis:
             "name": "app",
             "interaction_model": self.interaction_model,
             "images": self.images,
+            "always_pull_images": False,
         }
 
 @app.get("/api/blueprints/{bp_id}/analyses")
