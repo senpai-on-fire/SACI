@@ -25,11 +25,14 @@ from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionCl
 
 from saci.modeling.device.controller import Controller
 from saci.modeling.device.compass import CompassSensor
+from saci.modeling.device.esc import ESC
+from saci.modeling.device.motor.steering import Steering
+from saci.modeling.device.webserver import WebServer
 
 from ..deserializer import ingest
 from .scheduling import add_search, start_work_thread, SEARCHES
 from ..modeling import Device, ComponentBase
-from ..modeling.device import Wifi, Motor
+from ..modeling.device import Wifi, Motor, GPSReceiver
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="saci/webui/static"), name="static")
@@ -40,6 +43,17 @@ start_work_thread()
 
 APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
 
+
+def kill_all_apps():
+    apps_resp = httpx.get(f"{APP_CONTROLLER_URL}/api/app")
+    for app_json in apps_resp.json():
+        app_id = app_json['id']
+        print(f"killing app {app_id}")
+        httpx.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
+        httpx.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
+
+# kill all existing apps when we start. we should probably not have this behavior permanently
+kill_all_apps()
 
 def get_component_abstractions(comp) -> dict[str, str]:
     if hasattr(comp, "ABSTRACTIONS"):
@@ -151,8 +165,6 @@ def get_analyses(bp_id: str) -> dict[str, AnalysisUserInfo]:
 
 @app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
 async def launch_analysis(bp_id: str, analysis_id: str) -> int:
-    if analysis_id == "example":
-        return 0
     if analysis_id not in analyses:
         raise HTTPException(status_code=400, detail="analysis not found")
     analysis = analyses[analysis_id]
@@ -183,17 +195,33 @@ async def ws_proxy_from(ws1: WebSocket, ws2: WsClientConnection):
 @app.websocket("/api/vnc")
 async def vnc_proxy(*, websocket: WebSocket, app_id: int):
     try:
-        async with ws_connect(f"{APP_CONTROLLER_URL}/api/x11-proxy/{app_id}") as app_websocket:
-            await websocket.accept()
-            async with asyncio.TaskGroup() as tg:
-                _to_task = tg.create_task(ws_proxy_to(websocket, app_websocket))
-                _from_task = tg.create_task(ws_proxy_from(websocket, app_websocket))
+        async with httpx.AsyncClient() as client:
+            addr_resp = await client.get(f"{APP_CONTROLLER_URL}/api/app/{app_id}/addr")
+            if addr_resp.status_code == 404:
+                raise HTTPException(status_code=404, detail="couldn't find app")
+            if not addr_resp.is_success:
+                raise HTTPException(status_code=500, detail="failure trying to find app")
+            addr = addr_resp.json()
+        ws_url = f"ws://{addr['ip']}:{addr['port']}/websockify"
+        print(ws_url)
+        connected = False
+        while not connected:
+            try:
+                async with ws_connect(ws_url) as app_websocket:
+                    connected = True
+                    await websocket.accept()
+                    async with asyncio.TaskGroup() as tg:
+                        _to_task = tg.create_task(ws_proxy_to(websocket, app_websocket))
+                        _from_task = tg.create_task(ws_proxy_from(websocket, app_websocket))
+            except ConnectionRefusedError:
+                print("host not up yet...")
+                await asyncio.sleep(1)
     except* WsInvalidStatus:
         raise HTTPException(status_code=404, detail="no such app")
     except* WsConnectionClosedOK:
         pass
     except* WebSocketDisconnect as e:
-        _, rest = e.split(lambda e: isinstance(e, WebSocketDisconnect) and e.code in (1000, 1001))
+        _, rest = e.split(lambda e: isinstance(e, WebSocketDisconnect) and e.code in (1000, 1001, 1005))
         if rest is not None:
             raise rest
 
@@ -400,37 +428,72 @@ hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict
 })
 
 analyses = {
-    "example": Analysis(
-        user_info=AnalysisUserInfo(name="Example"),
-        interaction_model=InteractionModel.UNKNOWN,
-        image="???",
-    ),
     "taveren_model": Analysis(
         user_info=AnalysisUserInfo(
-            name="Ta'veren Model",
+            name="Model: Ta'veren Controller",
             # TODO: hackyyyyy... should either give the different controllers different names or have some nice query mechanism
-            components_included=[comp_id(_find_comps(rover, Controller)[0])],
+            components_included=[
+                comp_id(_find_comps(rover, WebServer)[0]),
+                comp_id(_find_comps(rover, Controller)[0]),
+            ],
         ),
         interaction_model=InteractionModel.X11,
-        image="???",
+        image="taveren:latest",
     ),
-    "taveren_sim": Analysis(
+    "binsync_re": Analysis(
         user_info=AnalysisUserInfo(
-            name="Ta'veren Simulation",
+            name="Model: BinSync-enabled RE",
             components_included=[comp_id(_find_comps(rover, Controller)[0])],
         ),
         interaction_model=InteractionModel.X11,
         image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
     ),
-    "gazebo_compass": Analysis(
+    "hybrid_automata": Analysis(
         user_info=AnalysisUserInfo(
-            name="Gazebo Compass Model",
+            name="Model: Hybrid Automata",
             components_included=[
-                comp_id(_find_comps(rover, Controller)[0]),
+                comp_id(comp) for comp in _find_comps(rover, Controller)
+            ] + [
+                comp_id(_find_comp(rover, GPSReceiver)),
                 comp_id(_find_comp(rover, CompassSensor)),
+                comp_id(_find_comp(rover, Steering)),
+                comp_id(_find_comp(rover, ESC)),
+                comp_id(_find_comp(rover, Motor)),
             ],
         ),
         interaction_model=InteractionModel.X11,
-        image="???",
+        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
+    ),
+    "gazebo_hybrid_automata": Analysis(
+        user_info=AnalysisUserInfo(
+            name="Co-Simulation: Gazebo + Hybrid Automata",
+            components_included=[
+                comp_id(comp) for comp in _find_comps(rover, Controller)
+            ] + [
+                comp_id(_find_comp(rover, GPSReceiver)),
+                comp_id(_find_comp(rover, CompassSensor)),
+                comp_id(_find_comp(rover, Steering)),
+                comp_id(_find_comp(rover, ESC)),
+                comp_id(_find_comp(rover, Motor)),
+            ],
+        ),
+        interaction_model=InteractionModel.X11,
+        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
+    ),
+    "gazebo_firmware": Analysis(
+        user_info=AnalysisUserInfo(
+            name="Co-Simulation: Gazebo + Firmware",
+            components_included=[
+                comp_id(comp) for comp in _find_comps(rover, Controller)
+            ] + [
+                comp_id(_find_comp(rover, GPSReceiver)),
+                comp_id(_find_comp(rover, CompassSensor)),
+                comp_id(_find_comp(rover, Steering)),
+                comp_id(_find_comp(rover, ESC)),
+                comp_id(_find_comp(rover, Motor)),
+            ],
+        ),
+        interaction_model=InteractionModel.X11,
+        image="ghcr.io/twizmwazin/app-controller/firefox-demo:latest",
     ),
 }
