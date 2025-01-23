@@ -26,3 +26,4 @@ from .http import *
 from .debug import *
 from .icmp import *
 from .smbus import *
+from .pwm_channel import *

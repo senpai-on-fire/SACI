@@ -9,6 +9,9 @@ class UARTProtocol(UnauthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):
         super().__init__(src=src, dst=dst, data=data)
 
+class SPIProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
 
 class SSHProtocol(AuthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):
