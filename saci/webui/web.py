@@ -472,7 +472,7 @@ analyses: dict[AnalysisID, Analysis] = {
             ],
         ),
         interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
+        images=["quinn-controller:latest", "quinn-gazebo:latest"],
     ),
     "gazebo_firmware": Analysis(
         user_info=AnalysisUserInfo(
@@ -488,7 +488,7 @@ analyses: dict[AnalysisID, Analysis] = {
             ],
         ),
         interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
+        images=["onex:latest"],
     ),
 }
 
