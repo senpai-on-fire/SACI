@@ -1,6 +1,6 @@
 from typing import Optional
 
-from .servo import ServoHigh, ServoAlgorithmic
+from .servo_motor import ServoHigh, ServoAlgorithmic
 from ..component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
 from ..component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 

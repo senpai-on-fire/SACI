@@ -5,17 +5,18 @@ from .component.cyber import CyberComponentSourceCode, CyberComponentBinary
 from .telemetry import Telemetry, TelemetryHigh, TelemetryAlgorithmic
 
 
-class SikRadio(Telemetry):
+class Telnet(Telemetry):
     """
-    Describes Sik radio.
+    Describes the Telnet component.
     """
-    def __init__(self, has_external_input=True, **kwargs):
+
+    def __init__(self, has_external_input=False, **kwargs):
         super().__init__(has_external_input=has_external_input, **kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(
-                name="Sik Radio High",
-                protocol_name="sik",
-                communication=AuthenticatedCommunication(identifier="netid"),
+                name="Telnet High",
+                protocol_name="telnet",
+                communication=AuthenticatedCommunication(identifier="system_id"),
             ),
             CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),

@@ -1,7 +1,35 @@
 from .auth_comm import AuthenticatedCommunication
 from .unauth_comm import UnauthenticatedCommunication
 
+class SMBusProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
+
+class JTAGProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
+
+class SWDProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
+
 class GPSProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
+
+class GNSSProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
+
+class GLONASSProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
+
+class GalileoProtocol(UnauthenticatedCommunication):
+    def __init__(self, src=None, dst=None, data=None):
+        super().__init__(src=src, dst=dst, data=data)
+
+class BeiDouProtocol(UnauthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):
         super().__init__(src=src, dst=dst, data=data)
 
@@ -16,7 +44,6 @@ class SPIProtocol(UnauthenticatedCommunication):
 class SSHProtocol(AuthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):
         super().__init__(src=src, dst=dst, data=data)
-
 
 class HTTPProtocol(UnauthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):

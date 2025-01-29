@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from jinja2 import Template, Environment
 
 from saci.modeling.device import GPSReceiver, Controller
-from saci.modeling.device.compass import CompassSensorHigh
+from saci.modeling.device.sensor import CompassSensorHigh
 
 
 @dataclass(frozen=True)
