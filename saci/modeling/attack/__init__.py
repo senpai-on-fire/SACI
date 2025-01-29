@@ -12,3 +12,4 @@ from .packet_attack_signal import *
 from .payload_firmware_attack import *
 from .serial_attack_signal import *
 from .radio_attack_signal import *
+from .optical_attack_signal import *

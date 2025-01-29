@@ -1,4 +1,4 @@
-from .vulnerability import BaseVulnerability, PublicSecretVulnerability, SpoofingtVulnerability
+from .vulnerability import BaseVulnerability, PublicSecretVulnerability, SpoofingVulnerability
 from .vulnerability import BaseVulnerability as CPSV
 from .cpv import CPV
 from .cpv_hypothesis import CPVHypothesis

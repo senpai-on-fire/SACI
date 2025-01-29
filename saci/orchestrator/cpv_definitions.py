@@ -1,5 +1,6 @@
 from saci_db.cpvs import *
 
+
 CPVS = [
     MavlinkSiKCPV(),
     GPSSpoofingMoveCPV(),
@@ -30,7 +31,8 @@ CPVS = [
     AcousticSpoofingMagnetometerCPV(),
     BarometricSensorSpoofingCPV(),
     ProjectorOpticalFlowCPV(),
-    DepthCameraDoSCPV(),
+    MLDepthEstimationAttackCPV(),
+    ClassicDepthEstimationAttackCPV(),
     EMIMotorBlockCPV(),
     WiFiDeauthQuadDosCPV(),
     MavlinkDisarmCPV(),
