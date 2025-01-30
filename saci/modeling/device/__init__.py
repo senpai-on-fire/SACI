@@ -1,8 +1,7 @@
 from .component import ComponentBase, HardwareComponentBase, CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentSourceCode, CyberComponentBinary, CyberComponentBase
 from .telemetry import TelemetryHigh, TelemetryAlgorithmic, Telemetry
 from .control.controller import Controller
-from .motor import MotorHigh, MotorAlgorithmic, MultiMotorHigh, MultiMotorAlgo, MultiCopterMotorHigh, MultiCopterMotorAlgo, MultiCopterMotor
-from .motor import Motor, MultiCopterMotor, MultiMotor, Servo, Steering
+from .motor import *
 from .device import Device
 from .control.localizer import LocalizerHigh, LocalizerAlgorithmic
 from .sik_radio import SikRadio

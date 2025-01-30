@@ -2,9 +2,6 @@ from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberCompo
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
 class GCS(CyberComponentBase):
-    """
-    This is the base class for all Ground Control Stations (GCS).
-    """
 
     __slots__ = ("has_external_input", "ABSTRACTIONS", "communication_protocols")
 
@@ -27,9 +24,6 @@ class GCS(CyberComponentBase):
 
 
 class GCSHigh(CyberComponentHigh):
-    """
-    High-level abstraction of GCS with basic mission planning and telemetry monitoring.
-    """
 
     __slots__ = ("communication_protocols", "connected_uavs", "mission_status")
 
@@ -46,9 +40,6 @@ class GCSHigh(CyberComponentHigh):
 
 
 class GCSAlgorithmic(CyberComponentAlgorithmic):
-    """
-    Algorithmic-level abstraction of GCS with mission execution logic, telemetry processing, and UAV control.
-    """
 
     __slots__ = ("communication_protocols", "connected_uavs", "mission_status", "telemetry_buffer")
 
