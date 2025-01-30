@@ -69,6 +69,8 @@ class OpticalFlowSensor(Sensor):
     ):
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         high_abstraction = OpticalFlowSensorHigh(has_external_input=has_external_input)
         algo_abstraction = OpticalFlowSensorAlgorithmic(
             has_external_input=has_external_input,

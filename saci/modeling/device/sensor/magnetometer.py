@@ -67,6 +67,8 @@ class Magnetometer(Sensor):
         """
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         high_abstraction = MagnetometerHigh(has_external_input=has_external_input)
         algo_abstraction = MagnetometerAlgorithmic(precision_bits=precision_bits)
 

@@ -10,13 +10,10 @@ from saci.atoms import Atoms
 
 def get_next_components(component: ComponentBase, components: List[ComponentBase], device: Device) -> List[ComponentBase]:
     graph = device.component_graph
-    graph_neighbors = graph.out_edges(component)
+    
+    # Get outgoing neighbors directly
+    return [neighbor for neighbor in graph.successors(component) if neighbor in components]
 
-    cpv_paths = []
-    for start, end in graph_neighbors:
-        if end in components:
-            cpv_paths.append(end)
-    return cpv_paths
 
 
 class IdentifierCPV:
@@ -25,30 +22,41 @@ class IdentifierCPV:
         self.initial_state = initial_state
 
     def identify(self, cpv: CPV) -> List[List[ComponentBase]]:
+        
 
-        # get the starting locations
-        starting_locations = []
         for c in self.initial_state.components:
             if hasattr(c, 'has_external_input') and c.has_external_input:
-                starting_locations.append(c)
-        
+                print("*****", c, c.has_external_input)
+
+        # Get the starting locations (components with external input)
+        starting_locations = [
+            c for c in self.initial_state.components
+            if hasattr(c, 'has_external_input') and c.has_external_input
+        ]
+
         cpv_paths = []
 
         # CPV Path identification
         for start in starting_locations:
-            stack = [(start, [start])]
-            visited = set()
+            stack = [(start, [start])]  # Stack stores (current_component, current_path)
+
             while stack:
-                (vertex, path) = stack.pop()
-                if vertex not in visited:
-                    if cpv.is_possible_path(path):
-                        cpv_paths.append(path)
-                    else:
-                        visited.add(vertex)
-                        for neighbor in get_next_components(vertex, self.initial_state.components, self.device):
-                            stack.append((neighbor, path + [neighbor]))
-        
+                vertex, path = stack.pop()
+
+                # Get the correct neighbors using the fixed function
+                neighbors = get_next_components(vertex, self.initial_state.components, self.device)
+
+                for neighbor in neighbors:
+                    if neighbor not in path:  # Avoid cycles in the current path
+                        new_path = path + [neighbor]
+                        stack.append((neighbor, new_path))
+
+                # If the current path is valid, add it to the result
+                if cpv.is_possible_path(path):
+                    cpv_paths.append(path)
+
         return cpv_paths
+
 
     def _parse_result(self, result):
         if result["Request Result"] == "Fail":

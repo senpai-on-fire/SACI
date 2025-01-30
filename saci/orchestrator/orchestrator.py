@@ -14,7 +14,7 @@ from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
 from saci.identifier import IdentifierCPV
 
-from .cpv_definitions import CPVS as CPVS
+from .cpv_definitions import CPVS as cpv_database
 
 import logging
 l = logging.getLogger(__name__)
@@ -56,8 +56,8 @@ def main():
 
     # input: the CPS model
     
-    cps = PX4Quadcopter()
-    #cps = NGCRover()
+    #cps = PX4Quadcopter()
+    cps = NGCRover()
     #cps = GSQuadcopter()
     # Search CPV from our database
     

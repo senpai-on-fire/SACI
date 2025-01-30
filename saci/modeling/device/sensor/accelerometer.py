@@ -78,6 +78,8 @@ class Accelerometer(Sensor):
         """
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         high_abstraction = AccelerometerHigh(has_external_input=has_external_input)
         algo_abstraction = AccelerometerAlgorithmic(
             precision_bits=precision_bits,

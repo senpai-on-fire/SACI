@@ -61,6 +61,8 @@ class CompassSensor(Sensor):
     def __init__(self, has_external_input=True, **kwargs):
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         high_abstraction = CompassSensorHigh(has_external_input=has_external_input)
         algo_abstraction = CompassSensorAlgorithmic()
 

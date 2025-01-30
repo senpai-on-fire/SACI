@@ -59,7 +59,7 @@ class CPV:
         return False
 
     def is_possible_path(self, path: List[CyberComponentBase]):
-        
+        print("*****", path, self.required_components)
         if len(path) == len(self.required_components):
 
             for i in range(len(path)):

@@ -62,7 +62,7 @@ class Camera(Sensor):
 
     def __init__(
         self,
-        has_external_input: bool = False,
+        has_external_input: bool = True,
         powered: bool = True,
         **kwargs
     ):
@@ -71,6 +71,8 @@ class Camera(Sensor):
         :param powered: Whether the camera is powered on.
         """
         super().__init__(**kwargs)
+
+        self.has_external_input = has_external_input
 
         high_abstraction = CameraHigh(powered=powered, has_external_input=has_external_input)
         algo_abstraction = CameraAlgorithmic(powered=powered, has_external_input=has_external_input)

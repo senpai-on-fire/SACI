@@ -157,8 +157,10 @@ class PWMChannelHardware(HardwareComponentBase):
 
 class PWMChannel(CyberComponentBase):
 
-    def __init__(self, **kwargs):
+    def __init__(self, has_external_input=True, **kwargs):
         super().__init__(**kwargs)
+
+        self.has_external_input=has_external_input
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: PWMChannelCyberHigh(**kwargs),

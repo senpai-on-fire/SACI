@@ -12,7 +12,8 @@ from .interface.serial import Serial, SerialHigh, SerialAlgorithmic
 from .interface.wifi import Wifi, WifiHigh, WifiAlgorithmic
 from .webserver import *
 from .esc import *
-from .control.dnn import DNNHigh, DNNAlgorithmic, DNN
+from .control.dnn_tracking import *
+from .control.dnn_obstacle import *
 from .battery.battery import *
 from .battery.bms import *
 from .http import *

@@ -67,6 +67,8 @@ class Gyroscope(Sensor):
         """
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         # Instantiate high and algorithmic abstractions with vulnerability parameters
         high_abstraction = GyroscopeHigh(has_external_input=has_external_input)
         algo_abstraction = GyroscopeAlgorithmic(

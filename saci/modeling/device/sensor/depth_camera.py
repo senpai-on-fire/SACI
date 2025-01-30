@@ -79,6 +79,8 @@ class DepthCamera(Sensor):
     ):
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         high_abstraction = DepthCameraHigh(
             has_external_input=has_external_input,
             supports_stereo_vision=supports_stereo_vision,

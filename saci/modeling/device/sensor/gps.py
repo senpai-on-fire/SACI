@@ -101,6 +101,8 @@ class GPSReceiver(Sensor):
         """
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         high_abstraction = GPSReceiverHigh(
             has_external_input=has_external_input,
             supported_protocols=supported_protocols,

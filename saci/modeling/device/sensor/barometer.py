@@ -71,6 +71,8 @@ class Barometer(Sensor):
         """
         super().__init__(**kwargs)
 
+        self.has_external_input = has_external_input
+
         # Instantiate high and algorithmic abstractions
         high_abstraction = BarometerHigh(has_external_input=has_external_input)
         algo_abstraction = BarometerAlgorithmic(
