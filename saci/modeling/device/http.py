@@ -10,8 +10,10 @@ class Http(Telemetry):
     Describes the HTTP component.
     """
 
-    def __init__(self, has_external_input=False, **kwargs):
-        super().__init__(has_external_input=has_external_input, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # TODO: ports?
+
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(
                 name="HTTP High",

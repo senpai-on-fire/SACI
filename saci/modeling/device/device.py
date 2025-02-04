@@ -12,7 +12,7 @@ class Device:
         self,
         name: str,
         components: List[CyberComponentBase],
-        component_graph: Dict[CyberComponentBase, nx.DiGraph] = None,
+        component_graph: Optional[nx.DiGraph] = None,
         node_maps: Dict[CyberComponentBase, Dict[CyberComponentBase, CyberComponentBase]] = None,
         edge_maps: Dict[CyberComponentBase, Dict[Tuple[CyberComponentBase, CyberComponentBase], Tuple[CyberComponentBase, CyberComponentBase]]] = None,
         state: Optional[GlobalState] = None,

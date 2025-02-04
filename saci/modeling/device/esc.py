@@ -1,3 +1,4 @@
+from typing import Optional
 from saci.modeling.device.component import (
     CyberComponentBase,
     CyberComponentHigh,
@@ -6,6 +7,7 @@ from saci.modeling.device.component import (
     CyberComponentBinary,
     CyberAbstractionLevel
 )
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
 from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
 from claripy import BVS
 
@@ -127,18 +129,16 @@ class ESCHardwareTechnology(HardwareTechnology):
 # =================== Full ESC Component Abstraction (Cyber) ===================
 
 class ESC(CyberComponentBase):
-
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "variables")
-
-    def __init__(self, has_external_input=False, **kwargs):
-        """
-        :param has_external_input: Indicates if the ESC system receives external input.
-        """
-        super().__init__(**kwargs)
+    def __init__(self, ports: Optional[Ports]=None, has_external_input=False, **kwargs):
+        super().__init__(
+            ports=union_ports({
+                "Speed Value": Port(direction=PortDirection.IN),
+                "Motor Control": Port(direction=PortDirection.OUT),
+            }, ports),
+            **kwargs
+        )
 
         self.has_external_input = has_external_input
-
-        # Define all abstraction layers
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: ESCHigh(),
             CyberAbstractionLevel.ALGORITHMIC: ESCAlgorithmic(),

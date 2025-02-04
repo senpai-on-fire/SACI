@@ -1,26 +1,34 @@
+from typing import Optional
+
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
 from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
 
 
 class WebServerHigh(CyberComponentHigh):
-    __state_slots__ = CyberComponentHigh.__state_slots__ + ("protocol_name", "has_authentication")
-    __slots__ = CyberComponentHigh.__slots__ + ("protocol_name", "has_authentication")
-
-    def __init__(self, protocol_name=None, has_authentication=None, **kwargs):
-        """
-
-
-        :param protocol_name:
-        :param has_authentication:
-        :param kwargs:
-        """
-        super().__init__(**kwargs)
-        self.protocol_name = protocol_name
-        self.has_authentication = has_authentication
+    @property
+    def parameter_types(self):
+        return {
+            "protocol_name": str,
+            "has_authentication": bool,
+        }
 
 
 class WebServer(CyberComponentBase):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, ports: Optional[Ports]=None, **kwargs):
+        super().__init__(
+            ports=union_ports({
+                "Socket": Port(direction=PortDirection.INOUT),
+                # and then in the additional ports that get unioned in are device-specific control inputs/outputs
+            }, ports),
+            **kwargs
+        )
         self.ABSTRACTIONS = {
-            CyberAbstractionLevel.HIGH: WebServerHigh(),
+            CyberAbstractionLevel.HIGH: WebServerHigh(**kwargs),
+        }
+
+    @property
+    def parameter_types(self):
+        return {
+            "protocol_name": str,
+            "has_authentication": bool,
         }

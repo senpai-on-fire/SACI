@@ -4,7 +4,7 @@ SACI - Software-Aware CPV Identifier
 ## Installation
 Install `SACI` and the `saci-db` (located in the same GitHub group) together: 
 ```bash
-pip install -e . '../saci-database'
+pip install -e . './saci-database'
 ```
 
 ## Background
@@ -156,3 +156,8 @@ paths = identifier.identify()
 ### Run the web server
 
 1. `saci -r web`
+
+### Run the web server with Docker
+
+1. `docker build -t saci .`
+2. `docker run -p 8000:8000 saci`

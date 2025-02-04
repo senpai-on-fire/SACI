@@ -1,0 +1,13 @@
+# Development
+.git
+.gitignore
+.gitmodules
+*.md
+
+# Build
+web/dist
+web/node_modules
+
+# Python
+__pycache__
+*.pyc

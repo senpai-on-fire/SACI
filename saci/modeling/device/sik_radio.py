@@ -14,8 +14,10 @@ class SikRadio(Telemetry):
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(
                 name="Sik Radio High",
-                protocol_name="sik",
-                communication=AuthenticatedCommunication(identifier="netid"),
+                parameters=dict(
+                    protocol_name="sik",
+                    communication=AuthenticatedCommunication(identifier="netid"),
+                ),
             ),
             CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),

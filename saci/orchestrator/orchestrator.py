@@ -39,7 +39,7 @@ def process(cps, database, initial_state):
     
     ##### CPV Matching #####
     l.info("Identifying CPVs from existed CPV database\n")
-    for cpv_model_base in database:
+    for cpv_model_base in database['cpv_model']:
         cpv_model, cpv_paths = identify(cps, initial_state, cpv_model=cpv_model_base)
         if cpv_paths is not None:
             identified_cpv_and_paths.append((cpv_model, cpv_paths))

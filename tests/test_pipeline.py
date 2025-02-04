@@ -6,19 +6,21 @@ from typing import Optional
 
 import saci
 from saci.modeling import CPV, ComponentBase
-from saci.modeling.device.compass import CompassSensorHigh
-from saci.modeling.device.motor.steering import SteeringHigh
+from saci.modeling.device.compass import CompassSensor
+from saci.modeling.device.motor.steering import Steering
+from saci.modeling.device.motor.motor import Motor
+from saci.modeling.device.serial import Serial
 from saci.modeling.state import GlobalState
-from saci.modeling.device import MultiCopterMotor, TelemetryHigh, MotorHigh
+from saci.modeling.device import MultiCopterMotor, Wifi, SikRadio
 from saci.orchestrator import process, identify
 
 from saci_db.cpvs import MavlinkCPV
-from saci_db.cpvs.cpv06_roll_over import RollOverCPV
-from saci_db.cpvs.cpv07_compass_interference import CompassInterferenceCPV
-from saci_db.cpvs.cpv08_web_stop import WebStopCPV
+from saci_db.cpvs.cpv06_serial_motor_rollover import RollOverCPV
+from saci_db.cpvs.cpv07_pmagnet_compass_dos import PermanentCompassSpoofingCPV
+from saci_db.cpvs.cpv08_wifi_webserver_crash import WebCrashCPV
 from saci_db.devices.ngcrover import NGCRover
 from saci_db.vulns import MavlinkCPSV
-from saci_db.devices.px4_quadcopter_device import PX4Quadcopter, GCSTelemetry
+from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 
 
 def generate_fake_data():
@@ -53,7 +55,7 @@ class TestPipeline(unittest.TestCase):
         cps, _, initial_state = generate_fake_data()
         _, cpv_paths = identify(cps, initial_state, cpv_model=MavlinkCPV())
         path = cpv_paths[0].path
-        self.assertIsInstance(path[0], GCSTelemetry)
+        self.assertIsInstance(path[0], SikRadio)
         self.assertIsInstance(path[-1], MultiCopterMotor)
 
     def test_identifier_rover(self):
@@ -62,9 +64,10 @@ class TestPipeline(unittest.TestCase):
         # this rover sure is vulnerable
         cpv_hypotheses: list[tuple[CPV, Optional[tuple[type[ComponentBase], type[ComponentBase]]]]] = [
             (MavlinkCPV(), None),
-            (RollOverCPV(), (TelemetryHigh, SteeringHigh)),
-            (CompassInterferenceCPV(), (CompassSensorHigh, SteeringHigh)),
-            (WebStopCPV(), (TelemetryHigh, MotorHigh)),
+            # TODO: restore some sort of the abstraction levels in the identification process
+            (RollOverCPV(), (Serial, Motor)),
+            (PermanentCompassSpoofingCPV(), (CompassSensor, Steering)),
+            (WebCrashCPV(), (Wifi, Motor)),
         ]
         for cpv, endpoints in cpv_hypotheses:
             _, cpv_paths = identify(cps, initial_state, cpv_model=cpv)

@@ -14,8 +14,8 @@ class CyberComponentBase(ComponentBase):
     __state_slots__ = ComponentBase.__state_slots__ + ()
     __slots__ = ComponentBase.__slots__ + ("abstraction_level",)
 
-    def __init__(self, name=None, _type=ComponentType.CYBER, abstraction=CyberAbstractionLevel.UNKNOWN):
-        super().__init__(name=name, _type=_type)
+    def __init__(self, name=None, _type=ComponentType.CYBER, abstraction=CyberAbstractionLevel.UNKNOWN, parameters=None, ports=None):
+        super().__init__(name=name, _type=_type, parameters=parameters, ports=ports)
         self.abstraction_level = abstraction
 
     #
