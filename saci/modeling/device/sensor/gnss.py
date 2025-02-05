@@ -13,11 +13,10 @@ _l = logging.getLogger(__name__)
 
 class GNSSReceiverHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + ("has_external_input", "supported_protocols", "authenticated", "signal_strength_threshold")
+    __slots__ = SensorHigh.__slots__ + ("supported_protocols", "authenticated", "signal_strength_threshold")
 
     def __init__(
         self,
-        has_external_input: bool = True,
         supported_protocols: Optional[List[type]] = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
@@ -28,8 +27,7 @@ class GNSSReceiverHigh(SensorHigh):
         :param authenticated: Whether the GNSS receiver has authentication enabled.
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
         """
-        super().__init__(has_external_input=True, **kwargs)
-        self.has_external_input = has_external_input
+        super().__init__(**kwargs)
         self.supported_protocols = supported_protocols or []
         self.authenticated = authenticated
         self.signal_strength_threshold = signal_strength_threshold
@@ -39,11 +37,10 @@ class GNSSReceiverHigh(SensorHigh):
 
 class GNSSReceiverAlgorithmic(SensorAlgorithmic):
 
-    __slots__ = SensorAlgorithmic.__slots__ + ("has_external_input", "supported_protocols", "signal_strength_threshold")
+    __slots__ = SensorAlgorithmic.__slots__ + ("supported_protocols", "signal_strength_threshold")
 
     def __init__(
         self,
-        has_external_input: bool = True,
         supported_protocols: Optional[List[type]] = None,
         signal_strength_threshold: int = -100,
         **kwargs
@@ -53,7 +50,6 @@ class GNSSReceiverAlgorithmic(SensorAlgorithmic):
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.supported_protocols = supported_protocols or []
         self.signal_strength_threshold = signal_strength_threshold
 
@@ -88,28 +84,23 @@ class GNSSReceiverAlgorithmic(SensorAlgorithmic):
 
 class GNSSReceiver(Sensor):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input")
+    __slots__ = ("ABSTRACTIONS",)
 
     def __init__(
         self,
-        has_external_input: bool = True,
         supported_protocols: Optional[List[type]] = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
         **kwargs
     ):
         """
-        :param has_external_input: Indicates if this sensor receives external GNSS data.
         :param supported_protocols: List of supported protocol classes (e.g., [GPSProtocol, GLONASSProtocol, GalileoProtocol]).
         :param authenticated: Whether the GNSS receiver has authentication enabled.
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
-
         high_abstraction = GNSSReceiverHigh(
-            has_external_input=has_external_input,
             supported_protocols=supported_protocols,
             authenticated=authenticated,
             signal_strength_threshold=signal_strength_threshold
@@ -133,16 +124,15 @@ class GNSSReceiverHardware(Sensor):
 
     __slots__ = Sensor.__slots__
 
-    def __init__(self, has_external_input=True, uart_interface="UART1", i2c_address=None, **kwargs):
+    def __init__(self, uart_interface="UART1", i2c_address=None, **kwargs):
         """
-        :param has_external_input: Whether the GNSS receiver is influenced by external conditions.
         :param uart_interface: UART interface (e.g., UART1, UART2).
         :param i2c_address: I2C address if the receiver supports I2C communication.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.uart_interface = uart_interface
         self.i2c_address = i2c_address
+        self.variables = {}  # Initialize variables dictionary
 
         # Simulated hardware register values
         self.variables["hardware_status"] = BVS("gnss_hw_status", 8)  # 8-bit status register

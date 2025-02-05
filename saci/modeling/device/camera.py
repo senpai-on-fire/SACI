@@ -12,9 +12,9 @@ class CameraHigh(CyberComponentHigh):
 
 
 class Camera(CyberComponentBase):
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "powered")
+    __slots__ = ("ABSTRACTIONS", "powered")
 
-    def __init__(self, has_external_input=True, powered=True, ports=None, **kwargs):
+    def __init__(self, powered=True, ports=None, **kwargs):
         super().__init__(
             ports=union_ports({
                 "Field of View": Port(direction=PortDirection.IN),
@@ -23,7 +23,6 @@ class Camera(CyberComponentBase):
             **kwargs
         )
 
-        self.has_external_input = has_external_input
         self.powered = powered
 
         self.ABSTRACTIONS = {
@@ -32,23 +31,3 @@ class Camera(CyberComponentBase):
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
-
-# class LocalizationAlgorithm(CyberComponentAlgorithmic):
-#     def __init__(self, enable=False, camera_prioritized=True, **kwargs):
-#         super().__init__(**kwargs)
-#         self.enable = enable
-#         self.camera_prioritized = camera_prioritized
-#         self.coordinates = []
-
-#     def navigate(self, communication: BaseCommunication) -> bool:
-#         # TODO: model navigation algorithm
-#         if not communication.src == "camera":
-#             return False
-#         if not self.camera_prioritized:
-#             return False
-
-#         img = communication.data
-#         # TODO: how to model the localization algorithm?
-#         self.condition = [0.0, 0.0, 5.0]
-        
-#         return self.condition

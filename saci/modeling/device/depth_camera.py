@@ -7,8 +7,6 @@ from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 class DepthCameraHigh(CyberComponentHigh):
     __slots__ = CyberComponentHigh.__slots__
 
-    has_external_input = True
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -20,8 +18,6 @@ class DepthCameraAlgorithmic(CyberComponentAlgorithmic):
 
 class DepthCamera(CyberComponentBase):
     __slots__ = ("enabled", "ABSTRACTIONS")
-
-    has_external_input = True
 
     def __init__(self, ports: Optional[Ports]=None, enabled=True, **kwargs):
         super().__init__(

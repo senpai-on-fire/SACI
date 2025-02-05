@@ -11,16 +11,14 @@ _l = logging.getLogger(__name__)
 
 class CompassSensorHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + ("has_external_input", "is_calibrated", "error_flag")
+    __slots__ = SensorHigh.__slots__ + ("is_calibrated", "error_flag")
 
-    def __init__(self, has_external_input=True, is_calibrated=False, error_flag=False, **kwargs):
+    def __init__(self, is_calibrated=False, error_flag=False, **kwargs):
         """
-        :param has_external_input: Indicates if the compass is influenced by external factors.
         :param is_calibrated: Whether the compass has been calibrated.
         :param error_flag: Flag indicating whether an anomaly has been detected.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.is_calibrated = is_calibrated
         self.error_flag = error_flag  # Tracks if the sensor output is compromised
 
@@ -56,14 +54,12 @@ class CompassSensorAlgorithmic(SensorAlgorithmic):
 
 class CompassSensor(Sensor):
 
-    __slots__ = ("has_external_input", "ABSTRACTIONS")
+    __slots__ = ("ABSTRACTIONS",)
 
-    def __init__(self, has_external_input=True, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
-
-        high_abstraction = CompassSensorHigh(has_external_input=has_external_input)
+        high_abstraction = CompassSensorHigh()
         algo_abstraction = CompassSensorAlgorithmic()
 
         self.ABSTRACTIONS = {
@@ -80,16 +76,15 @@ class CompassHardware(Sensor):
 
     __slots__ = Sensor.__slots__
 
-    def __init__(self, has_external_input=True, i2c_address=0x1E, spi_channel=0, **kwargs):
+    def __init__(self, i2c_address=0x1E, spi_channel=0, **kwargs):
         """
-        :param has_external_input: Whether the sensor is influenced by external magnetic fields.
         :param i2c_address: I2C address for communication.
         :param spi_channel: SPI channel if using an SPI-based sensor.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.i2c_address = i2c_address
         self.spi_channel = spi_channel
+        self.variables = {}  # Initialize variables dictionary
 
         # Simulated hardware register values
         self.variables["hardware_status"] = BVS("compass_hw_status", 8)  # 8-bit status register

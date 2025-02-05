@@ -13,15 +13,13 @@ _l = logging.getLogger(__name__)
 
 class CameraHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + ("has_external_input", "powered")
+    __slots__ = SensorHigh.__slots__ + ("powered",)
 
-    def __init__(self, powered: bool = True, has_external_input=True, **kwargs):
+    def __init__(self, powered: bool = True, **kwargs):
         """
         :param powered: Whether the camera is powered on.
-        :param has_external_input: If the camera can receive external inputs.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.powered = powered  # Simple state tracking (on/off)
 
 
@@ -29,16 +27,14 @@ class CameraHigh(SensorHigh):
 
 class CameraAlgorithmic(SensorAlgorithmic):
 
-    __slots__ = SensorAlgorithmic.__slots__ + ("powered", "has_external_input")
+    __slots__ = SensorAlgorithmic.__slots__ + ("powered",)
 
-    def __init__(self, powered: bool = True, has_external_input=False, **kwargs):
+    def __init__(self, powered: bool = True, **kwargs):
         """
         :param powered: Whether the camera is operational.
-        :param has_external_input: If the camera can receive external inputs (e.g., environmental attacks).
         """
         super().__init__(**kwargs)
         self.powered = powered
-        self.has_external_input = has_external_input
 
         # Symbolic variables for detailed camera properties
         self.variables["frame_rate"] = BVS("camera_frame_rate", 32)
@@ -58,24 +54,20 @@ class CameraAlgorithmic(SensorAlgorithmic):
 
 class Camera(Sensor):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "powered")
+    __slots__ = ("ABSTRACTIONS", "powered")
 
     def __init__(
         self,
-        has_external_input: bool = True,
         powered: bool = True,
         **kwargs
     ):
         """
-        :param has_external_input: Indicates if this sensor can receive external stimuli.
         :param powered: Whether the camera is powered on.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
-
-        high_abstraction = CameraHigh(powered=powered, has_external_input=has_external_input)
-        algo_abstraction = CameraAlgorithmic(powered=powered, has_external_input=has_external_input)
+        high_abstraction = CameraHigh(powered=powered)
+        algo_abstraction = CameraAlgorithmic(powered=powered)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: high_abstraction,
@@ -121,54 +113,3 @@ class CameraHWTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown camera technology: {technology}. Please add it to CameraHWTechnology.")
-
-
-######################################################    OLD VERSION    ########################################################################
-
-# from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-# from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-# from ..communication import BaseCommunication
-
-
-# class CameraHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-
-# class Camera(CyberComponentBase):
-#     __slots__ = ("ABSTRACTIONS", "has_external_input", "powered")
-
-#     def __init__(self, has_external_input=True, powered=True, **kwargs):
-#         super().__init__(**kwargs)
-
-#         self.has_external_input = has_external_input
-#         self.powered = powered
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: CameraHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: CyberComponentAlgorithmic(),
-#             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
-#             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-#         }
-
-# class LocalizationAlgorithm(CyberComponentAlgorithmic):
-#     def __init__(self, enable=False, camera_prioritized=True, **kwargs):
-#         super().__init__(**kwargs)
-#         self.enable = enable
-#         self.camera_prioritized = camera_prioritized
-#         self.coordinates = []
-
-#     def navigate(self, communication: BaseCommunication) -> bool:
-#         # TODO: model navigation algorithm
-#         if not communication.src == "camera":
-#             return False
-#         if not self.camera_prioritized:
-#             return False
-
-#         img = communication.data
-#         # TODO: how to model the localization algorithm?
-#         self.condition = [0.0, 0.0, 5.0]
-        
-#         return self.condition

@@ -6,20 +6,18 @@ from typing import Optional
 
 import saci
 from saci.modeling import CPV, ComponentBase
-from saci.modeling.device.compass import CompassSensor
+from saci.modeling.device.sensor.compass import CompassSensor
 from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.motor.motor import Motor
-from saci.modeling.device.serial import Serial
+from saci.modeling.device.interface.serial import Serial
+from saci.modeling.device.gcs import GCS
 from saci.modeling.state import GlobalState
 from saci.modeling.device import MultiCopterMotor, Wifi, SikRadio
 from saci.orchestrator import process, identify
 
-from saci_db.cpvs import MavlinkCPV
-from saci_db.cpvs.cpv06_serial_motor_rollover import RollOverCPV
-from saci_db.cpvs.cpv07_pmagnet_compass_dos import PermanentCompassSpoofingCPV
-from saci_db.cpvs.cpv08_wifi_webserver_crash import WebCrashCPV
+from saci_db.cpvs import MavlinkSiKCPV, SerialRollOverCPV, CompassPermanentSpoofingCPV, WifiWebCrashCPV
 from saci_db.devices.ngcrover import NGCRover
-from saci_db.vulns import MavlinkCPSV
+from saci_db.vulns import MavlinkMitmVuln
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 
 
@@ -29,8 +27,8 @@ def generate_fake_data():
 
     # input: the database with CPV models and CPS vulnerabilities
     database = {
-        "cpv_model": [MavlinkCPV()],
-        "cpsv_model": [MavlinkCPSV()],
+        "cpv_model": [MavlinkSiKCPV()],
+        "cpsv_model": [MavlinkMitmVuln()],
         "cps_vuln": [],
         "hypotheses": []
     }
@@ -53,9 +51,9 @@ class TestPipeline(unittest.TestCase):
 
     def test_identifier_mavlink_cpv(self):
         cps, _, initial_state = generate_fake_data()
-        _, cpv_paths = identify(cps, initial_state, cpv_model=MavlinkCPV())
+        _, cpv_paths = identify(cps, initial_state, cpv_model=MavlinkSiKCPV())
         path = cpv_paths[0].path
-        self.assertIsInstance(path[0], SikRadio)
+        self.assertIsInstance(path[0], GCS)
         self.assertIsInstance(path[-1], MultiCopterMotor)
 
     def test_identifier_rover(self):
@@ -63,11 +61,11 @@ class TestPipeline(unittest.TestCase):
         initial_state = GlobalState(cps.components)
         # this rover sure is vulnerable
         cpv_hypotheses: list[tuple[CPV, Optional[tuple[type[ComponentBase], type[ComponentBase]]]]] = [
-            (MavlinkCPV(), None),
+            (MavlinkSiKCPV(), None),
             # TODO: restore some sort of the abstraction levels in the identification process
-            (RollOverCPV(), (Serial, Motor)),
-            (PermanentCompassSpoofingCPV(), (CompassSensor, Steering)),
-            (WebCrashCPV(), (Wifi, Motor)),
+            (SerialRollOverCPV(), (Serial, Motor)),
+            (CompassPermanentSpoofingCPV(), (CompassSensor, Steering)),
+            (WifiWebCrashCPV(), (Wifi, Motor)),
         ]
         for cpv, endpoints in cpv_hypotheses:
             _, cpv_paths = identify(cps, initial_state, cpv_model=cpv)

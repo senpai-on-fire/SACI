@@ -12,16 +12,14 @@ _l = logging.getLogger(__name__)
 
 class MagnetometerHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + ("has_external_input", "is_calibrated", "error_flag")
+    __slots__ = SensorHigh.__slots__ + ("is_calibrated", "error_flag")
 
-    def __init__(self, has_external_input=True, is_calibrated=False, error_flag=False, **kwargs):
+    def __init__(self, is_calibrated=False, error_flag=False, **kwargs):
         """
-        :param has_external_input: Indicates if the magnetometer is influenced by external conditions.
         :param is_calibrated: Whether the magnetometer is calibrated.
         :param error_flag: Flag indicating whether an anomaly has been detected.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.is_calibrated = is_calibrated
         self.error_flag = error_flag  # Tracks if the sensor output is compromised
 
@@ -60,16 +58,14 @@ class Magnetometer(Sensor):
 
     __slots__ = ("precision_bits", "ABSTRACTIONS")
 
-    def __init__(self, has_external_input=True, precision_bits=16, **kwargs):
+    def __init__(self, precision_bits=16, **kwargs):
         """
-        :param has_external_input: Indicates if the sensor receives external input.
         :param precision_bits: Bit resolution for data representation.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
 
-        high_abstraction = MagnetometerHigh(has_external_input=has_external_input)
+        high_abstraction = MagnetometerHigh()
         algo_abstraction = MagnetometerAlgorithmic(precision_bits=precision_bits)
 
         self.ABSTRACTIONS = {
@@ -86,16 +82,15 @@ class MagnetometerHardware(Sensor):
 
     __slots__ = Sensor.__slots__
 
-    def __init__(self, has_external_input=True, i2c_address=0x1E, spi_channel=0, **kwargs):
+    def __init__(self, i2c_address=0x1E, spi_channel=0, **kwargs):
         """
-        :param has_external_input: Whether the magnetometer is influenced by external magnetic fields.
         :param i2c_address: I2C address for communication.
         :param spi_channel: SPI channel if using an SPI-based sensor.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.i2c_address = i2c_address
         self.spi_channel = spi_channel
+        self.variables = {}  # Initialize variables dictionary
 
         # Simulated hardware register values
         self.variables["hardware_status"] = claripy.BVS("magneto_hw_status", 8)  # 8-bit status register

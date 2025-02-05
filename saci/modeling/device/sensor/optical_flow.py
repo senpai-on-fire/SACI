@@ -12,14 +12,10 @@ _l = logging.getLogger(__name__)
 
 class OpticalFlowSensorHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + ("has_external_input",)
+    __slots__ = SensorHigh.__slots__
 
-    def __init__(self, has_external_input=False, **kwargs):
-        """
-        :param has_external_input: Indicates if the sensor receives external visual input.
-        """
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
 
         # Optionally store high-level flags, aggregated data, etc.
         self.variables["is_calibrated"] = claripy.BVS("of_calibrated", 1)
@@ -30,18 +26,16 @@ class OpticalFlowSensorHigh(SensorHigh):
 
 class OpticalFlowSensorAlgorithmic(SensorAlgorithmic):
 
-    __slots__ = SensorAlgorithmic.__slots__ + ("uses_corner_detection", "has_external_input", "enabled")
+    __slots__ = SensorAlgorithmic.__slots__ + ("uses_corner_detection", "enabled")
 
-    def __init__(self, has_external_input=False, uses_corner_detection=True, enabled=True, **kwargs):
+    def __init__(self, uses_corner_detection=True, enabled=True, **kwargs):
         """
-        :param has_external_input: Indicates if the sensor receives external input.
         :param uses_corner_detection: Whether the sensor processes optical flow using corner detection.
         :param enabled: Whether the sensor is enabled.
         """
         super().__init__(**kwargs)
 
         self.uses_corner_detection = uses_corner_detection
-        self.has_external_input = has_external_input
         self.enabled = enabled
 
         # Symbolic variables to represent optical flow data
@@ -58,22 +52,18 @@ class OpticalFlowSensorAlgorithmic(SensorAlgorithmic):
 
 class OpticalFlowSensor(Sensor):
 
-    __slots__ = ("has_external_input", "uses_corner_detection", "enabled", "ABSTRACTIONS")
+    __slots__ = ("uses_corner_detection", "enabled", "ABSTRACTIONS")
 
     def __init__(
         self,
-        has_external_input=False,
         uses_corner_detection=True,
         enabled=True,
         **kwargs
     ):
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
-
-        high_abstraction = OpticalFlowSensorHigh(has_external_input=has_external_input)
+        high_abstraction = OpticalFlowSensorHigh()
         algo_abstraction = OpticalFlowSensorAlgorithmic(
-            has_external_input=has_external_input,
             uses_corner_detection=uses_corner_detection,
             enabled=enabled
         )
@@ -92,16 +82,15 @@ class OpticalFlowSensorHardware(Sensor):
 
     __slots__ = Sensor.__slots__
 
-    def __init__(self, has_external_input=True, i2c_address=0x42, spi_channel=0, **kwargs):
+    def __init__(self, i2c_address=0x42, spi_channel=0, **kwargs):
         """
-        :param has_external_input: Whether the optical flow sensor is influenced by external conditions.
         :param i2c_address: I2C address for communication.
         :param spi_channel: SPI channel if using an SPI-based sensor.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.i2c_address = i2c_address
         self.spi_channel = spi_channel
+        self.variables = {}  # Initialize variables dictionary
 
         # Simulated hardware register values
         self.variables["hardware_status"] = claripy.BVS("of_hw_status", 8)  # 8-bit status register
@@ -135,44 +124,3 @@ class OpticalFlowSensorHWTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown optical flow sensor technology: {technology}. Please add it to OpticalFlowSensorHWTechnology.")
-
-
-
-######################################################    OLD VERSION    ########################################################################
-
-# from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-# from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-# from ..communication import BaseCommunication
-
-# class OpticalFlowSensorHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__
-    
-#     def __init__(self, **kwargs):
-#         super().__init__(has_external_input=True, **kwargs)
-
-
-# class OpticalFlowSensorAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__ + ('uses_corner_detection',)
-
-#     def __init__(self, uses_corner_detection=True, **kwargs):
-#         super().__init__(**kwargs)
-        
-#         self.uses_corner_detection = uses_corner_detection
-
-
-# class OpticalFlowSensor(CyberComponentBase):
-#     __slots__ = ("ABSTRACTIONS", "has_external_input", "uses_corner_detection", "enabled")
-
-#     def __init__(self, has_external_input=True, uses_corner_detection=True, enabled=True, **kwargs):
-#         super().__init__(**kwargs)
-        
-#         self.has_external_input = has_external_input
-#         self.uses_corner_detection = uses_corner_detection
-#         self.enabled = enabled
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: OpticalFlowSensorHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: OpticalFlowSensorAlgorithmic(uses_corner_detection=uses_corner_detection),
-#             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
-#             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-#         }

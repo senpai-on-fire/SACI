@@ -3,16 +3,14 @@ from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
 class GCS(CyberComponentBase):
 
-    __slots__ = ("has_external_input", "ABSTRACTIONS", "communication_protocols")
+    __slots__ = ("ABSTRACTIONS", "communication_protocols")
 
-    def __init__(self, has_external_input=True, communication_protocols=None, **kwargs):
+    def __init__(self, communication_protocols=None, **kwargs):
         """
-        :param has_external_input: Whether the GCS interacts with external components (UAV telemetry, control links).
         :param communication_protocols: Supported communication protocols for UAV interaction.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
         self.communication_protocols = communication_protocols or []
 
         self.ABSTRACTIONS = {
@@ -33,7 +31,7 @@ class GCSHigh(CyberComponentHigh):
         :param connected_uavs: List of currently connected UAVs.
         :param mission_status: Current mission status (e.g., "IDLE", "IN_PROGRESS", "COMPLETED").
         """
-        super().__init__(has_external_input=True, **kwargs)
+        super().__init__(**kwargs)
         self.communication_protocols = communication_protocols or []
         self.connected_uavs = connected_uavs or []
         self.mission_status = mission_status
@@ -83,5 +81,3 @@ class GCSAlgorithmic(CyberComponentAlgorithmic):
         """
         self.mission_status = status
         print(f"Mission status updated to {self.mission_status}")
-
-

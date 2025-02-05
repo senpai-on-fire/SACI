@@ -13,18 +13,15 @@ class DepthCameraHigh(SensorHigh):
 
     __slots__ = SensorHigh.__slots__ + (
         "supports_stereo_vision",
-        "enabled",
-        "has_external_input"
+        "enabled"
     )
 
-    def __init__(self, has_external_input=True, supports_stereo_vision=True, enabled=True, **kwargs):
+    def __init__(self, supports_stereo_vision=True, enabled=True, **kwargs):
         """
-        :param has_external_input: Indicates if the camera is influenced by external factors.
         :param supports_stereo_vision: Whether the camera supports stereo vision.
         :param enabled: Whether the depth camera is enabled.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.supports_stereo_vision = supports_stereo_vision
         self.enabled = enabled
 
@@ -35,13 +32,11 @@ class DepthCameraAlgorithmic(SensorAlgorithmic):
 
     __slots__ = SensorAlgorithmic.__slots__ + (
         "supports_stereo_vision",
-        "enabled",
-        "has_external_input"
+        "enabled"
     )
 
-    def __init__(self, has_external_input=True, supports_stereo_vision=True, enabled=True, **kwargs):
+    def __init__(self, supports_stereo_vision=True, enabled=True, **kwargs):
         """
-        :param has_external_input: Indicates if the camera is influenced by external factors.
         :param supports_stereo_vision: Whether the camera supports stereo vision.
         :param enabled: Whether the depth camera is enabled.
         """
@@ -57,6 +52,8 @@ class DepthCameraAlgorithmic(SensorAlgorithmic):
         if supports_stereo_vision:
             self.variables["stereo_offset"] = BVS("depth_cam_stereo_offset", 32)  # Extra variable for stereo vision
 
+        self.enabled = enabled
+
     def can_capture_depth_map(self) -> bool:
         """
         Determines if the depth camera can capture a depth map.
@@ -68,26 +65,21 @@ class DepthCameraAlgorithmic(SensorAlgorithmic):
 
 class DepthCamera(Sensor):
 
-    __slots__ = ("supports_stereo_vision", "has_external_input", "enabled", "ABSTRACTIONS")
+    __slots__ = ("supports_stereo_vision", "enabled", "ABSTRACTIONS")
 
     def __init__(
         self,
         supports_stereo_vision: bool = True,
-        has_external_input: bool = True,
         enabled: bool = True,
         **kwargs
     ):
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
-
         high_abstraction = DepthCameraHigh(
-            has_external_input=has_external_input,
             supports_stereo_vision=supports_stereo_vision,
             enabled=enabled
         )
         algo_abstraction = DepthCameraAlgorithmic(
-            has_external_input=has_external_input,
             supports_stereo_vision=supports_stereo_vision,
             enabled=enabled
         )
@@ -106,16 +98,15 @@ class DepthCameraHardware(Sensor):
 
     __slots__ = Sensor.__slots__
 
-    def __init__(self, has_external_input=True, usb_interface="USB3.0", i2c_address=None, **kwargs):
+    def __init__(self, usb_interface="USB3.0", i2c_address=None, **kwargs):
         """
-        :param has_external_input: Whether the depth camera is influenced by external conditions.
         :param usb_interface: USB interface type (e.g., USB2.0, USB3.0).
         :param i2c_address: I2C address if the camera supports I2C communication.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.usb_interface = usb_interface
         self.i2c_address = i2c_address
+        self.variables = {}  # Initialize variables dictionary
 
         # Simulated hardware register values
         self.variables["hardware_status"] = BVS("depth_cam_hw_status", 8)  # 8-bit status register
@@ -149,39 +140,3 @@ class DepthCameraHWTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown depth camera technology: {technology}. Please add it to DepthCameraHWTechnology.")
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-# from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-
-# class DepthCameraHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(has_external_input=True, **kwargs)
-
-# class DepthCameraAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-# class DepthCamera(CyberComponentBase):
-#     __slots__ = ("supports_stereo_vision", "has_external_input", "enabled", "ABSTRACTIONS")
-
-#     def __init__(self, supports_stereo_vision=True, has_external_input=True, enabled=True, **kwargs):
-#         super().__init__(**kwargs)
-
-#         self.has_external_input = has_external_input
-#         self.supports_stereo_vision = supports_stereo_vision
-#         self.enabled = enabled
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: CyberComponentHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: CyberComponentAlgorithmic(),
-#             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
-#             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-#         }

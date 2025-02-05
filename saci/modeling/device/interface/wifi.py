@@ -32,7 +32,7 @@ class WifiHigh(CyberComponentHigh):
         :param encryption_type: Encryption type (e.g., "AES", "TKIP").
         :param signal_strength: Default signal strength in dBm.
         """
-        super().__init__(has_external_input=True, **kwargs)
+        super().__init__(**kwargs)
         self.communication = communication
         self.encryption_type = encryption_type
         self.supported_protocols = supported_protocols or ["802.11b", "802.11g", "802.11n"]
@@ -82,12 +82,10 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
 
 class Wifi(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input")
+    __slots__ = ("ABSTRACTIONS")
 
-    def __init__(self, has_external_input=True, supported_protocols=None, protection=None, encryption_type=None, **kwargs):
+    def __init__(self, supported_protocols=None, protection=None, encryption_type=None, **kwargs):
         super().__init__(**kwargs)
-        
-        self.has_external_input = has_external_input
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: WifiHigh(

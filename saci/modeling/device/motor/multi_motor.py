@@ -148,16 +148,14 @@ class MultiMotorHardwareTechnology(HardwareTechnology):
 
 class MultiMotor(Motor):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "variables")
+    __slots__ = ("ABSTRACTIONS", "variables")
 
-    def __init__(self, has_external_input=False, motors=None, **kwargs):
+    def __init__(self, motors=None, **kwargs):
         """
-        :param has_external_input: Indicates if the multi-motor system receives external input.
         :param motors: List of motors composing the system.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
         self.motors = motors or []
 
         # Define all abstraction layers
@@ -167,57 +165,3 @@ class MultiMotor(Motor):
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
-
-    @property
-    def parameter_types(self):
-        return {
-            "has_external_input": bool,
-        }
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from typing import List
-
-# from claripy import BVS
-
-# from ..component import CyberAbstractionLevel
-# from .motor import MotorHigh, MotorAlgorithmic, Motor
-
-
-# class MultiMotorHigh(MotorHigh):
-#     __slots__ = MotorHigh.__slots__ + ("motors",)
-
-#     def __init__(self, motors=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.motors: List[MotorHigh] = motors or []
-
-#     @property
-#     def motor_cnt(self):
-#         return len(self.motors)
-
-
-# class MultiMotorAlgo(MotorAlgorithmic):
-#     __slots__ = MotorAlgorithmic.__slots__ + ("motors",)
-
-#     def __init__(self, motors=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.motors: List[MotorAlgorithmic] = motors or []
-
-#         self.v["rpm"] = self.rpm
-
-#     @property
-#     def rpm(self):
-#         total_rpm = BVS("rpm", 64)
-#         for motor in self.motors:
-#             total_rpm += motor.v["rpm"]
-
-#         return total_rpm
-
-# class MultiMotor(Motor):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: MultiMotorHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: MultiMotorAlgo(),
-#         }

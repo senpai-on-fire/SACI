@@ -12,7 +12,7 @@ class SpeedControlLogicHigh(CyberComponentHigh):
         :param min_speed: Minimum allowed UAV speed.
         :param current_speed: Current speed of the UAV.
         """
-        super().__init__(has_external_input=True, **kwargs)
+        super().__init__(**kwargs)
         self.max_speed = max_speed
         self.min_speed = min_speed
         self.current_speed = current_speed
@@ -70,11 +70,10 @@ class SpeedControlLogicAlgorithmic(CyberComponentAlgorithmic):
 
 class SpeedControlLogic(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "max_speed", "min_speed", "current_speed", "speed_adjustment_params")
+    __slots__ = ("ABSTRACTIONS", "max_speed", "min_speed", "current_speed", "speed_adjustment_params")
 
-    def __init__(self, has_external_input=True, max_speed=20.0, min_speed=0.0, current_speed=0.0, speed_adjustment_params=None, **kwargs):
+    def __init__(self, max_speed=20.0, min_speed=0.0, current_speed=0.0, speed_adjustment_params=None, **kwargs):
         """
-        :param has_external_input: Whether this system receives external input (e.g., flight conditions).
         :param max_speed: Maximum speed limit.
         :param min_speed: Minimum speed limit.
         :param current_speed: Current UAV speed.
@@ -82,7 +81,6 @@ class SpeedControlLogic(CyberComponentBase):
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
         self.max_speed = max_speed
         self.min_speed = min_speed
         self.current_speed = current_speed

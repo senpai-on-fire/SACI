@@ -31,7 +31,7 @@ class SerialHigh(CyberComponentHigh):
         :param protection: Security protection (e.g., "CRC", "Parity Check").
         :param baud_rate: Default baud rate for serial communication.
         """
-        super().__init__(has_external_input=True, **kwargs)
+        super().__init__(**kwargs)
         self.communication = communication
         self.supported_protocols = supported_protocols or [UARTProtocol, SPIProtocol, I2CProtocol]
         self.protection = protection or "CRC"
@@ -78,12 +78,10 @@ class SerialAlgorithmic(CyberComponentAlgorithmic):
 
 class Serial(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "supported_protocols")
+    __slots__ = ("ABSTRACTIONS", "supported_protocols")
 
-    def __init__(self, has_external_input=True, supported_protocols=None, protection=None, baud_rate=115200, **kwargs):
+    def __init__(self, supported_protocols=None, protection=None, baud_rate=115200, **kwargs):
         super().__init__(**kwargs)
-        
-        self.has_external_input = has_external_input
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: SerialHigh(

@@ -129,7 +129,7 @@ class ESCHardwareTechnology(HardwareTechnology):
 # =================== Full ESC Component Abstraction (Cyber) ===================
 
 class ESC(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports]=None, has_external_input=False, **kwargs):
+    def __init__(self, ports: Optional[Ports]=None, **kwargs):
         super().__init__(
             ports=union_ports({
                 "Speed Value": Port(direction=PortDirection.IN),
@@ -138,43 +138,9 @@ class ESC(CyberComponentBase):
             **kwargs
         )
 
-        self.has_external_input = has_external_input
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: ESCHigh(),
             CyberAbstractionLevel.ALGORITHMIC: ESCAlgorithmic(),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
-
-    @property
-    def parameter_types(self):
-        return {
-            "has_external_input": bool,
-        }
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from saci.modeling.device.component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
-
-# class ESCHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-
-# class ESCAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-# class ESC(CyberComponentBase):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: ESCHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: ESCAlgorithmic(),
-#         }

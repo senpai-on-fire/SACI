@@ -13,24 +13,21 @@ _l = logging.getLogger(__name__)
 
 class GPSReceiverHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + ("has_external_input", "supported_protocols", "authenticated", "signal_strength_threshold")
+    __slots__ = SensorHigh.__slots__ + ("supported_protocols", "authenticated", "signal_strength_threshold")
 
     def __init__(
         self,
-        has_external_input: bool = True,
         supported_protocols: Optional[List[type]] = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
         **kwargs
     ):
         """
-        :param has_external_input: Indicates if the GPS is influenced by external conditions.
         :param supported_protocols: List of protocol classes (e.g. [GPSProtocol]).
         :param authenticated: Whether the GPS receiver has authentication enabled.
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.supported_protocols = supported_protocols or []
         self.authenticated = authenticated
         self.signal_strength_threshold = signal_strength_threshold
@@ -83,28 +80,23 @@ class GPSReceiverAlgorithmic(SensorAlgorithmic):
 
 class GPSReceiver(Sensor):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input")
+    __slots__ = ("ABSTRACTIONS",)
 
     def __init__(
         self,
-        has_external_input: bool = True,
         supported_protocols: Optional[List[type]] = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
         **kwargs
     ):
         """
-        :param has_external_input: Indicates if this sensor receives external GPS data.
         :param supported_protocols: List of supported protocol classes (e.g. [GPSProtocol]).
         :param authenticated: Whether the GPS receiver has authentication enabled.
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
-
         high_abstraction = GPSReceiverHigh(
-            has_external_input=has_external_input,
             supported_protocols=supported_protocols,
             authenticated=authenticated,
             signal_strength_threshold=signal_strength_threshold
@@ -128,16 +120,15 @@ class GPSReceiverHardware(Sensor):
 
     __slots__ = Sensor.__slots__
 
-    def __init__(self, has_external_input=True, uart_interface="UART1", i2c_address=None, **kwargs):
+    def __init__(self, uart_interface="UART1", i2c_address=None, **kwargs):
         """
-        :param has_external_input: Whether the GPS receiver is influenced by external conditions.
         :param uart_interface: UART interface (e.g., UART1, UART2).
         :param i2c_address: I2C address if the receiver supports I2C communication.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.uart_interface = uart_interface
         self.i2c_address = i2c_address
+        self.variables = {}  # Initialize variables dictionary
 
         # Simulated hardware register values
         self.variables["hardware_status"] = BVS("gps_hw_status", 8)  # 8-bit status register
@@ -171,54 +162,3 @@ class GPSReceiverHWTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown GPS receiver technology: {technology}. Please add it to GPSReceiverHWTechnology.")
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-# from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-# from ..communication import BaseCommunication, GPSProtocol
-
-# class GPSReceiverHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__ + ("supported_protocols", "authenticated", "signal_strength_threshold")
-
-#     def __init__(self, supported_protocols=None, authenticated=False, signal_strength_threshold=-100, **kwargs):
-#         super().__init__(has_external_input=True, **kwargs)
-#         self.supported_protocols = supported_protocols
-#         self.authenticated = authenticated
-#         self.signal_strength_threshold = signal_strength_threshold
-
-
-# class GPSReceiverAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
-
-#     def __init__(self, supported_protocols=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.supported_protocols = supported_protocols
-
-#     def is_signal_valid(self, signal_strength):
-#         # Determines if the received GPS signal meets the strength threshold.
-#         return signal_strength >= self.signal_strength_threshold
-
-#     def accepts_communication(self, communication: BaseCommunication) -> bool:
-#         if self.is_signal_valid(communication.signal_strength):
-#             if any(isinstance(communication, protocol) for protocol in self.supported_protocols):
-#                 return True
-#         return False
-
-
-# class GPSReceiver(CyberComponentBase):
-#     __slots__ = ("ABSTRACTIONS", "has_external_input")
-
-#     def __init__(self, has_external_input=True, supported_protocols=None, **kwargs):
-#         super().__init__(**kwargs)
-        
-#         self.has_external_input = has_external_input
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: GPSReceiverHigh(supported_protocols=supported_protocols),
-#             CyberAbstractionLevel.ALGORITHMIC: GPSReceiverAlgorithmic(supported_protocols=supported_protocols),
-#             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
-#             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-#         }

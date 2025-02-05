@@ -10,16 +10,14 @@ _l = logging.getLogger(__name__)
 
 class GyroscopeHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + ("has_external_input", "is_calibrated", "error_flag")
+    __slots__ = SensorHigh.__slots__ + ("is_calibrated", "error_flag")
 
-    def __init__(self, has_external_input=True, is_calibrated=False, error_flag=False, **kwargs):
+    def __init__(self, is_calibrated=False, error_flag=False, **kwargs):
         """
-        :param has_external_input: If the sensor can receive external inputs (e.g., attacks, environmental effects).
         :param is_calibrated: Whether the gyroscope has been calibrated.
         :param error_flag: Flag indicating whether an anomaly or attack has been detected.
         """
         super().__init__(**kwargs)
-        self.has_external_input = has_external_input
         self.is_calibrated = is_calibrated
         self.error_flag = error_flag  # Tracks if the sensor output is compromised
 
@@ -58,19 +56,17 @@ class Gyroscope(Sensor):
 
     __slots__ = ("precision_bits", "bias_drift", "quantization_noise", "ABSTRACTIONS")
 
-    def __init__(self, has_external_input=True, precision_bits=14, bias_drift=0.05, quantization_noise=0.01, **kwargs):
+    def __init__(self, precision_bits=14, bias_drift=0.05, quantization_noise=0.01, **kwargs):
         """
-        :param has_external_input: Indicates if the sensor receives external input.
         :param precision_bits: Bit resolution for data representation.
         :param bias_drift: Gyroscope bias drift (affects accuracy over time).
         :param quantization_noise: Noise due to digital resolution limitations.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
 
         # Instantiate high and algorithmic abstractions with vulnerability parameters
-        high_abstraction = GyroscopeHigh(has_external_input=has_external_input)
+        high_abstraction = GyroscopeHigh()
         algo_abstraction = GyroscopeAlgorithmic(
             precision_bits=precision_bits,
             bias_drift=bias_drift,

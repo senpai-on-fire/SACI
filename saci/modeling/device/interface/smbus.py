@@ -31,7 +31,7 @@ class SMBusHigh(CyberComponentHigh):
         :param protection: Security protection (e.g., "CRC", "Address Filtering").
         :param bus_speed: Default bus speed in kHz (e.g., 100kHz for standard SMBus).
         """
-        super().__init__(has_external_input=True, **kwargs)
+        super().__init__(**kwargs)
         self.communication = communication
         self.supported_protocols = supported_protocols or [I2CProtocol, SMBusProtocol]
         self.protection = protection or "CRC"
@@ -78,12 +78,10 @@ class SMBusAlgorithmic(CyberComponentAlgorithmic):
 
 class SMBus(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "supported_protocols")
+    __slots__ = ("ABSTRACTIONS", "supported_protocols")
 
-    def __init__(self, has_external_input=True, supported_protocols=None, protection=None, bus_speed=100, **kwargs):
+    def __init__(self, supported_protocols=None, protection=None, bus_speed=100, **kwargs):
         super().__init__(**kwargs)
-        
-        self.has_external_input = has_external_input
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: SMBusHigh(

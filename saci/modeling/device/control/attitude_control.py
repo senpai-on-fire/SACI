@@ -34,18 +34,16 @@ class AttitudeControlLogicAlgorithmic(CyberComponentAlgorithmic):
 
 
 class AttitudeControlLogic(CyberComponentBase):
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "control_algorithm", "stability_tuned", "gain_parameters")
+    __slots__ = ("ABSTRACTIONS", "control_algorithm", "stability_tuned", "gain_parameters")
 
-    def __init__(self, has_external_input=False, control_algorithm=None, stability_tuned=False, gain_parameters=None, **kwargs):
+    def __init__(self, control_algorithm=None, stability_tuned=False, gain_parameters=None, **kwargs):
         """
-        :param has_external_input: Indicates if this component receives external input (e.g., from sensors or external commands).
         :param control_algorithm: Description of the control algorithm used (e.g., PID, LQR, etc.).
         :param stability_tuned: Whether the control logic is tuned for stability.
         :param gain_parameters: Control parameters for the algorithm (e.g., PID gains or state-space matrices).
         """
         super().__init__(**kwargs)
         
-        self.has_external_input = has_external_input
         self.control_algorithm = control_algorithm
         self.stability_tuned = stability_tuned
         self.gain_parameters = gain_parameters or {

@@ -22,16 +22,10 @@ class IdentifierCPV:
         self.initial_state = initial_state
 
     def identify(self, cpv: CPV) -> List[List[ComponentBase]]:
-        
-
-        for c in self.initial_state.components:
-            if hasattr(c, 'has_external_input') and c.has_external_input:
-                print("*****", c, c.has_external_input)
-
         # Get the starting locations (components with external input)
         starting_locations = [
-            c for c in self.initial_state.components
-            if hasattr(c, 'has_external_input') and c.has_external_input
+            c for c, is_entry in self.device.component_graph.nodes(data="is_entry", default=False)
+            if is_entry or c.has_external_input
         ]
 
         cpv_paths = []

@@ -133,15 +133,10 @@ class MotorHardwareTechnology(HardwareTechnology):
 
 class Motor(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "variables")
+    __slots__ = ("ABSTRACTIONS", "variables")
 
-    def __init__(self, has_external_input=False, **kwargs):
-        """
-        :param has_external_input: Indicates if the motor system receives external input.
-        """
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-        self.has_external_input = has_external_input
 
         # Define all abstraction layers
         self.ABSTRACTIONS = {
@@ -149,12 +144,6 @@ class Motor(CyberComponentBase):
             CyberAbstractionLevel.ALGORITHMIC: MotorAlgorithmic(),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-        }
-
-    @property
-    def parameter_types(self):
-        return {
-            "has_external_input": bool,
         }
 
 

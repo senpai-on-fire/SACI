@@ -121,11 +121,10 @@ class ObjectAvoidanceDNN(CyberComponentBase):
     Integrates different abstraction levels (High, Algorithmic, Source, and Binary).
     """
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "known_source", "known_weight", "adversarial_defense", "avoidance_latency", "variables")
+    __slots__ = ("ABSTRACTIONS", "known_source", "known_weight", "adversarial_defense", "avoidance_latency", "variables")
 
-    def __init__(self, has_external_input=False, known_source=None, known_weight=None, adversarial_defense=True, avoidance_latency=40, **kwargs):
+    def __init__(self, known_source=None, known_weight=None, adversarial_defense=True, avoidance_latency=40, **kwargs):
         """
-        :param has_external_input: Boolean indicating if the model accepts external input.
         :param known_source: Verified model source.
         :param known_weight: Verified model weights.
         :param adversarial_defense: Boolean indicating if the model has adversarial defense enabled.
@@ -133,7 +132,6 @@ class ObjectAvoidanceDNN(CyberComponentBase):
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
         self.known_source = known_source
         self.known_weight = known_weight
         self.adversarial_defense = adversarial_defense

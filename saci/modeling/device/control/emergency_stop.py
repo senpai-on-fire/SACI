@@ -10,7 +10,7 @@ class EmergencyStopLogicHigh(CyberComponentHigh):
         :param trigger_source: The high-level source of emergency stop activation (e.g., manual, automated).
         :param status: The current status of the emergency stop system ("IDLE", "TRIGGERED", "RECOVERED").
         """
-        super().__init__(has_external_input=True, **kwargs)
+        super().__init__(**kwargs)
         self.trigger_source = trigger_source
         self.status = status
 
@@ -67,18 +67,16 @@ class EmergencyStopLogicAlgorithmic(CyberComponentAlgorithmic):
 
 class EmergencyStopLogic(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "trigger_source", "status", "failsafe_conditions")
+    __slots__ = ("ABSTRACTIONS", "trigger_source", "status", "failsafe_conditions")
 
-    def __init__(self, has_external_input=True, trigger_source=None, status="IDLE", failsafe_conditions=None, **kwargs):
+    def __init__(self, trigger_source=None, status="IDLE", failsafe_conditions=None, **kwargs):
         """
-        :param has_external_input: Whether this system receives external input (e.g., sensor failures, telemetry data).
         :param trigger_source: Source that can trigger emergency stops.
         :param status: Current status of the emergency stop logic.
         :param failsafe_conditions: Set of conditions that trigger emergency stop.
         """
         super().__init__(**kwargs)
 
-        self.has_external_input = has_external_input
         self.trigger_source = trigger_source
         self.status = status
         self.failsafe_conditions = failsafe_conditions or {

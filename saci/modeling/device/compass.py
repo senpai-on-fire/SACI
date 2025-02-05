@@ -19,8 +19,6 @@ class CompassSensorAlgorithmic(CyberComponentAlgorithmic):
 class CompassSensor(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS")
 
-    has_external_input = True
-
     def __init__(self, **kwargs):
         super().__init__(
             ports={

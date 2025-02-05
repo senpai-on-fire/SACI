@@ -34,18 +34,16 @@ class ObstacleAvoidanceLogicAlgorithmic(CyberComponentAlgorithmic):
 
 
 class ObstacleAvoidanceLogic(CyberComponentBase):
-    __slots__ = ("ABSTRACTIONS", "has_external_input", "avoidance_strategy", "detection_range", "algorithm_parameters")
+    __slots__ = ("ABSTRACTIONS", "avoidance_strategy", "detection_range", "algorithm_parameters")
 
-    def __init__(self, has_external_input=False, avoidance_strategy=None, detection_range=5.0, algorithm_parameters=None, **kwargs):
+    def __init__(self, avoidance_strategy=None, detection_range=5.0, algorithm_parameters=None, **kwargs):
         """
-        :param has_external_input: Indicates if this component receives external input (e.g., from sensors).
         :param avoidance_strategy: Strategy used for obstacle avoidance (e.g., Reactive, Predictive).
         :param detection_range: The detection range for obstacles.
         :param algorithm_parameters: Fine-tuning parameters for the avoidance algorithm.
         """
         super().__init__(**kwargs)
         
-        self.has_external_input = has_external_input
         self.avoidance_strategy = avoidance_strategy
         self.detection_range = detection_range
         self.algorithm_parameters = algorithm_parameters or {
