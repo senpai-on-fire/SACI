@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Optional
 
 from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
 from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
@@ -15,7 +15,7 @@ class SensorCircuit(HardwareComponentBase):
         PhysicalSensorDesign = None,
         SignalProcessingChain = None,
         ADC = None, 
-        internal_voltages: Dict[str, claripy.ast.bv.BV] = None,
+        internal_voltages: Optional[dict[str, claripy.ast.bv.BV]] = None,
         **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)

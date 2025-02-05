@@ -1,13 +1,9 @@
 import json
-import importlib
-import os
 
-from pathlib import Path
-from typing import List
 from saci_db import vulns as vulns
 
 from ..modeling import device as device
-from .device import Device, CyberComponentBase
+from .device import Device, ComponentBase
 from .cpv import CPV
 from ..atoms import Atoms
 
@@ -51,7 +47,7 @@ class CPVHypothesis(CPV):
             return False
         return True
 
-    def is_possible_path(self, path: List[CyberComponentBase]):
+    def is_possible_path(self, path: list[ComponentBase]):
         for required in self.required_components:
             if not any(map(lambda p: self._match(p, required), path)):
                 return False

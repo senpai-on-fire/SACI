@@ -1,8 +1,8 @@
 import re
 from io import StringIO
-from typing import List, Any, Optional, Dict, Type, TextIO
+from typing import Any, Optional
 
-from .device import Device, CyberComponentBase
+from .device import Device, ComponentBase
 from .state import GlobalState
 from .vulnerability import BaseVulnerability
 from .attack.base_attack_vector import BaseAttackVector
@@ -47,19 +47,19 @@ class CPV:
 
     def __init__(
         self,
-        required_components: List[CyberComponentBase] = None,
-        entry_component: CyberComponentBase = None,
-        exit_component: CyberComponentBase = None,
-        goals: List[CyberComponentBase] = None,
-        vulnerabilities: List[BaseVulnerability] = None,
-        initial_conditions: dict[str, Any] = None,
-        # final_conditions: list[str] = None,
-        attack_vectors: List[BaseAttackVector] = None,  
-        attack_requirements: list[str] = None, 
-        exploit_steps: list[str] = None,
-        attack_impacts: List[BaseAttackImpact] = None,
-        associated_files: list[str] = None,
-        reference_urls: list[str] = None,
+        required_components: Optional[list[ComponentBase]] = None,
+        entry_component: Optional[ComponentBase] = None,
+        exit_component: Optional[ComponentBase] = None,
+        goals: Optional[list[ComponentBase]] = None,
+        vulnerabilities: Optional[list[BaseVulnerability]] = None,
+        initial_conditions: Optional[dict[str, Any]] = None,
+        # final_conditions: Optional[list[str]] = None,
+        attack_vectors: Optional[list[BaseAttackVector]] = None,  
+        attack_requirements: Optional[list[str]] = None, 
+        exploit_steps: Optional[list[str]] = None,
+        attack_impacts: Optional[list[BaseAttackImpact]] = None,
+        associated_files: Optional[list[str]] = None,
+        reference_urls: Optional[list[str]] = None,
     ):
         self.required_components = required_components or []
         self.entry_component = entry_component
@@ -85,7 +85,7 @@ class CPV:
     def in_goal_state(self, state: GlobalState):
         return False
 
-    def is_possible_path(self, path: List[CyberComponentBase]):
+    def is_possible_path(self, path: list[ComponentBase]):
         if len(path) == len(self.required_components):
 
             for i in range(len(path)):

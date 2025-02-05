@@ -1,3 +1,4 @@
+from typing import Optional
 from pathlib import Path
 import claripy
 
@@ -107,8 +108,8 @@ class ControllerBinary(CyberComponentBinary):
     __state_slots__ = CyberComponentBinary.__state_slots__ + ("patch_status", "firmware_version")
     __slots__ = CyberComponentBinary.__slots__ + ("patch_status", "firmware_version")
 
-    def __init__(self, binary_path: Path = None, pc: int = None, patch_status="up-to-date", 
-                 firmware_version="v1.0", **kwargs):
+    def __init__(self, binary_path: Optional[Path] = None, pc: Optional[int] = None,
+                 patch_status="up-to-date", firmware_version="v1.0", **kwargs):
         """
         :param binary_path: Path to the autopilot firmware binary.
         :param pc: Current program counter (for execution tracking).

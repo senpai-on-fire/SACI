@@ -1,5 +1,3 @@
-from typing import List, Optional, Dict, Type, Any, Tuple
-
 from saci.modeling import Device, CPV, ComponentBase, CPSV
 from saci.modeling.state import GlobalState
 from saci.modeling.device.component import CyberComponentHigh
@@ -7,7 +5,7 @@ from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
 
 from clorm import FactBase
-from clorm.clingo import Control
+from clorm.clingo import ClormControl as Control
 
 import logging
 l = logging.getLogger(__name__)
@@ -37,14 +35,14 @@ l = logging.getLogger(__name__)
 
 def create_CPV_class(name, **attributes):
     # Create a new class with the given name, base classes, and attributes
-    return type(name, CPV, attributes)
+    return type(name, (CPV,), attributes)
 
 class IdentifierCPSV:
     def __init__(self, device: Device, initial_state: GlobalState):
         self.device = device
         self.initial_state = initial_state
 
-    def identify(self, cpsvs : List[CPSV]) -> List[Tuple[CPV, CPVPath]]:
+    def identify(self, cpsvs : list[CPSV]) -> list[tuple[CPV, list[CPVPath]]]:
         # For each cpsv, put their description together
         ctrl = Control(unifier=[self.device.crash_atom] + [x.attack_ASP for x in cpsvs])
         for cpsv in cpsvs:
@@ -57,7 +55,7 @@ class IdentifierCPSV:
 
         ctrl.ground([("base", [])])
         
-        with ctrl.solve(yield_=True) as handle:
+        with ctrl.solve(yield_=True) as handle: # type: ignore
             solutions = [FactBase(model.facts(atoms=True)) for model in handle]
             # Find the solutions that makes the CPS crash earliest.
             optimal_solution = self.optimize_crash(solutions)

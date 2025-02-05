@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Optional
 
 
 from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
@@ -14,8 +14,8 @@ class HardwareTechnology(HardwareComponentBase):
     def __init__(
         self,
         abstraction=HardwareAbstractionLevel.TECHNOLOGY,
-        technology: str = None,
-        readings: Dict[str, claripy.ast.bv.BV] = None,
+        technology: Optional[str] = None,
+        readings: Optional[dict[str, claripy.ast.bv.BV]] = None,
         **kwargs
     ):
         super().__init__(abstraction=abstraction, **kwargs)
