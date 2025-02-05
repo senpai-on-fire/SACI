@@ -100,6 +100,9 @@ spec:
           image: ghcr.io/senpai-on-fire/saci/saci:latest
           ports:
             - containerPort: 8000
+          env:
+            - name: APP_CONTROLLER_URL
+              value: http://app-controller.saci.svc.cluster.local
 ---
 # Ingress to expose saci
 apiVersion: networking.k8s.io/v1
