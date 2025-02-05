@@ -27,7 +27,7 @@ subjects:
     name: app-controller
 roleRef:
   kind: Role
-  name: service-account
+  name: app-controller
   apiGroup: rbac.authorization.k8s.io
 ---
 # Service to expose app-controller
