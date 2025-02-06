@@ -23,8 +23,8 @@ from pydantic import BaseModel, Field
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
-from saci.modeling.device.controller import Controller
-from saci.modeling.device.compass import CompassSensor
+from saci.modeling.device.control.controller import Controller
+from saci.modeling.device.sensor.compass import CompassSensor
 from saci.modeling.device.esc import ESC
 from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.webserver import WebServer
