@@ -2,10 +2,21 @@
 SACI - Software-Aware CPV Identifier
 
 ## Installation
-Install `SACI` and the `saci-db` (located in the same GitHub group) together: 
+For development, install `SACI` and the `saci-db` (located in a submodule) together: 
 ```bash
 pip install -e . './saci-database'
 ```
+[app-controller](https://github.com/twizmwazin/app-controller) also needs to be running in order to support the web UI.
+
+For deployment, use the Kubernetes deploy configuration:
+```bash
+kubectl apply -f ./deploy.yml
+```
+and to undeploy:
+```bash
+kubectl delete -f ./deploy.yml
+```
+However, deploy.yml uses the latest built containers from GHCR rather than your local source code. We'll address this at some point, hopefully.
 
 ## Background
 SCAI is used for understanding if a Cyber-Physical Vulnerability (CPV) exists inside a Cyber-Physical Device by
