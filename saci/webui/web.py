@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from collections import defaultdict
 from enum import StrEnum
 import asyncio
+import logging
 
 import json
 import time
@@ -34,6 +35,8 @@ from .scheduling import add_search, start_work_thread, SEARCHES
 from ..modeling import Device, ComponentBase
 from ..modeling.device import Wifi, Motor, GPSReceiver
 
+l = logging.getLogger(__name__)
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="saci/webui/static"), name="static")
 app.mount("/assets", StaticFiles(directory="web/dist/assets"), name="assets")
@@ -48,12 +51,15 @@ def kill_all_apps():
     apps_resp = httpx.get(f"{APP_CONTROLLER_URL}/api/app")
     for app_json in apps_resp.json():
         app_id = app_json['id']
-        print(f"killing app {app_id}")
+        l.info(f"killing app {app_id}")
         httpx.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
         httpx.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
 
 # kill all existing apps when we start. we should probably not have this behavior permanently
-kill_all_apps()
+try:
+    kill_all_apps()
+except httpx.ConnectError:
+    l.warning("can't connect to app-controller, is it up and the URL configured correctly?")
 
 def get_component_abstractions(comp) -> dict[str, str]:
     if hasattr(comp, "ABSTRACTIONS"):
