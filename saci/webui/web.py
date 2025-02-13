@@ -40,13 +40,15 @@ start_work_thread()
 
 app = FastAPI()
 
+SACI_ROOT = Path(__file__).resolve().parent.parent.parent
+
 ### Endpoints for the frontend UI
 
-app.mount("/assets", StaticFiles(directory="web/dist/assets"), name="assets")
+app.mount("/assets", StaticFiles(directory=str(SACI_ROOT/"web"/"dist"/"assets")), name="assets")
 
 @app.get("/")
 async def serve_frontend_root():
-    return FileResponse("web/dist/index.html")
+    return FileResponse(str(SACI_ROOT/"web"/"dist"/"index.html"))
 
 ### Endpoints for blueprint management
 
