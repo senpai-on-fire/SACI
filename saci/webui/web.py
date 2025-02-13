@@ -16,7 +16,7 @@ from typing import Annotated, Optional
 import httpx
 
 # from flask import Flask, render_template, send_file, request, abort
-from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -95,8 +95,36 @@ def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: store the hypotheses per-blueprint
     return {bp_id: blueprint_to_model(bp, hypotheses[bp_id]) for bp_id, bp in blueprints.items()}
 
+@app.post("/api/blueprints/{bp_id}")
+def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response):
+    if not bp_id.isidentifier():
+        err = "Blueprint ID is not a valid Python identifier (this restriction will be removed in the future"
+        raise HTTPException(status_code=400, detail=err)
+
+    try:
+        ingest(serialized, INGESTION_DIR / bp_id, force=True)
+
+        if bp_id in blueprints:
+            # TODO: actually check to make sure this is actually a fast-forwarded version
+            created = False
+        else:
+            created = True
+    except ValueError as e:
+        l.warning(f"got deserialization error {e} when attempting to ingest blueprint")
+        raise HTTPException(status_code=400, detail="Couldn't deserialize provided blueprint")
+
+    importlib.invalidate_caches()
+    # TODO: probably don't need to reload *all* the ingested modules
+    importlib.reload(ingested)
+    blueprints[bp_id] = ingested.devices[bp_id]
+    
+    if created:
+        response.status_code = status.HTTP_201_CREATED
+
+    return {}
+
 @app.post("/api/ingest_blueprint")
-def ingest_blueprint(name: str, serialized: dict, force: bool = False):
+def ingest_blueprint_legacy(name: str, serialized: dict, force: bool = False):
     if name in blueprints:
         return {"error": "exists"}, 400
     try:
@@ -112,7 +140,7 @@ def ingest_blueprint(name: str, serialized: dict, force: bool = False):
     # TODO: probably don't need to reload *all* the ingested modules
     importlib.reload(ingested)
     # TODO: should probably just separate builtin and ingested blueprints...
-    blueprint_id = "ingested/" + name
+    blueprint_id = name
     device = ingested.devices[blueprint_id]
     blueprints[blueprint_id] = device
 
