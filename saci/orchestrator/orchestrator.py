@@ -19,7 +19,7 @@ from .cpv_definitions import CPVS as cpv_database
 import logging
 l = logging.getLogger(__name__)
 
-def identify(cps, initial_state, cpv_model: Optional[CPV] = None) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
+def identify(cps, initial_state, cpv_model: CPV) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
     """
     Identify if the given CPV model may exist in the CPS model.
     Return a CPV description if it exists, otherwise return None.

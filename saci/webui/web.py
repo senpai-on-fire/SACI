@@ -30,13 +30,10 @@ from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.webserver import WebServer
 
 from ..deserializer import ingest
-from .scheduling import add_search, start_work_thread, SEARCHES
 from ..modeling import Device, ComponentBase
 from ..modeling.device import Wifi, Motor, GPSReceiver
 
 l = logging.getLogger(__name__)
-
-start_work_thread()
 
 app = FastAPI()
 
@@ -338,7 +335,7 @@ analyses: dict[AnalysisID, Analysis] = {
             ],
         ),
         interaction_model=InteractionModel.X11,
-        images=["quinn-controller:latest", "quinn-gazebo:latest"],
+        images=["ghcr.io/cpslab-asu/gzcm/px4/firmware:0.2.0", "ghcr.io/cpslab-asu/gzcm/px4/gazebo:harmonic"],
     ),
     "gazebo_firmware": Analysis(
         user_info=AnalysisUserInfo(

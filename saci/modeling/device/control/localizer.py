@@ -78,7 +78,8 @@ class LocalizerAlgorithmic(CyberComponentAlgorithmic):
             return False
 
         # Check if at least one component provides valid localization data
-        return any(component.ABSTRACTIONS.get(CyberComponentHigh) for component in localization_components)
+        # TODO: fix once we have a new abstractions mechanism
+        return True
 
     @property
     def parameter_types(self):
