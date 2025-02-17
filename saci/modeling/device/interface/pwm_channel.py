@@ -42,12 +42,10 @@ class PWMChannelCyberHigh(CyberComponentHigh):
             "pwm_anomaly_flag": claripy.BVS("pwm_anomaly_flag", 8),  # Anomaly detection flag
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "protection": str,
-            "integrity_check": bool,
-        }
+    parameter_types = {
+        "protection": str,
+        "integrity_check": bool,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -72,12 +70,10 @@ class PWMChannelAlgorithmic(CyberComponentAlgorithmic):
             "pwm_frequency_drift": claripy.BVS("pwm_frequency_drift", 32),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "modulation_type": str,
-            "timing_accuracy": float,
-        }
+    parameter_types = {
+        "modulation_type": str,
+        "timing_accuracy": float,
+    }
 
 
 # =================== High-Level Abstraction (Hardware) ===================
@@ -98,13 +94,11 @@ class PWMChannelHardwareHigh(HardwareHigh):
         self.duty_cycle = duty_cycle
         self.frequency = frequency
 
-    @property
-    def parameter_types(self):
-        return {
-            "voltage_level": float,
-            "duty_cycle": float,
-            "frequency": float,
-        }
+    parameter_types = {
+        "voltage_level": float,
+        "duty_cycle": float,
+        "frequency": float,
+    }
 
 
 # =================== Circuit-Level Abstraction (Hardware) ===================
@@ -124,13 +118,11 @@ class PWMChannelHardwareCircuit(HardwareCircuit):
         self.signal_noise = signal_noise
         self.harmonic_distortion = harmonic_distortion
 
-    @property
-    def parameter_types(self):
-        return {
-            "signal_impedance": float,
-            "signal_noise": float,
-            "harmonic_distortion": float,
-        }
+    parameter_types = {
+        "signal_impedance": float,
+        "signal_noise": float,
+        "harmonic_distortion": float,
+    }
 
 
 # =================== Full PWM Channel Abstraction (Hardware) ===================
@@ -169,20 +161,18 @@ class PWMChannel(CyberComponentBase):
             HardwareAbstractionLevel.CIRCUIT: PWMChannelHardwareCircuit(**kwargs),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "protection": str,
-            "integrity_check": bool,
-            "modulation_type": str,
-            "timing_accuracy": float,
-            "voltage_level": float,
-            "duty_cycle": float,
-            "frequency": float,
-            "signal_impedance": float,
-            "signal_noise": float,
-            "harmonic_distortion": float,
-        }
+    parameter_types = {
+        "protection": str,
+        "integrity_check": bool,
+        "modulation_type": str,
+        "timing_accuracy": float,
+        "voltage_level": float,
+        "duty_cycle": float,
+        "frequency": float,
+        "signal_impedance": float,
+        "signal_noise": float,
+        "harmonic_distortion": float,
+    }
 
 
 ######################################################    OLD VERSION    ########################################################################

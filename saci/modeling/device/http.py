@@ -17,8 +17,10 @@ class Http(Telemetry):
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(
                 name="HTTP High",
-                protocol_name="http",
-                communication=AuthenticatedCommunication(identifier="system_id"),
+                parameters=dict(
+                    protocol_name="http",
+                    communication=AuthenticatedCommunication(identifier="system_id"),
+                ),
             ),
             CyberAbstractionLevel.ALGORITHMIC: TelemetryAlgorithmic(),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),

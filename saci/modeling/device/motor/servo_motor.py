@@ -31,13 +31,11 @@ class ServoHigh(CyberComponentHigh):
         self.fault_detection_flag = fault_detection_flag
         self.thermal_overload_flag = thermal_overload_flag  # Detects possible thermal-related failures.
 
-    @property
-    def parameter_types(self):
-        return {
-            "is_operational": bool,
-            "fault_detection_flag": bool,
-            "thermal_overload_flag": bool,
-        }
+    parameter_types = {
+        "is_operational": bool,
+        "fault_detection_flag": bool,
+        "thermal_overload_flag": bool,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -82,16 +80,14 @@ class ServoAlgorithmic(CyberComponentAlgorithmic):
             "efficiency": BVS("servo_efficiency", 64),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "stall_torque": float,
-            "holding_torque": float,
-            "backlash_error": float,
-            "noise_sensitivity": float,
-            "efficiency_drop_rate": float,
-            "torque_anomaly_flag": bool,
-        }
+    parameter_types = {
+        "stall_torque": float,
+        "holding_torque": float,
+        "backlash_error": float,
+        "noise_sensitivity": float,
+        "efficiency_drop_rate": float,
+        "torque_anomaly_flag": bool,
+    }
 
 
 # =================== Hardware Abstraction (Physical Layer) ===================

@@ -31,20 +31,16 @@ class Telemetry(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "protocol_name": str,
-            "communication": BaseCommunication,
-        }
+    parameter_types = {
+        "protocol_name": str,
+        "communication": BaseCommunication,
+    }
 
 class TelemetryHigh(CyberComponentHigh):
-    @property
-    def parameter_types(self):
-        return {
-            "protocol_name": str,
-            "communication": BaseCommunication,
-        }
+    parameter_types = {
+        "protocol_name": str,
+        "communication": BaseCommunication,
+    }
 
 class TelemetryAlgorithmic(CyberComponentAlgorithmic):
     def accepts_communication(self, communication: BaseCommunication) -> bool:

@@ -41,15 +41,13 @@ class DNNTrackingHigh(CyberComponentHigh):
             "dnn_bias_flag": claripy.BVS("dnn_bias_flag", 8),  # Bias detection in the model
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": str,
-            "known_weight": str,
-            "is_trusted": bool,
-            "object_tracking_accuracy": float,
-            "false_positive_rate": float,
-        }
+    parameter_types = {
+        "known_source": str,
+        "known_weight": str,
+        "is_trusted": bool,
+        "object_tracking_accuracy": float,
+        "false_positive_rate": float,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -87,16 +85,14 @@ class DNNTrackingAlgorithmic(CyberComponentAlgorithmic):
             "backdoor_flag": claripy.BVS("dnn_backdoor_flag", 8),  # Flags possible backdoor insertion in the model
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": str,
-            "known_weight": str,
-            "adversarial_defense": bool,
-            "tracking_latency": int,
-            "bounding_box_integrity": float,
-            "adversarial_noise_sensitivity": float,
-        }
+    parameter_types = {
+        "known_source": str,
+        "known_weight": str,
+        "adversarial_defense": bool,
+        "tracking_latency": int,
+        "bounding_box_integrity": float,
+        "adversarial_noise_sensitivity": float,
+    }
 
 
 # =================== Full DNN Tracking Model Abstraction (Cyber) ===================
@@ -130,14 +126,12 @@ class DNNTracking(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": str,
-            "known_weight": str,
-            "adversarial_defense": bool,
-            "tracking_latency": int,
-        }
+    parameter_types = {
+        "known_source": str,
+        "known_weight": str,
+        "adversarial_defense": bool,
+        "tracking_latency": int,
+    }
 
 
 ######################################################    OLD VERSION    ########################################################################

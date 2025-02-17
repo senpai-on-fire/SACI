@@ -33,13 +33,11 @@ class MotorHigh(CyberComponentHigh):
         self.fault_detection_flag = fault_detection_flag
         self.thermal_overload_flag = thermal_overload_flag  # Detects overheating conditions.
 
-    @property
-    def parameter_types(self):
-        return {
-            "is_operational": bool,
-            "fault_detection_flag": bool,
-            "thermal_overload_flag": bool,
-        }
+    parameter_types = {
+        "is_operational": bool,
+        "fault_detection_flag": bool,
+        "thermal_overload_flag": bool,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -80,15 +78,13 @@ class MotorAlgorithmic(CyberComponentAlgorithmic):
             "temperature": BVS("motor_temperature", 64),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "stall_torque": float,
-            "power_efficiency": float,
-            "torque_fluctuation_flag": bool,
-            "thermal_dissipation_rate": float,
-            "noise_sensitivity": float,
-        }
+    parameter_types = {
+        "stall_torque": float,
+        "power_efficiency": float,
+        "torque_fluctuation_flag": bool,
+        "thermal_dissipation_rate": float,
+        "noise_sensitivity": float,
+    }
 
 
 # =================== Hardware Abstraction (Physical Layer) ===================

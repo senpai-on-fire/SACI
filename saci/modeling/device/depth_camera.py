@@ -37,8 +37,6 @@ class DepthCamera(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "supports_stereo_vision": bool,
-        }
+    parameter_types = {
+        "supports_stereo_vision": bool,
+    }

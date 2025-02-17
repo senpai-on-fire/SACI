@@ -81,9 +81,7 @@ class ComponentBase:
         else:
             return self.name
 
-    @property
-    def parameter_types(self) -> dict[str, Type]:
-        return {}
+    parameter_types: dict[str, Type] = {}
 
     def check_parameter_types(self):
         for param_name, param_value in self.parameters.items():

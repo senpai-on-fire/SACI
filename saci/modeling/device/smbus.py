@@ -11,11 +11,9 @@ class SMBusHigh(CyberComponentHigh):
         self.communication = communication
         self.protection = protection
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list
-        }
+    parameter_types = {
+        "supported_protocols": list
+    }
 
 
 class SMBusAlgorithmic(CyberComponentAlgorithmic):
@@ -29,11 +27,9 @@ class SMBusAlgorithmic(CyberComponentAlgorithmic):
         else:
             return False
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list
-        }
+    parameter_types = {
+        "supported_protocols": list
+    }
 
 class SMBus(CyberComponentBase):
 
@@ -50,8 +46,6 @@ class SMBus(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list
-        }
+    parameter_types = {
+        "supported_protocols": list
+    }

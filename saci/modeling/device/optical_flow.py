@@ -8,11 +8,9 @@ class OpticalFlowSensorHigh(CyberComponentHigh):
 
 
 class OpticalFlowSensorAlgorithmic(CyberComponentAlgorithmic):
-    @property
-    def parameter_types(self):
-        return {
-            "uses_corner_detection": bool,
-        }
+    parameter_types = {
+        "uses_corner_detection": bool,
+    }
 
 
 class OpticalFlowSensor(CyberComponentBase):
@@ -29,8 +27,6 @@ class OpticalFlowSensor(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "uses_corner_detection": bool,
-        }
+    parameter_types = {
+        "uses_corner_detection": bool,
+    }

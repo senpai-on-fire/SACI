@@ -45,15 +45,13 @@ class ObjectAvoidanceDNNHigh(CyberComponentHigh):
             "dnn_bias_flag": claripy.BVS("dnn_bias_flag", 8),  # Bias detection in the model
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": str,
-            "known_weight": str,
-            "is_trusted": bool,
-            "avoidance_accuracy": float,
-            "false_negative_rate": float,
-        }
+    parameter_types = {
+        "known_source": str,
+        "known_weight": str,
+        "is_trusted": bool,
+        "avoidance_accuracy": float,
+        "false_negative_rate": float,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -99,18 +97,16 @@ class ObjectAvoidanceDNNAlgorithmic(CyberComponentAlgorithmic):
             "backdoor_flag": claripy.BVS("dnn_backdoor_flag", 8),  # Flags possible backdoor insertion in the model
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": str,
-            "known_weight": str,
-            "adversarial_defense": bool,
-            "avoidance_latency": int,
-            "reaction_time": int,
-            "safe_distance_threshold": float,
-            "adversarial_noise_sensitivity": float,
-            "sensor_fusion_reliability": float,
-        }
+    parameter_types = {
+        "known_source": str,
+        "known_weight": str,
+        "adversarial_defense": bool,
+        "avoidance_latency": int,
+        "reaction_time": int,
+        "safe_distance_threshold": float,
+        "adversarial_noise_sensitivity": float,
+        "sensor_fusion_reliability": float,
+    }
 
 
 # =================== Full Object Avoidance DNN Model (Cyber) ===================

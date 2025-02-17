@@ -55,14 +55,12 @@ class ControllerCyberHigh(CyberComponentHigh):
             "autopilot_mode": claripy.BVS("autopilot_mode", 8),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "in_failsafe_mode": bool,
-            "operating_mode": OperationMode,
-            "navigation_mode": str,
-            "autonomy_level": int,
-        }
+    parameter_types = {
+        "in_failsafe_mode": bool,
+        "operating_mode": OperationMode,
+        "navigation_mode": str,
+        "autonomy_level": int,
+    }
 
 
 # =================== High-Level Abstraction (Hardware) ===================
@@ -92,13 +90,11 @@ class ControllerHardwareHigh(HardwareHigh):
         self.has_redundant_sensors = has_redundant_sensors
         self.communication_protocol = communication_protocol
 
-    @property
-    def parameter_types(self):
-        return {
-            "has_pwm_transmitter": bool,
-            "has_redundant_sensors": bool,
-            "communication_protocol": str,
-        }
+    parameter_types = {
+        "has_pwm_transmitter": bool,
+        "has_redundant_sensors": bool,
+        "communication_protocol": str,
+    }
 
 
 # =================== Binary Abstraction (Firmware) ===================
@@ -120,13 +116,11 @@ class ControllerBinary(CyberComponentBinary):
         self.patch_status = patch_status
         self.firmware_version = firmware_version
 
-    @property
-    def parameter_types(self):
-        return {
-            "binary_path": Path,
-            "patch_status": str,
-            "firmware_version": str,
-        }
+    parameter_types = {
+        "binary_path": Path,
+        "patch_status": str,
+        "firmware_version": str,
+    }
 
 
 # =================== Full Autopilot Controller Model ===================
@@ -141,20 +135,18 @@ class Controller(ComponentBase):
             CyberAbstractionLevel.BINARY: ControllerBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "in_failsafe_mode": bool,
-            "operating_mode": OperationMode,
-            "navigation_mode": str,
-            "autonomy_level": int,
-            "has_pwm_transmitter": bool,
-            "has_redundant_sensors": bool,
-            "communication_protocol": str,
-            "binary_path": Path,
-            "patch_status": str,
-            "firmware_version": str,
-        }
+    parameter_types = {
+        "in_failsafe_mode": bool,
+        "operating_mode": OperationMode,
+        "navigation_mode": str,
+        "autonomy_level": int,
+        "has_pwm_transmitter": bool,
+        "has_redundant_sensors": bool,
+        "communication_protocol": str,
+        "binary_path": Path,
+        "patch_status": str,
+        "firmware_version": str,
+    }
 
 
 ######################################################    OLD VERSION    ########################################################################

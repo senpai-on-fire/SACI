@@ -36,14 +36,12 @@ class MultiCopterMotorHigh(MultiMotorHigh):
         self.torque_instability_flag = torque_instability_flag  # Helps detect unusual torque changes.
         self.load_imbalance_flag = load_imbalance_flag  # Ensures proper load distribution.
 
-    @property
-    def parameter_types(self):
-        return {
-            "is_operational": bool,
-            "fault_detection_flag": bool,
-            "torque_instability_flag": bool,
-            "load_imbalance_flag": bool,
-        }
+    parameter_types = {
+        "is_operational": bool,
+        "fault_detection_flag": bool,
+        "torque_instability_flag": bool,
+        "load_imbalance_flag": bool,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -75,13 +73,11 @@ class MultiCopterMotorAlgorithmic(MultiMotorAlgorithmic):
             "stability_index": BVS("motor_stability_index", 64),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "thrust_efficiency": float,
-            "power_distribution_ratio": float,
-            "stability_margin": float,
-        }
+    parameter_types = {
+        "thrust_efficiency": float,
+        "power_distribution_ratio": float,
+        "stability_margin": float,
+    }
 
 
 # =================== Hardware Abstraction (Physical Layer) ===================

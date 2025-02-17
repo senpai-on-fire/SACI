@@ -41,13 +41,11 @@ class MultiMotorHigh(MotorHigh):
     def motor_cnt(self):
         return len(self.motors)
 
-    @property
-    def parameter_types(self):
-        return {
-            "is_operational": bool,
-            "fault_detection_flag": bool,
-            "load_imbalance_flag": bool,
-        }
+    parameter_types = {
+        "is_operational": bool,
+        "fault_detection_flag": bool,
+        "load_imbalance_flag": bool,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -96,14 +94,12 @@ class MultiMotorAlgorithmic(MotorAlgorithmic):
 
         return total_rpm
 
-    @property
-    def parameter_types(self):
-        return {
-            "power_distribution_ratio": float,
-            "torque_fluctuation_flag": bool,
-            "thermal_safety_limit": float,
-            "inter_motor_sync_error": float,
-        }
+    parameter_types = {
+        "power_distribution_ratio": float,
+        "torque_fluctuation_flag": bool,
+        "thermal_safety_limit": float,
+        "inter_motor_sync_error": float,
+    }
 
 
 # =================== Hardware Abstraction (Physical Layer) ===================
@@ -148,7 +144,7 @@ class MultiMotorHardwareTechnology(HardwareTechnology):
 
 class MultiMotor(Motor):
 
-    __slots__ = ("ABSTRACTIONS", "variables")
+    __slots__ = ("ABSTRACTIONS", "variables", "motors")
 
     def __init__(self, motors=None, **kwargs):
         """

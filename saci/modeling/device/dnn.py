@@ -4,21 +4,17 @@ from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberCompo
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
 class DNNHigh(CyberComponentHigh):
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": bool,
-            "known_weight": bool,
-        }
+    parameter_types = {
+        "known_source": bool,
+        "known_weight": bool,
+    }
 
 
 class DNNAlgorithmic(CyberComponentAlgorithmic):
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": bool,
-            "known_weight": bool,
-        }
+    parameter_types = {
+        "known_source": bool,
+        "known_weight": bool,
+    }
 
 class DNN(CyberComponentBase):
     def __init__(self, ports: Optional[Ports]=None, **kwargs):
@@ -38,9 +34,7 @@ class DNN(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "known_source": bool,
-            "known_weight": bool,
-        }
+    parameter_types = {
+        "known_source": bool,
+        "known_weight": bool,
+    }

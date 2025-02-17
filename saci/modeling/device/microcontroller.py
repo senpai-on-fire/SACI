@@ -10,16 +10,14 @@ from .component import HardwarePackage, HardwareComponentBase, HardwareAbstracti
 class MicroController(HardwarePackage):
     #TODO -- Consider adding more hardware features later
 
-    @property
-    def parameter_types(self):
-        return {
-            "chip_name": str,
-            "chip_series": str,
-            "chip_vendor": str,
-            "trustzone_enabled": bool,
-            "mpu_enabled": bool,
-            "base_clk_freq": int,
-        }
+    parameter_types = {
+        "chip_name": str,
+        "chip_series": str,
+        "chip_vendor": str,
+        "trustzone_enabled": bool,
+        "mpu_enabled": bool,
+        "base_clk_freq": int,
+    }
 
 
 ###### Parameters Meaning ######
@@ -33,14 +31,12 @@ class MicroController(HardwarePackage):
 class VoltageGlitcher(HardwarePackage):
     #TODO -- Consider adding how the voltage glitcher circuit is connected to the micro-controller
 
-    @property
-    def parameter_types(self):
-        return {
-            "glitch_type": str,
-            "glitch_objective": str,
-            "clock": int,
-            "trigger": int,
-            "offset": int,
-            "width": int,
-        }
+    parameter_types = {
+        "glitch_type": str,
+        "glitch_objective": str,
+        "clock": int,
+        "trigger": int,
+        "offset": int,
+        "width": int,
+    }
 
