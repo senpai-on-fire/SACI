@@ -11,7 +11,7 @@ import importlib
 from io import StringIO
 from pathlib import Path
 import os
-from typing import Annotated, Optional
+from typing import Annotated, Optional, TypeVar
 
 import httpx
 
@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
+from saci.modeling.device import ComponentBase
 from saci.modeling.device.control.controller import Controller
 from saci.modeling.device.sensor.compass import CompassSensor
 from saci.modeling.device.esc import ESC
@@ -121,6 +122,50 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         response.status_code = status.HTTP_201_CREATED
 
     return {}
+
+T = TypeVar('T')
+def _all_subclasses(c: type[T]) -> list[type[T]]:
+    return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
+
+class ParameterTypeModel(BaseModel):
+    type_: Annotated[str, Field(serialization_alias="type")]
+    description: str
+
+class PortModel(BaseModel):
+    direction: str
+
+class ComponentTypeModel(BaseModel):
+    name: str # human-readable name
+    parameters: dict[str, ParameterTypeModel]
+    ports: dict[str, PortModel]
+
+ComponentTypeID = str
+def component_type_id(comp_type: type[ComponentBase]) -> str:
+    return f"{comp_type.__module__}.{comp_type.__qualname__}"
+
+# TODO: so janky
+all_component_types: dict[ComponentTypeID, type[ComponentBase]] = {}
+for comp_type in _all_subclasses(ComponentBase):
+    type_id = component_type_id(comp_type)
+    if dup := all_component_types.get(type_id):
+        l.warning(f"duplicately-IDed component types {dup} and {comp_type} (both have ID {type_id}), only including {dup}")
+    all_component_types[type_id] = comp_type
+
+@app.get("/api/components/")
+def list_component_types() -> list[ComponentTypeID]:
+    return list(all_component_types)
+
+@app.get("/api/components/{type_id}")
+def component_type_details(type_id: str) -> ComponentTypeModel:
+    if (comp_type := all_component_types.get(type_id)) is None:
+        raise HTTPException(status_code=404, detail="No component type with that ID")
+    return ComponentTypeModel(
+        # TODO: have component types have better human-readable names
+        name=comp_type.__name__,
+        # TODO: have parameters have more metadata associated with them
+        parameters={name: ParameterTypeModel(type_=type_.__name__, description="coming soon") for name, type_ in comp_type.parameter_types.items()},
+        ports={},
+    )
 
 @app.post("/api/ingest_blueprint")
 def ingest_blueprint_legacy(name: str, serialized: dict, force: bool = False):
