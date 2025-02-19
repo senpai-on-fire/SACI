@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
+import { ReactFlow, Background, Panel, PanelPosition } from '@xyflow/react';
 import useSWR from 'swr';
 import ELK from 'elkjs/lib/elk-api';
 import { VncScreen } from 'react-vnc';
@@ -161,7 +161,6 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
       edges={edges}
     >
       <Background />
-      <Controls />
       {children}
       {statusPanel}
     </ReactFlow>
@@ -413,6 +412,41 @@ function HypothesisPanel({bpId, device, hypothesis, ...analysesProps}: Hypothesi
   </>;
 }
 
+type CPVResult = {
+  cpv: {name: string},
+  path: {path: string[]},
+};
+
+function renderCPVs(device: Device, cpvs: CPVResult[]) {
+  const cpvItems = cpvs.map(({cpv: {name}, path: {path}}, i) =>
+    // TODO: better key
+    <li key={i}>{name}: {path.map(compId => device.components[compId].name).join(" -> ")}</li>
+  );
+  return <ul>{cpvItems}</ul>;
+}
+
+function CPVsPanel({bpId, device, position}: {bpId: string | null, device: Device | null, position?: PanelPosition}) {
+  if (bpId === null || device === null) {
+    return <> </>;
+  }
+
+  const { data, error, isLoading } = useSWR(`/api/blueprints/${bpId}/cpvs`, fetcher);
+
+  let panelInner;
+  if (error) {
+    panelInner = <div>Error loading CPVs: {error}</div>;
+  } else if (isLoading) {
+    panelInner = <div>Loading applicable CPVs...</div>;
+  } else {
+    panelInner = renderCPVs(device, data as CPVResult[]);
+  }
+
+  return <Panel className="bg-white dark:bg-neutral-900 p-4 max-h-60 overflow-scroll max-w-md border-2 border-indigo-600 rounded" position={position}>
+    <h3 className="text-2xl font-bold">CPVs</h3>
+    {panelInner}
+  </Panel>;
+}
+
 function App() {
   const { data: devices } = useSWR("/api/blueprints", fetcher);
 
@@ -470,6 +504,8 @@ function App() {
     </Panel> :
     <> </>;
 
+  const cpvsPanel = <CPVsPanel bpId={bpId} device={device} position="bottom-left" />;
+
   const highlights = {
     entry: hypothesis?.entry_component,
     exit: hypothesis?.exit_component,
@@ -491,6 +527,7 @@ function App() {
           </Panel>
           {panel}
           {analysisPanel}
+          {cpvsPanel}
         </Flow>
       </div>
     </>

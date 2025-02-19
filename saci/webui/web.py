@@ -20,6 +20,8 @@ from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket,
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+from saci.modeling.cpv import CPV
+from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
@@ -29,7 +31,9 @@ from saci.modeling.device.sensor.compass import CompassSensor
 from saci.modeling.device.esc import ESC
 from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.webserver import WebServer
+from saci.modeling.state.global_state import GlobalState
 
+from ..orchestrator import identify
 from ..deserializer import ingest
 from ..modeling import Device, ComponentBase
 from ..modeling.device import Wifi, Motor, GPSReceiver
@@ -122,6 +126,39 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         response.status_code = status.HTTP_201_CREATED
 
     return {}
+
+class CPVModel(BaseModel):
+    name: str
+
+def cpv_to_model(cpv: CPV) -> CPVModel:
+    return CPVModel(name=cpv.NAME)
+
+class CPVPathModel(BaseModel):
+    path: list[ComponentID]
+
+def cpv_path_to_model(path: CPVPath) -> CPVPathModel:
+    return CPVPathModel(path=[comp_id(comp) for comp in path.path])
+
+class CPVResultModel(BaseModel):
+    cpv: CPVModel
+    path: CPVPathModel
+
+def cpv_result_to_model(cpv: CPV, path: CPVPath) -> CPVResultModel:
+    return CPVResultModel(cpv=cpv_to_model(cpv), path=cpv_path_to_model(path))
+
+@app.get("/api/blueprints/{bp_id}/cpvs")
+def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
+    if (blueprint := blueprints.get(bp_id)) is None:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+
+    # TODO: re-introduce the queueing model once this takes more time
+    initial_state = GlobalState(blueprint.components)
+    return [
+        cpv_result_to_model(cpv, path)
+        for cpv in CPVS
+        if (paths := identify(blueprint, initial_state, cpv_model=cpv)[1]) is not None
+        for path in paths
+    ]
 
 T = TypeVar('T')
 def _all_subclasses(c: type[T]) -> list[type[T]]:
