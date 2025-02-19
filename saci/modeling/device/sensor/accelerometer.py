@@ -94,28 +94,53 @@ class Accelerometer(Sensor):
 # =================== Hardware Abstractions ===================
 
 class AccelerometerHardware(Sensor):
+    """
+    Hardware-level accelerometer model, capturing physical/mechanical/electrical attributes.
+    """
 
     __slots__ = Sensor.__slots__
 
-    def __init__(self, i2c_address=0x68, spi_channel=0, **kwargs):
+    def __init__(
+        self,
+        i2c_address=0x68,
+        spi_channel=0,
+        resonant_frequency=None,     # in Hz or kHz
+        damping_ratio=None,          # or quality factor
+        acoustic_isolation=False,    # any mechanical shielding
+        max_acoustic_input=None,     # amplitude limit before saturation
+        **kwargs
+    ):
         """
         :param i2c_address: I2C address for communication.
         :param spi_channel: SPI channel if using SPI-based sensors.
+        :param resonant_frequency: Natural frequency where sensor resonates (e.g., 19 kHz).
+        :param damping_ratio: Determines sharpness of resonance peak. Lower => more vulnerable.
+        :param acoustic_isolation: Whether there's mechanical shielding or damping.
+        :param max_acoustic_input: Threshold beyond which the sensor saturates or clips.
         """
         super().__init__(**kwargs)
+
         self.i2c_address = i2c_address
         self.spi_channel = spi_channel
-        self.variables = {}  # Initialize variables dictionary
+
+        # Real-world physical attributes
+        self.resonant_frequency = resonant_frequency
+        self.damping_ratio = damping_ratio
+        self.acoustic_isolation = acoustic_isolation
+        self.max_acoustic_input = max_acoustic_input
+
+        self.variables = {}
 
         # Simulated hardware register values
-        self.variables["hardware_status"] = claripy.BVS("accel_hw_status", 8)  # 8-bit status register
-        self.variables["hardware_config"] = claripy.BVS("accel_hw_config", 16)  # 16-bit config register
+        self.variables["hardware_status"] = claripy.BVS("accel_hw_status", 8)   # 8-bit status register
+        self.variables["hardware_config"] = claripy.BVS("accel_hw_config", 16) # 16-bit config register
 
 
 class AccelerometerHWPackage(HardwarePackage):
  
     KNOWN_CHIP_NAMES = [
-        "MPU6050", "MPU6500", "MPU9250", "ADXL345", "LIS3DH", "LSM9DS1", "ICM-20948"
+        "MPU6050", "MPU6500", "MPU9250", "ADXL345", "LIS3DH", "LSM9DS1", "ICM-20948",
+        "BMI055", "BMI160", "ICM-20690", "MPU6000", "LSM6DSL"
     ]
 
     def __init__(self, accel_name, accel_vendor, **kwargs):
