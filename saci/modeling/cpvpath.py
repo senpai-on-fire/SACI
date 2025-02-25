@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from ..modeling.device import ComponentBase
+from ..modeling.device import IdentifiedComponent
 from .behavior import Behaviors
 
 
 class CPVPath:
-    def __init__(self, path, behaviors):
-        self.path: list[ComponentBase] = path
+    def __init__(self, path: list[IdentifiedComponent], behaviors: Behaviors):
+        self.path: list[IdentifiedComponent] = path
         self.final_behaviors: Behaviors = behaviors
         self.cpv_inputs = []
 

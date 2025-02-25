@@ -25,7 +25,7 @@ from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
-from saci.modeling.device import ComponentBase
+from saci.modeling.device import ComponentID, ComponentBase
 from saci.modeling.device.control.controller import Controller
 from saci.modeling.device.sensor.compass import CompassSensor
 from saci.modeling.device.esc import ESC
@@ -64,12 +64,6 @@ def component_to_model(comp: ComponentBase) -> ComponentModel:
         parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
     )
 
-ComponentID = str
-
-def comp_id(comp: ComponentBase) -> ComponentID:
-    # the graph is based on object identity, so i don't really see a better option here
-    return str(id(comp))
-
 class HypothesisModel(BaseModel):
     name: str
     entry_component: Optional[ComponentID]
@@ -86,8 +80,8 @@ class DeviceModel(BaseModel):
 def blueprint_to_model(bp: Device, hypotheses: dict[HypothesisID, HypothesisModel]) -> DeviceModel:
     return DeviceModel(
         name=bp.name,
-        components={comp_id(comp): component_to_model(comp) for comp in bp.components},
-        connections=[(comp_id(from_), comp_id(to_)) for (from_, to_) in bp.component_graph.edges],
+        components={comp_id: component_to_model(comp) for comp_id, comp in bp.components.items()},
+        connections=[(from_, to_) for (from_, to_) in bp.component_graph.edges],
         hypotheses=hypotheses,
     )
 
@@ -137,7 +131,7 @@ class CPVPathModel(BaseModel):
     path: list[ComponentID]
 
 def cpv_path_to_model(path: CPVPath) -> CPVPathModel:
-    return CPVPathModel(path=[comp_id(comp) for comp in path.path])
+    return CPVPathModel(path=[c.id_ for c in path.path])
 
 class CPVResultModel(BaseModel):
     cpv: CPVModel
@@ -352,10 +346,10 @@ del dirname
 blueprints: dict[BlueprintID, Device] = devices | ingested.devices
 
 # TODO: this is hacky and an indication that we should have a better way of doing this...
-def _find_comps(device: Device, comp_type: type[ComponentBase]) -> list[ComponentBase]:
-    return [comp for comp in device.components if isinstance(comp, comp_type)]
+def _find_comps(device: Device, comp_type: type[ComponentBase]) -> list[ComponentID]:
+    return [comp_id for comp_id, comp in device.components.items() if isinstance(comp, comp_type)]
 
-def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentBase:
+def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentID:
     comps = _find_comps(device, comp_type)
     if len(comps) == 0:
         raise ValueError(f"device {device!r} has no component of type {comp_type}")
@@ -370,10 +364,10 @@ analyses: dict[AnalysisID, Analysis] = {
     "taveren_model": Analysis(
         user_info=AnalysisUserInfo(
             name="Model: Ta'veren Controller",
-            # TODO: hackyyyyy... should either give the different controllers different names or have some nice query mechanism
+            # TODO: hackyyyyy... should either use different controllers' different IDs (now that they have them!) or have some nice query mechanism
             components_included=[
-                comp_id(_find_comps(rover, WebServer)[0]),
-                comp_id(_find_comps(rover, Controller)[0]),
+                _find_comps(rover, WebServer)[0],
+                _find_comps(rover, Controller)[0],
             ],
         ),
         interaction_model=InteractionModel.X11,
@@ -382,7 +376,7 @@ analyses: dict[AnalysisID, Analysis] = {
     "binsync_re": Analysis(
         user_info=AnalysisUserInfo(
             name="Model: BinSync-enabled RE",
-            components_included=[comp_id(_find_comps(rover, Controller)[0])],
+            components_included=[_find_comps(rover, Controller)[0]],
         ),
         interaction_model=InteractionModel.X11,
         images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
@@ -390,14 +384,12 @@ analyses: dict[AnalysisID, Analysis] = {
     "hybrid_automata": Analysis(
         user_info=AnalysisUserInfo(
             name="Model: Hybrid Automata",
-            components_included=[
-                comp_id(comp) for comp in _find_comps(rover, Controller)
-            ] + [
-                comp_id(_find_comp(rover, GPSReceiver)),
-                comp_id(_find_comp(rover, CompassSensor)),
-                comp_id(_find_comp(rover, Steering)),
-                comp_id(_find_comp(rover, ESC)),
-                comp_id(_find_comp(rover, Motor)),
+            components_included=_find_comps(rover, Controller) + [
+                _find_comp(rover, GPSReceiver),
+                _find_comp(rover, CompassSensor),
+                _find_comp(rover, Steering),
+                _find_comp(rover, ESC),
+                _find_comp(rover, Motor),
             ],
         ),
         interaction_model=InteractionModel.X11,
@@ -406,14 +398,12 @@ analyses: dict[AnalysisID, Analysis] = {
     "gazebo_hybrid_automata": Analysis(
         user_info=AnalysisUserInfo(
             name="Co-Simulation: Gazebo + Hybrid Automata",
-            components_included=[
-                comp_id(comp) for comp in _find_comps(rover, Controller)
-            ] + [
-                comp_id(_find_comp(rover, GPSReceiver)),
-                comp_id(_find_comp(rover, CompassSensor)),
-                comp_id(_find_comp(rover, Steering)),
-                comp_id(_find_comp(rover, ESC)),
-                comp_id(_find_comp(rover, Motor)),
+            components_included=_find_comps(rover, Controller) + [
+                _find_comp(rover, GPSReceiver),
+                _find_comp(rover, CompassSensor),
+                _find_comp(rover, Steering),
+                _find_comp(rover, ESC),
+                _find_comp(rover, Motor),
             ],
         ),
         interaction_model=InteractionModel.X11,
@@ -422,14 +412,12 @@ analyses: dict[AnalysisID, Analysis] = {
     "gazebo_firmware": Analysis(
         user_info=AnalysisUserInfo(
             name="Co-Simulation: Gazebo + Firmware",
-            components_included=[
-                comp_id(comp) for comp in _find_comps(rover, Controller)
-            ] + [
-                comp_id(_find_comp(rover, GPSReceiver)),
-                comp_id(_find_comp(rover, CompassSensor)),
-                comp_id(_find_comp(rover, Steering)),
-                comp_id(_find_comp(rover, ESC)),
-                comp_id(_find_comp(rover, Motor)),
+            components_included=_find_comps(rover, Controller) + [
+                _find_comp(rover, GPSReceiver),
+                _find_comp(rover, CompassSensor),
+                _find_comp(rover, Steering),
+                _find_comp(rover, ESC),
+                _find_comp(rover, Motor),
             ],
         ),
         interaction_model=InteractionModel.X11,
@@ -441,18 +429,18 @@ hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict
     "ngcrover": {
         "webserver_stop": HypothesisModel(
             name="From the webserver, stop the rover.",
-            entry_component=comp_id(_find_comp(rover, Wifi)),
-            exit_component=comp_id(_find_comp(rover, Motor)),
+            entry_component=_find_comp(rover, Wifi),
+            exit_component=_find_comp(rover, Motor),
         ),
         "emi_compass": HypothesisModel(
             name="Using EMI, influence the compass to affect the mission.",
-            entry_component=comp_id(_find_comp(rover, CompassSensor)),
+            entry_component=_find_comp(rover, CompassSensor),
             exit_component=None,
         ),
         "wifi_rollover": HypothesisModel(
             name="Over WiFi, subvert the control system to roll the rover.",
-            entry_component=comp_id(_find_comp(rover, Wifi)),
-            exit_component=comp_id(_find_comp(rover, Steering)),
+            entry_component=_find_comp(rover, Wifi),
+            exit_component=_find_comp(rover, Steering),
         ),
     },
 })

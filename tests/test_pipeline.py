@@ -53,8 +53,8 @@ class TestPipeline(unittest.TestCase):
         cps, _, initial_state = generate_fake_data()
         _, cpv_paths = identify(cps, initial_state, cpv_model=MavlinkSiKCPV())
         path = cpv_paths[0].path
-        self.assertIsInstance(path[0], GCS)
-        self.assertIsInstance(path[-1], MultiCopterMotor)
+        self.assertIsInstance(path[0].component, GCS)
+        self.assertIsInstance(path[-1].component, MultiCopterMotor)
 
     def test_identifier_rover(self):
         cps = NGCRover()
@@ -71,10 +71,11 @@ class TestPipeline(unittest.TestCase):
             _, cpv_paths = identify(cps, initial_state, cpv_model=cpv)
             if endpoints is not None:
                 start, end = endpoints
+                self.assertIsNotNone(cpv_paths)
                 self.assertGreater(len(cpv_paths), 0)
                 for cpv_path in cpv_paths:
-                    self.assertIsInstance(cpv_path.path[0], start)
-                    self.assertIsInstance(cpv_path.path[-1], end)
+                    self.assertIsInstance(cpv_path.path[0].component, start)
+                    self.assertIsInstance(cpv_path.path[-1].component, end)
             else:
                 self.assertIsNone(cpv_paths)
 
