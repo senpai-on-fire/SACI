@@ -94,14 +94,3 @@ class ComponentBase:
     def has_external_input(self) -> bool:
         # TODO: remove this, this is just a temporary hack while other code still depend on has_external_input
         return any(port.direction in (PortDirection.IN, PortDirection.INOUT) for port in self.ports.values())
-
-    def copy(self) -> "ComponentBase":
-        """
-        Copy the component
-        """
-        new_comp = self.__class__()
-        for attr in self.__slots__:
-            value = getattr(self, attr)
-            setattr(new_comp, attr, value.copy() if hasattr(value, 'copy') else None)
-
-        return new_comp

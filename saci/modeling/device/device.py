@@ -43,13 +43,6 @@ class Device:
         # state of the device (for Identifier)
         self.state = state
 
-    def copy(self) -> "Device":
-        return Device(
-            self.name,
-            self.components,
-            component_graph=self.component_graph,
-        )            
-
 T = TypeVar('T', bound='IdentifiedComponent')
 
 @dataclass(frozen=True)

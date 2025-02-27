@@ -84,7 +84,7 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
 
 class Wifi(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS")
+    __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, supported_protocols=None, protection=None, encryption_type=None, **kwargs):
         super().__init__(**kwargs)

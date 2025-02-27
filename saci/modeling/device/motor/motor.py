@@ -129,7 +129,7 @@ class MotorHardwareTechnology(HardwareTechnology):
 
 class Motor(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "variables")
+    __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

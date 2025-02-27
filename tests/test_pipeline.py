@@ -12,8 +12,9 @@ from saci.modeling.device.motor.motor import Motor
 from saci.modeling.device.interface.serial import Serial
 from saci.modeling.device.gcs import GCS
 from saci.modeling.state import GlobalState
-from saci.modeling.device import MultiCopterMotor, Wifi, SikRadio
+from saci.modeling.device import ComponentID, MultiCopterMotor, Wifi, SikRadio
 from saci.orchestrator import process, identify
+from saci.hypothesis import Hypothesis, ParameterAssumption, RemoveComponentsAssumption, AddComponentAssumption
 
 from saci_db.cpvs import MavlinkSiKCPV, SerialRollOverCPV, CompassPermanentSpoofingCPV, WifiWebCrashCPV
 from saci_db.devices.ngcrover import NGCRover
@@ -78,6 +79,58 @@ class TestPipeline(unittest.TestCase):
                     self.assertIsInstance(cpv_path.path[-1].component, end)
             else:
                 self.assertIsNone(cpv_paths)
+
+    def test_gps_spoofying_hypothesis(self):
+        cps = NGCRover()
+        self.assertEqual(
+            set(cps.components),
+            {ComponentID(id_) for id_ in {'wifi', 'webserver', 'gps', 'compass', 'uno_r4', 'serial', 'uno_r3', 'pwm_channel_esc', 'pwm_channel_servo', 'esc', 'steering', 'motor'}},
+            "Looks like we added or removed some components from the NGCRover device model. Fix this test appropriately.",
+        )
+        self.assertNotIn(
+            "signal_strength_threshold",
+            cps.components[ComponentID("gps")].parameters,
+            "Oops, looks like we added a GPS signal strength threshold to the NGCRover device model. Fix this test to use some other unset parameter.",
+        )
+
+        threshold = -70
+        hypothesis = Hypothesis(
+            description="Test",
+            path=[],
+            assumptions=[
+                ParameterAssumption(
+                    description="Assume that the GPS receiver is pretty sensitive.",
+                    component_id=ComponentID("gps"),
+                    parameter_name="signal_strength_threshold",
+                    parameter_value=threshold,
+                ),
+                RemoveComponentsAssumption(
+                    description="Let's not model anything but the components on the CPV path for now",
+                    component_ids=frozenset({ComponentID(id_) for id_ in {'wifi', 'webserver'}}),
+                ),
+            ],
+        )
+        transformed_cps = hypothesis.transform(cps)
+        self.assertNotIn(
+            "signal_strength_threshold",
+            cps.components[ComponentID("gps")].parameters,
+            "The device didn't get copied correctly and so transforming the copy also transformed the original. Womp womp.",
+        )
+        self.assertIn(
+            "signal_strength_threshold",
+            transformed_cps.components[ComponentID("gps")].parameters,
+            "Hm, the hypothesis didn't set the parameter in the rewritten CPS at all.",
+        )
+        self.assertEqual(
+            transformed_cps.components[ComponentID("gps")].parameters["signal_strength_threshold"],
+            threshold,
+            "... the hypothesis transformation set the parameter to *something* but not the specified value? How did that manage to happen?",
+        )
+        self.assertEqual(
+            set(transformed_cps.components),
+            {ComponentID(id_) for id_ in {'gps', 'compass', 'uno_r4', 'serial', 'uno_r3', 'pwm_channel_esc', 'pwm_channel_servo', 'esc', 'steering', 'motor'}},
+            "Looks like we added or removed some components from the NGCRover device model. Fix this test appropriately.",
+        )
 
 
 if __name__ == "__main__":
