@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import yaml from '@modyfi/vite-plugin-yaml'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), yaml()],
   server: {
     proxy: {
       '/api': {

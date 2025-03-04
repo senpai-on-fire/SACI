@@ -10,18 +10,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@xyflow/react": "^12.3.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-navigation-menu": "^1.2.5",
+    "@types/js-yaml": "^4.0.9",
+    "@xyflow/react": "^12.4.4",
     "autoprefixer": "^10.4.20",
     "elkjs": "^0.9.3",
+    "js-yaml": "^4.1.0",
     "postcss": "^8.5.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.2.0",
     "react-vnc": "^3.0.0",
     "swr": "^2.3.0",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@modyfi/vite-plugin-yaml": "^1.1.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react-swc": "^3.5.0",

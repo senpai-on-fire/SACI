@@ -1,0 +1,55 @@
+controller:
+  compass:
+    - firmware
+    - analog
+    - hardware
+  gps:
+    - firmware
+    - hardware
+  wifi:
+    - firmware
+    - hardware
+  imu:
+    - firmware
+    - hardware
+  battery:
+    - firmware
+    - hardware
+  camera:
+    - firmware
+    - hardware
+  telemetry:
+    - firmware
+    - hardware
+  esc:
+    - firmware
+    - hardware
+  flight_controller:
+    - firmware
+    - hardware
+  sensors:
+    ultrasonic:
+      - firmware
+      - hardware
+    infrared:
+      - firmware
+      - hardware
+    lidar:
+      - firmware
+      - hardware
+wheel:
+  motor:
+    - firmware
+    - hardware
+  suspension:
+    - firmware
+    - hardware
+  tire:
+    - firmware
+    - hardware
+  encoder:
+    - firmware
+    - hardware
+  breaking_system:
+    - firmware
+    - hardware
