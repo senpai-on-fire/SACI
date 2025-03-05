@@ -166,7 +166,7 @@ def _all_subclasses(c: type[T]) -> list[type[T]]:
     return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
 
 class ParameterTypeModel(SQLModel, table=True):
-    type_: Annotated[str, Field(serialization_alias="type")]
+    type_: Annotated[str, Field(alias="type")]
     description: str
 
 class PortModel(SQLModel, table=True):
