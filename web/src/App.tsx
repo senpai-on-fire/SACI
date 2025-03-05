@@ -473,7 +473,7 @@ function App() {
     if (!bpId && bpIds.length > 0) {
       setBpId(bpIds[0]);
     }
-  }, [devices]);
+  }, [devices, bpId]);
   const device = devices && bpId ? devices[bpId] : null;
 
   const [hypId, setHypId] = useState<HypothesisId | null>(null);
