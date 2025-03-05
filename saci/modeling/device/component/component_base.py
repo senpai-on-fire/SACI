@@ -70,7 +70,7 @@ class ComponentBase:
             ports: Optional[dict[str, Port]] = None,
     ):
         self.name = name or self.__class__.__name__
-        self.type = _type
+        self.type = _type or self.__class__.__name__
         self.parameters = parameters or {}
         self.ports = ports or {}
 

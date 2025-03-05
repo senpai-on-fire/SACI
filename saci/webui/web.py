@@ -5,38 +5,33 @@ from enum import StrEnum
 import asyncio
 import logging
 
-import json
-import time
 import importlib
-from io import StringIO
 from pathlib import Path
 import os
-from typing import Annotated, Optional, TypeVar
+from typing import Annotated, TypeVar
 
 import httpx
 
-# from flask import Flask, render_template, send_file, request, abort
-from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect, status
+from fastapi import FastAPI, HTTPException,Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
-from sqlmodel import SQLModel
 from saci.modeling.cpv import CPV
 from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
-from saci.modeling.device import ComponentID, ComponentBase
+from saci.modeling.device import ComponentID, ComponentBase, Device
 from saci.modeling.device.control.controller import Controller
 from saci.modeling.device.sensor.compass import CompassSensor
 from saci.modeling.device.esc import ESC
 from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.webserver import WebServer
 from saci.modeling.state.global_state import GlobalState
+from saci.webui.dbmodel import ComponentModel, DeviceModel, HypothesisID, HypothesisModel
 
 from ..orchestrator import identify
 from ..deserializer import ingest
-from ..modeling import Device, ComponentBase
 from ..modeling.device import Wifi, Motor, GPSReceiver
 
 l = logging.getLogger(__name__)
@@ -55,28 +50,13 @@ async def serve_frontend_root():
 
 ### Endpoints for blueprint management
 
-class ComponentModel(BaseModel):
-    name: str
-    parameters: dict[str, object]
-
 def component_to_model(comp: ComponentBase) -> ComponentModel:
     return ComponentModel(
         name=comp.name,
+        type_=comp.type,
         parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
     )
 
-class HypothesisModel(SQLModel, table=True):
-    name: str
-    entry_component: Optional[ComponentID]
-    exit_component: Optional[ComponentID]
-
-HypothesisID = str
-
-class DeviceModel(SQLModel, table=True):
-    name: str
-    components: dict[ComponentID, ComponentModel]
-    connections: list[tuple[ComponentID, ComponentID]]
-    hypotheses: dict[HypothesisID, HypothesisModel]
 
 def blueprint_to_model(bp: Device, hypotheses: dict[HypothesisID, HypothesisModel]) -> DeviceModel:
     return DeviceModel(
