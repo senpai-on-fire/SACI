@@ -1,5 +1,6 @@
 import sys
 import subprocess
+from copy import deepcopy
 
 import unittest
 from typing import Optional
@@ -18,7 +19,7 @@ from saci.hypothesis import Hypothesis, ParameterAssumption, RemoveComponentsAss
 
 from saci_db.cpvs import MavlinkSiKCPV, SerialRollOverCPV, CompassPermanentSpoofingCPV, WifiWebCrashCPV
 from saci_db.devices.ngcrover import NGCRover
-from saci_db.vulns import MavlinkMitmVuln
+from saci_db.vulns import LackWifiAuthenticationVuln, MavlinkMitmVuln
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 
 
@@ -132,6 +133,28 @@ class TestPipeline(unittest.TestCase):
             "Looks like we added or removed some components from the NGCRover device model. Fix this test appropriately.",
         )
 
+    def test_compvuln_effects(self):
+        cps = NGCRover()
+        # Let's say we don't know a priori that we can access the wifi interface. Soon we'll update the actual device
+        # model for this assumption but now we'll just set it manually.
+        cps.component_graph.nodes[ComponentID("wifi")]["is_entry"] = False
+
+        wifi_auth_vuln = LackWifiAuthenticationVuln()
+        copied_cps = deepcopy(cps)
+        self.assertFalse(
+            copied_cps.component_graph.nodes[ComponentID("wifi")]["is_entry"],
+            "Did changed component graph attributes not get copied over?",
+        )
+        self.assertTrue(
+            wifi_auth_vuln.exists(copied_cps),
+            "Wifi auth vuln not found on the NGCRover.",
+        )
+        wifi_auth_vuln.apply_effects(copied_cps)
+        # The open wifi authentication should allow the wifi component to be an entry point now.
+        self.assertTrue(
+            copied_cps.component_graph.nodes[ComponentID("wifi")]["is_entry"],
+            "Wifi auth vuln did not apply the expected effect despite indicating existence.",
+        )
 
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)
