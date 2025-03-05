@@ -14,7 +14,7 @@ from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
 from saci.identifier import IdentifierCPV
 
-from .cpv_definitions import CPVS as cpv_database
+from saci.orchestrator.cpv_definitions import CPVS as cpv_database
 
 import logging
 l = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ def main():
         "hypotheses": []
     }
 
-    all_cpvs = process(cps, database, initial_state)
+    all_cpvs = process(cps, cpv_database, initial_state)
 
     for i, cpv in enumerate(all_cpvs, start=0):
         print(cpv)

@@ -1,7 +1,7 @@
 from saci_db.cpvs import *
 
 CPVS = [
-    MavlinkSiKCPV(),
+    #MavlinkSiKCPV(),
     GPSSpoofingMoveCPV(),
     WiFiDeauthDosCPV(),
     WiFiICMPFloodingCPV(),
