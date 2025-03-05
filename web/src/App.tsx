@@ -50,11 +50,19 @@ function Hypothesis({hypothesis}) {
 }
  */
 
+type ActiveCPV = {
+  deviceName: string;
+  index: number;
+  path: string[];
+} | undefined;
+
 type HighlightProps = {
   entry?: string | null,
   exit?: string | null,
   involved?: string[] | null,
+  activePath?: string[],
 };
+
 type FlowProps = {
   device?: Device,
   onComponentClick?: (componentName: string) => void,
@@ -112,7 +120,7 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
       });
   }, [device]);
 
-  let statusPanel, nodes, edges: {id: string, source: string, target: string}[];
+  let statusPanel, nodes, edges: {id: string, source: string, target: string, animated?: boolean, style?: React.CSSProperties}[];
   if (state.state === "laying") {
     statusPanel = <Panel position="bottom-right">laying out the graph...</Panel>;
     nodes = edges = [];
@@ -125,28 +133,41 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
   } else if (device && Object.is(device, state.forDevice)) {
     statusPanel = <> </>;
     nodes = Object.entries(device.components).map(([compId, comp]) => {
-      let className;
+      let className = '';
       if (compId === highlights?.entry) {
         className = "!border-green-500";
       } else if (compId === highlights?.exit) {
         className = "!border-red-500";
-      } else if (!highlights?.involved || highlights?.involved?.includes(compId)) {
-        className = "";
-      } else {
-        className = "!border-neutral-300 !text-neutral-300";
+      } else if (highlights?.involved?.includes(compId)) {
+        className = "!border-yellow-500";
+      } else if (highlights?.activePath?.includes(compId)) {
+        className = "!border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
       }
+      
+      const position = state.compLayout[compId];
       return {
         id: compId,
         data: {label: comp.name},
-        position: state.compLayout[compId],
+        position,
         className,
       };
     });
-    edges = device.connections.map(([source, target]) => ({
-      id: `${source}-${target}`,
-      source,
-      target,
-    }));
+
+    edges = [];
+    for (const [from, to] of device.connections) {
+      const isAnimated = highlights?.activePath && 
+                        highlights.activePath.length > 1 && 
+                        highlights.activePath.indexOf(from) !== -1 && 
+                        highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
+                        
+      edges.push({
+        id: `${from}-${to}`,
+        source: from,
+        target: to,
+        animated: isAnimated,
+        style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
+      });
+    }
   } else {
     statusPanel = <> </>;
     // wait for the nodevice state to take hold...
@@ -418,15 +439,58 @@ type CPVResult = {
   path: {path: string[]},
 };
 
-function renderCPVs(device: Device, cpvs: CPVResult[]) {
-  const cpvItems = cpvs.map(({cpv: {name}, path: {path}}, i) =>
-    // TODO: better key
-    <li key={i}>{name}: {path.map(compId => device.components[compId].name).join(" -> ")}</li>
-  );
-  return <ul>{cpvItems}</ul>;
+function renderCPVs(
+  device: Device, 
+  cpvs: CPVResult[], 
+  activeCPV: ActiveCPV, 
+  onCPVClick: (cpv: ActiveCPV) => void
+) {
+  const cpvItems = cpvs.map(({cpv: {name}, path: {path}}, i) => {
+    const isActive = activeCPV && 
+                     activeCPV.deviceName === device.name && 
+                     activeCPV.index === i;
+    
+    return (
+      <li 
+        key={i} 
+        className={`cursor-pointer hover:text-indigo-600 transition-colors p-2 rounded ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}
+        onClick={() => {
+          if (isActive) {
+            onCPVClick(undefined);
+          } else {
+            onCPVClick({
+              deviceName: device.name,
+              index: i,
+              path: path
+            });
+          }
+        }}
+      >
+        <div className="font-medium">{name}</div>
+        {isActive && (
+          <div className="ml-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
+            {path.map(compId => device.components[compId].name).join(" -> ")}
+          </div>
+        )}
+      </li>
+    );
+  });
+  return <ul className="space-y-2">{cpvItems}</ul>;
 }
 
-function CPVsPanel({bpId, device, position}: {bpId: string | null, device: Device | null, position?: PanelPosition}) {
+function CPVsPanel({
+  bpId, 
+  device, 
+  position, 
+  activeCPV, 
+  onActiveCPVChange
+}: {
+  bpId: string | null, 
+  device: Device | null, 
+  position?: PanelPosition,
+  activeCPV: ActiveCPV,
+  onActiveCPVChange: (cpv: ActiveCPV) => void
+}) {
   // Define hook at the top level, even if we might not use the data
   const { data, error, isLoading } = useSWR(
     bpId !== null ? `/api/blueprints/${bpId}/cpvs` : null, 
@@ -443,7 +507,7 @@ function CPVsPanel({bpId, device, position}: {bpId: string | null, device: Devic
   } else if (isLoading) {
     panelInner = <div>Loading applicable CPVs...</div>;
   } else if (data) {
-    panelInner = renderCPVs(device, data as CPVResult[]);
+    panelInner = renderCPVs(device, data as CPVResult[], activeCPV, onActiveCPVChange);
   } else {
     panelInner = <div>No data available</div>;
   }
@@ -453,7 +517,7 @@ function CPVsPanel({bpId, device, position}: {bpId: string | null, device: Devic
       className="bg-white dark:bg-neutral-900 border-2 border-indigo-600 rounded max-w-md" 
       position={position}
     >
-      <div className="flex flex-col max-h-[95vh] overflow-auto">
+      <div className="flex flex-col max-h-[90vh] overflow-auto">
         <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 z-10">CPVs</h3>
         <div className="p-4 pt-0">
           {panelInner}
@@ -491,6 +555,9 @@ function App() {
 
   // Add panel minimization state
   const [panelMinimized, setPanelMinimized] = useState(true);
+
+  // Add activeCPV state
+  const [activeCPV, setActiveCPV] = useState<ActiveCPV>(undefined);
 
   let panelInner = null;
   if (bpId && device) {
@@ -545,12 +612,19 @@ function App() {
     <> </>
   );
 
-  const cpvsPanel = <CPVsPanel bpId={bpId} device={device} position="top-right" />;
+  const cpvsPanel = <CPVsPanel 
+    bpId={bpId} 
+    device={device} 
+    position="top-right" 
+    activeCPV={activeCPV}
+    onActiveCPVChange={setActiveCPV}
+  />;
 
   const highlights = {
     entry: hypothesis?.entry_component,
     exit: hypothesis?.exit_component,
     involved: hoveringAnalysis?.components_included,
+    activePath: activeCPV?.path,
   };
 
   return (
