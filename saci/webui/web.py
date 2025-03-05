@@ -28,7 +28,7 @@ from saci.modeling.device.esc import ESC
 from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.webserver import WebServer
 from saci.modeling.state.global_state import GlobalState
-from saci.webui.dbmodel import ComponentModel, DeviceModel, HypothesisID, HypothesisModel
+from saci.webui.db import ComponentModel, DeviceModel, HypothesisID, HypothesisModel
 
 from ..orchestrator import identify
 from ..deserializer import ingest
