@@ -123,9 +123,16 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
 
 class CPVModel(BaseModel):
     name: str
+    exploit_steps: list[str]
 
 def cpv_to_model(cpv: CPV) -> CPVModel:
-    return CPVModel(name=cpv.NAME)
+    # Extract exploit steps if available, or use empty list as fallback
+    exploit_steps = cpv.exploit_steps if hasattr(cpv, 'exploit_steps') else []
+    
+    return CPVModel(
+        name=cpv.NAME,
+        exploit_steps=exploit_steps
+    )
 
 class CPVPathModel(BaseModel):
     path: list[ComponentID]

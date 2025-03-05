@@ -435,7 +435,10 @@ function HypothesisPanel({bpId, device, hypothesis, ...analysesProps}: Hypothesi
 }
 
 type CPVResult = {
-  cpv: {name: string},
+  cpv: {
+    name: string, 
+    exploit_steps: string[]
+  },
   path: {path: string[]},
 };
 
@@ -445,7 +448,7 @@ function renderCPVs(
   activeCPV: ActiveCPV, 
   onCPVClick: (cpv: ActiveCPV) => void
 ) {
-  const cpvItems = cpvs.map(({cpv: {name}, path: {path}}, i) => {
+  const cpvItems = cpvs.map(({cpv: {name, exploit_steps}, path: {path}}, i) => {
     const isActive = activeCPV && 
                      activeCPV.deviceName === device.name && 
                      activeCPV.index === i;
@@ -453,7 +456,7 @@ function renderCPVs(
     return (
       <li 
         key={i} 
-        className={`cursor-pointer hover:text-indigo-600 transition-colors p-2 rounded ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}
+        className={`cursor-pointer hover:text-indigo-600 transition-colors px-2 py-1 rounded ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}
         onClick={() => {
           if (isActive) {
             onCPVClick(undefined);
@@ -468,14 +471,23 @@ function renderCPVs(
       >
         <div className="font-medium">{name}</div>
         {isActive && (
-          <div className="ml-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {path.map(compId => device.components[compId].name).join(" -> ")}
-          </div>
+          <>
+            {exploit_steps && exploit_steps.length > 0 && (
+              <div className="ml-2 mt-2">
+                <div className="text-sm">Exploit Steps:</div>
+                <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 mt-1">
+                  {exploit_steps.map((step, idx) => (
+                    <li key={idx} className="mb-1">{step}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </>
         )}
       </li>
     );
   });
-  return <ul className="space-y-2">{cpvItems}</ul>;
+  return <ul>{cpvItems}</ul>;
 }
 
 function CPVsPanel({
@@ -518,8 +530,8 @@ function CPVsPanel({
       position={position}
     >
       <div className="flex flex-col max-h-[90vh] overflow-auto">
-        <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 z-10">CPVs</h3>
-        <div className="p-4 pt-0">
+        <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 pb-0 z-10">CPVs</h3>
+        <div className="p-2 pt-0">
           {panelInner}
         </div>
       </div>
