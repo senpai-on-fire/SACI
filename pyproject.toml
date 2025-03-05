@@ -1,6 +1,54 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8"]
+requires = ["setuptools>=61.2", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "saci"
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.11",
+]
+license = {text = "BSD 2 Clause"}
+description = "Software-Aware CPV Identifier"
+urls = {Homepage = "https://github.com/senpai-on-fire/saci"}
+requires-python = ">= 3.11"
+dependencies = [
+    "networkx",
+    "claripy",
+    "clorm",
+    "jinja2",
+    "fastapi[standard]",
+    "httpx",
+    "matplotlib",
+    "saci_db"
+]
+dynamic = ["version"]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.optional-dependencies]
+tests = ["pytest"]
+typechecking = ["pyright[nodejs]"]
+
+[project.scripts]
+saci = "saci.__main__:main"
+
+[tool.setuptools]
+include-package-data = true
+license-files = ["LICENSE"]
+
+[tool.setuptools.packages]
+find = {namespaces = false}
+
+[tool.setuptools.dynamic]
+version = {attr = "saci.__version__"}
+
+[tool.uv.sources]
+saci_db = {path = "./saci-database"}
 
 [tool.pyright]
 extraPaths = ["saci-database/"]
