@@ -1,6 +1,3 @@
-from typing import List, Union
-
-
 class BaseAttackImpact:
     """Attack impact for CPS"""
     def __init__(self, category=None, description=None):
@@ -18,6 +15,6 @@ class BaseCompEffect:
             - Confidentiality:
         description (str): Description of the attack impact.
     """
-    def __init__(self, category: Union[str, List] = None, description=None):
+    def __init__(self, category: str | list | None = None, description=None):
         self.category = category
         self.description = description
