@@ -26,8 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[tests,typechecking]
-          pip install ./saci-database
+          pip install .[tests,typechecking] ./saci-database
 
       - name: Pyright
         run: |
