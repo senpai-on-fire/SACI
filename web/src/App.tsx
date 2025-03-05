@@ -3,6 +3,7 @@ import { ReactFlow, Background, Panel, PanelPosition } from '@xyflow/react';
 import useSWR from 'swr';
 import ELK from 'elkjs/lib/elk-api';
 import { VncScreen } from 'react-vnc';
+import { Maximize2, Minimize2 } from 'react-feather';
  
 import './App.css';
 import '@xyflow/react/dist/style.css';
@@ -14,7 +15,7 @@ const elk = new ELK({
 
 type Component = {
   name: string,
-  parameters?: {[name: string]: any},
+  parameters?: {[name: string]: string | number | boolean | null},
 };
 
 type Device = {
@@ -24,7 +25,7 @@ type Device = {
 };
 
 class FetchError extends Error {
-  info: any;
+  info: unknown;
   status?: number;
 }
 
@@ -426,25 +427,40 @@ function renderCPVs(device: Device, cpvs: CPVResult[]) {
 }
 
 function CPVsPanel({bpId, device, position}: {bpId: string | null, device: Device | null, position?: PanelPosition}) {
+  // Define hook at the top level, even if we might not use the data
+  const { data, error, isLoading } = useSWR(
+    bpId !== null ? `/api/blueprints/${bpId}/cpvs` : null, 
+    fetcher
+  );
+
   if (bpId === null || device === null) {
     return <> </>;
   }
-
-  const { data, error, isLoading } = useSWR(`/api/blueprints/${bpId}/cpvs`, fetcher);
 
   let panelInner;
   if (error) {
     panelInner = <div>Error loading CPVs: {error}</div>;
   } else if (isLoading) {
     panelInner = <div>Loading applicable CPVs...</div>;
-  } else {
+  } else if (data) {
     panelInner = renderCPVs(device, data as CPVResult[]);
+  } else {
+    panelInner = <div>No data available</div>;
   }
 
-  return <Panel className="bg-white dark:bg-neutral-900 p-4 max-h-60 overflow-scroll max-w-md border-2 border-indigo-600 rounded" position={position}>
-    <h3 className="text-2xl font-bold">CPVs</h3>
-    {panelInner}
-  </Panel>;
+  return (
+    <Panel 
+      className="bg-white dark:bg-neutral-900 border-2 border-indigo-600 rounded max-w-md" 
+      position={position}
+    >
+      <div className="flex flex-col max-h-[95vh] overflow-auto">
+        <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 z-10">CPVs</h3>
+        <div className="p-4 pt-0">
+          {panelInner}
+        </div>
+      </div>
+    </Panel>
+  );
 }
 
 function App() {
@@ -473,6 +489,8 @@ function App() {
     <AnalysisPanel name={showingAnalysis.name} app={showingAnalysis.app} onClose={() => setShowingAnalysis(null)} /> :
     <> </>;
 
+  // Add panel minimization state
+  const [panelMinimized, setPanelMinimized] = useState(true);
 
   let panelInner = null;
   if (bpId && device) {
@@ -498,13 +516,36 @@ function App() {
       panelInner = <Analyses {...analysesProps} />;
     }
   }
-  const panel = panelInner ?
-    <Panel className="bg-white dark:bg-neutral-900 p-4 max-w-md border-2 border-indigo-600 rounded" position="bottom-right">
-      {panelInner}
-    </Panel> :
-    <> </>;
+  
+  // Modified panel with minimization controls
+  const panel = panelInner ? (
+    <Panel 
+      className="bg-white dark:bg-neutral-900 border-2 p-4 border-indigo-600 rounded overflow-hidden" 
+      position="bottom-left"
+      style={{
+        maxHeight: panelMinimized ? 'auto' : '400px',
+        maxWidth: 'md',
+        transition: 'all 0.3s ease'
+      }}
+    >
+      <div className="float-right cursor-pointer"
+           onClick={() => setPanelMinimized(!panelMinimized)}>
+        {panelMinimized ? 
+          <Maximize2 className="text-indigo-600 ml-auto" size={20} /> : 
+          <Minimize2 className="text-indigo-600 ml-auto" size={20} />
+        }
+      </div>
+      {!panelMinimized && (
+        <div className="max-h-80 overflow-auto">
+          {panelInner}
+        </div>
+      )}
+    </Panel>
+  ) : (
+    <> </>
+  );
 
-  const cpvsPanel = <CPVsPanel bpId={bpId} device={device} position="bottom-left" />;
+  const cpvsPanel = <CPVsPanel bpId={bpId} device={device} position="top-right" />;
 
   const highlights = {
     entry: hypothesis?.entry_component,
