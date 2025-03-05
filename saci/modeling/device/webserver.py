@@ -5,12 +5,10 @@ from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionL
 
 
 class WebServerHigh(CyberComponentHigh):
-    @property
-    def parameter_types(self):
-        return {
-            "protocol_name": str,
-            "has_authentication": bool,
-        }
+    parameter_types = {
+        "protocol_name": str,
+        "has_authentication": bool,
+    }
 
 
 class WebServer(CyberComponentBase):
@@ -26,9 +24,7 @@ class WebServer(CyberComponentBase):
             CyberAbstractionLevel.HIGH: WebServerHigh(**kwargs),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "protocol_name": str,
-            "has_authentication": bool,
-        }
+    parameter_types = {
+        "protocol_name": str,
+        "has_authentication": bool,
+    }

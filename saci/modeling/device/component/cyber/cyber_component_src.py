@@ -11,7 +11,7 @@ class CyberComponentSourceCode(CyberComponentBase):
 
     def __init__(
         self,
-        source_root: Path = None,
+        source_root: Optional[Path] = None,
         current_line: Optional[int] = None,
         abstraction=CyberAbstractionLevel.SOURCE,
         **kwargs,

@@ -12,11 +12,9 @@ class SteeringHigh(ServoHigh):
         states. None means unknown.
     """
 
-    @property
-    def parameter_types(self):
-        return {
-            "has_aps": bool,
-        }
+    parameter_types = {
+        "has_aps": bool,
+    }
 
 
 class Steering(CyberComponentBase):
@@ -30,8 +28,6 @@ class Steering(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "has_aps": bool,
-        }
+    parameter_types = {
+        "has_aps": bool,
+    }

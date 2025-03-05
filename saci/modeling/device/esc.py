@@ -34,13 +34,11 @@ class ESCHigh(CyberComponentHigh):
         self.fault_detection_flag = fault_detection_flag
         self.overheat_protection_flag = overheat_protection_flag  # Detects overheating conditions.
 
-    @property
-    def parameter_types(self):
-        return {
-            "is_operational": bool,
-            "fault_detection_flag": bool,
-            "overheat_protection_flag": bool,
-        }
+    parameter_types = {
+        "is_operational": bool,
+        "fault_detection_flag": bool,
+        "overheat_protection_flag": bool,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
@@ -79,14 +77,12 @@ class ESCAlgorithmic(CyberComponentAlgorithmic):
             "power_efficiency": BVS("esc_power_efficiency", 64),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "efficiency_rating": float,
-            "response_time": int,
-            "power_consumption": float,
-            "PWM_signal_anomaly_flag": bool,
-        }
+    parameter_types = {
+        "efficiency_rating": float,
+        "response_time": int,
+        "power_consumption": float,
+        "PWM_signal_anomaly_flag": bool,
+    }
 
 
 # =================== Hardware Abstraction (Physical Layer) ===================

@@ -1,8 +1,9 @@
 from .component import ComponentBase, HardwareComponentBase, CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentSourceCode, CyberComponentBinary, CyberComponentBase
 from .telemetry import TelemetryHigh, TelemetryAlgorithmic, Telemetry
+from .componentid import ComponentID
+from .device import Device, DeviceFragment, IdentifiedComponent
 from .control.controller import Controller
 from .motor import *
-from .device import Device
 from .control.localizer import LocalizerHigh, LocalizerAlgorithmic
 from .sik_radio import SikRadio
 from .interface.wifi import Wifi

@@ -13,11 +13,9 @@ class DebugHigh(CyberComponentHigh):
         self.communication = communication
         self.protection = protection
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list,
-        }
+    parameter_types = {
+        "supported_protocols": list,
+    }
 
 
 class DebugAlgorithmic(CyberComponentAlgorithmic):
@@ -31,11 +29,9 @@ class DebugAlgorithmic(CyberComponentAlgorithmic):
         else:
             return False
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list,
-        }
+    parameter_types = {
+        "supported_protocols": list,
+    }
 
 
 class Debug(CyberComponentBase):
@@ -59,8 +55,6 @@ class Debug(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list,
-        }
+    parameter_types = {
+        "supported_protocols": list,
+    }

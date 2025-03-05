@@ -1,12 +1,11 @@
+from dataclasses import dataclass
 from typing import List
 
-from ..device import CyberComponentBase
+from ..device.componentid import ComponentID
+from ..device import ComponentBase
 
 
+@dataclass(frozen=True)
 class GlobalState:
-    def __init__(self, components: List[CyberComponentBase], time=0):
-        self.components = components
-        self.time = time
-
-    def copy(self):
-        return GlobalState(components=[comp.copy() for comp in self.components], time=self.time)
+    components: dict[ComponentID, ComponentBase]
+    time: int = 0

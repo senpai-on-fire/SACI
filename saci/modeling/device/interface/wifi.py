@@ -1,3 +1,5 @@
+from typing import Optional
+from saci.modeling.communication.protocol import WifiBProtocol, WifiGProtocol, WifiNProtocol
 from saci.modeling.device.component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -53,13 +55,13 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
 
     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols", "interference_level", "variables",)
 
-    def __init__(self, supported_protocols=None, interference_level=0, **kwargs):
+    def __init__(self, supported_protocols: Optional[list[type[BaseCommunication]]]=None, interference_level=0, **kwargs):
         """
         :param supported_protocols: List of supported WiFi protocols.
         :param interference_level: Simulated interference level (0 = no interference, 100 = max interference).
         """
         super().__init__(**kwargs)
-        self.supported_protocols = supported_protocols or ["802.11b", "802.11g", "802.11n"]
+        self.supported_protocols = supported_protocols or [WifiBProtocol, WifiGProtocol, WifiNProtocol]
         self.interference_level = interference_level
 
         # Symbolic execution variables for network behavior analysis
@@ -82,7 +84,7 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
 
 class Wifi(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS")
+    __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, supported_protocols=None, protection=None, encryption_type=None, **kwargs):
         super().__init__(**kwargs)
@@ -182,57 +184,3 @@ class WifiHardwareTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown WiFi technology: {technology}. Please add it to WifiHardwareTechnology.")
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-# from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-# from saci.modeling.communication import BaseCommunication
-
-
-# class WifiHigh(CyberComponentHigh):
-#     __slots__ = ("supported_protocols", "protection", "communication", "encryption_type")
-
-#     def __init__(self, supported_protocols=None, communication=None, protection=None, encryption_type=None, **kwargs):
-#         super().__init__(has_external_input=True, **kwargs)
-#         self.communication = communication
-#         self.encryption_type = encryption_type
-#         self.supported_protocols = supported_protocols
-#         self.protection = protection
-
-# class WifiAlgorithmic(CyberComponentAlgorithmic):
-
-#     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
-
-#     def __init__(self, supported_protocols=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.supported_protocols = supported_protocols
-
-#     def accepts_communication(self, communication: BaseCommunication) -> bool:
-#         # TODO: depends on the protocol
-#         if any(isinstance(communication, protocol) for protocol in self.supported_protocols):
-#             return True
-#         # TODO: depends on the protocol
-#         else:
-#             return False
-
-# class Wifi(CyberComponentBase):
-#     """
-#     This is the base class for all telemetry components.
-#     """
-
-#     __slots__ = ("ABSTRACTIONS", "has_external_input")
-
-#     def __init__(self, has_external_input=True, supported_protocols=None, protection=None, encryption_type=None, **kwargs):
-#         super().__init__(**kwargs)
-        
-#         self.has_external_input = has_external_input
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: WifiHigh(supported_protocols=supported_protocols, protection=protection, encryption_type=encryption_type),
-#             CyberAbstractionLevel.ALGORITHMIC: WifiAlgorithmic(supported_protocols=supported_protocols),
-#             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
-#             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-#         }

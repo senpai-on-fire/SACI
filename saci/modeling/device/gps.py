@@ -14,12 +14,10 @@ class GPSReceiverHigh(CyberComponentHigh):
         # TODO: replace when we have some way of handling state variables
         self.authenticated = authenticated
 
-    @property
-    def parameter_types(self):
-        return {
-            "signal_strength_threshold": float,
-            "supported_protocols": list, # TODO: obviously make this better
-        }
+    parameter_types = {
+        "signal_strength_threshold": float,
+        "supported_protocols": list, # TODO: obviously make this better
+    }
 
 class GPSReceiverAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
@@ -38,12 +36,10 @@ class GPSReceiverAlgorithmic(CyberComponentAlgorithmic):
                 return True
         return False
 
-    @property
-    def parameter_types(self):
-        return {
-            "signal_strength_threshold": float,
-            "supported_protocols": list, # TODO: obviously make this better
-        }
+    parameter_types = {
+        "signal_strength_threshold": float,
+        "supported_protocols": list, # TODO: obviously make this better
+    }
 
 class GPSReceiver(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS")
@@ -64,9 +60,7 @@ class GPSReceiver(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "signal_strength_threshold": float,
-            "supported_protocols": list, # TODO: obviously make this better
-        }
+    parameter_types = {
+        "signal_strength_threshold": float,
+        "supported_protocols": list, # TODO: obviously make this better
+    }

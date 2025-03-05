@@ -11,7 +11,7 @@ class CyberComponentBinary(CyberComponentBase):
 
     def __init__(
         self,
-        binary_path: Path = None,
+        binary_path: Optional[Path] = None,
         pc: Optional[int] = None,
         abstraction=CyberAbstractionLevel.BINARY,
         **kwargs,

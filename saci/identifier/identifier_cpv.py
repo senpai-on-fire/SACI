@@ -1,34 +1,28 @@
-import json
-import os
-import queue
-from typing import List, Optional, Dict, Type, Any
-from pathlib import Path
+from dataclasses import dataclass
+from typing import TypeVar
 
 from saci.modeling import Device, CPV, ComponentBase
+from saci.modeling.device.device import IdentifiedComponent, ComponentID
 from saci.modeling.state import GlobalState
-from saci.atoms import Atoms
-
-def get_next_components(component: ComponentBase, components: List[ComponentBase], device: Device) -> List[ComponentBase]:
-    graph = device.component_graph
-    
-    # Get outgoing neighbors directly
-    return [neighbor for neighbor in graph.successors(component) if neighbor in components]
 
 
+
+def get_next_components(component_id: ComponentID, device: Device) -> list[ComponentID]:
+    return list(device.component_graph.successors(component_id))
 
 class IdentifierCPV:
     def __init__(self, device: Device, initial_state: GlobalState):
         self.device = device
         self.initial_state = initial_state
 
-    def identify(self, cpv: CPV) -> List[List[ComponentBase]]:
+    def identify(self, cpv: CPV) -> list[list[IdentifiedComponent]]:
         # Get the starting locations (components with external input)
-        starting_locations = [
-            c for c, is_entry in self.device.component_graph.nodes(data="is_entry", default=False)
-            if is_entry or c.has_external_input
+        starting_locations: list[ComponentID] = [
+            c for c, is_entry in self.device.component_graph.nodes(data="is_entry", default=False) # type: ignore
+            if is_entry
         ]
 
-        cpv_paths = []
+        cpv_paths: list[list[ComponentID]] = []
 
         # CPV Path identification
         for start in starting_locations:
@@ -38,7 +32,7 @@ class IdentifierCPV:
                 vertex, path = stack.pop()
 
                 # Get the correct neighbors using the fixed function
-                neighbors = get_next_components(vertex, self.initial_state.components, self.device)
+                neighbors = get_next_components(vertex, self.device)
 
                 for neighbor in neighbors:
                     if neighbor not in path:  # Avoid cycles in the current path
@@ -46,13 +40,7 @@ class IdentifierCPV:
                         stack.append((neighbor, new_path))
 
                 # If the current path is valid, add it to the result
-                if cpv.is_possible_path(path):
+                if cpv.is_possible_path([self.device.components[comp_id] for comp_id in path]):
                     cpv_paths.append(path)
 
-        return cpv_paths
-
-
-    def _parse_result(self, result):
-        if result["Request Result"] == "Fail":
-            for role in result['Tasks']:
-                self.workers[role].input_queue.put(result['Tasks']['TA3'])
+        return [[IdentifiedComponent.from_id(self.device, comp_id) for comp_id in path] for path in cpv_paths]

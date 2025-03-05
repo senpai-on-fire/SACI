@@ -14,11 +14,9 @@ class SerialHigh(CyberComponentHigh):
         self.communication = communication
         self.protection = protection
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": bool,
-        }
+    parameter_types = {
+        "supported_protocols": bool,
+    }
 
 
 class SerialAlgorithmic(CyberComponentAlgorithmic):
@@ -30,11 +28,9 @@ class SerialAlgorithmic(CyberComponentAlgorithmic):
         else:
             return False
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": bool,
-        }
+    parameter_types = {
+        "supported_protocols": bool,
+    }
 
 
 class Serial(CyberComponentBase):
@@ -54,8 +50,6 @@ class Serial(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": bool,
-        }
+    parameter_types = {
+        "supported_protocols": bool,
+    }

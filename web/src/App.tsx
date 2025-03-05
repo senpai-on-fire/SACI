@@ -1,8 +1,9 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
+import { ReactFlow, Background, Panel, PanelPosition } from '@xyflow/react';
 import useSWR from 'swr';
 import ELK from 'elkjs/lib/elk-api';
 import { VncScreen } from 'react-vnc';
+import { Maximize2, Minimize2 } from 'react-feather';
  
 import './App.css';
 import '@xyflow/react/dist/style.css';
@@ -14,7 +15,7 @@ const elk = new ELK({
 
 type Component = {
   name: string,
-  parameters?: {[name: string]: any},
+  parameters?: {[name: string]: string | number | boolean | null},
 };
 
 type Device = {
@@ -24,7 +25,7 @@ type Device = {
 };
 
 class FetchError extends Error {
-  info: any;
+  info: unknown;
   status?: number;
 }
 
@@ -49,11 +50,19 @@ function Hypothesis({hypothesis}) {
 }
  */
 
+type ActiveCPV = {
+  deviceName: string;
+  index: number;
+  path: string[];
+} | undefined;
+
 type HighlightProps = {
   entry?: string | null,
   exit?: string | null,
   involved?: string[] | null,
+  activePath?: string[],
 };
+
 type FlowProps = {
   device?: Device,
   onComponentClick?: (componentName: string) => void,
@@ -111,7 +120,7 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
       });
   }, [device]);
 
-  let statusPanel, nodes, edges: {id: string, source: string, target: string}[];
+  let statusPanel, nodes, edges: {id: string, source: string, target: string, animated?: boolean, style?: React.CSSProperties}[];
   if (state.state === "laying") {
     statusPanel = <Panel position="bottom-right">laying out the graph...</Panel>;
     nodes = edges = [];
@@ -124,28 +133,41 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
   } else if (device && Object.is(device, state.forDevice)) {
     statusPanel = <> </>;
     nodes = Object.entries(device.components).map(([compId, comp]) => {
-      let className;
+      let className = '';
       if (compId === highlights?.entry) {
         className = "!border-green-500";
       } else if (compId === highlights?.exit) {
         className = "!border-red-500";
-      } else if (!highlights?.involved || highlights?.involved?.includes(compId)) {
-        className = "";
-      } else {
-        className = "!border-neutral-300 !text-neutral-300";
+      } else if (highlights?.involved?.includes(compId)) {
+        className = "!border-yellow-500";
+      } else if (highlights?.activePath?.includes(compId)) {
+        className = "!border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
       }
+      
+      const position = state.compLayout[compId];
       return {
         id: compId,
         data: {label: comp.name},
-        position: state.compLayout[compId],
+        position,
         className,
       };
     });
-    edges = device.connections.map(([source, target]) => ({
-      id: `${source}-${target}`,
-      source,
-      target,
-    }));
+
+    edges = [];
+    for (const [from, to] of device.connections) {
+      const isAnimated = highlights?.activePath && 
+                        highlights.activePath.length > 1 && 
+                        highlights.activePath.indexOf(from) !== -1 && 
+                        highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
+                        
+      edges.push({
+        id: `${from}-${to}`,
+        source: from,
+        target: to,
+        animated: isAnimated,
+        style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
+      });
+    }
   } else {
     statusPanel = <> </>;
     // wait for the nodevice state to take hold...
@@ -161,7 +183,6 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
       edges={edges}
     >
       <Background />
-      <Controls />
       {children}
       {statusPanel}
     </ReactFlow>
@@ -413,6 +434,111 @@ function HypothesisPanel({bpId, device, hypothesis, ...analysesProps}: Hypothesi
   </>;
 }
 
+type CPVResult = {
+  cpv: {
+    name: string, 
+    exploit_steps: string[]
+  },
+  path: {path: string[]},
+};
+
+function renderCPVs(
+  device: Device, 
+  cpvs: CPVResult[], 
+  activeCPV: ActiveCPV, 
+  onCPVClick: (cpv: ActiveCPV) => void
+) {
+  const cpvItems = cpvs.map(({cpv: {name, exploit_steps}, path: {path}}, i) => {
+    const isActive = activeCPV && 
+                     activeCPV.deviceName === device.name && 
+                     activeCPV.index === i;
+    
+    return (
+      <li 
+        key={i} 
+        className={`cursor-pointer hover:text-indigo-600 transition-colors px-2 py-1 rounded ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}
+        onClick={() => {
+          if (isActive) {
+            onCPVClick(undefined);
+          } else {
+            onCPVClick({
+              deviceName: device.name,
+              index: i,
+              path: path
+            });
+          }
+        }}
+      >
+        <div className="font-medium">{name}</div>
+        {isActive && (
+          <>
+            {exploit_steps && exploit_steps.length > 0 && (
+              <div className="ml-2 mt-2">
+                <div className="text-sm">Exploit Steps:</div>
+                <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 mt-1">
+                  {exploit_steps.map((step, idx) => (
+                    <li key={idx} className="mb-1">{step}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </>
+        )}
+      </li>
+    );
+  });
+  return <ul>{cpvItems}</ul>;
+}
+
+function CPVsPanel({
+  bpId, 
+  device, 
+  position, 
+  activeCPV, 
+  onActiveCPVChange
+}: {
+  bpId: string | null, 
+  device: Device | null, 
+  position?: PanelPosition,
+  activeCPV: ActiveCPV,
+  onActiveCPVChange: (cpv: ActiveCPV) => void
+}) {
+  // Define hook at the top level, even if we might not use the data
+  const { data, error, isLoading } = useSWR(
+    bpId !== null ? `/api/blueprints/${bpId}/cpvs` : null, 
+    fetcher
+  );
+
+  if (bpId === null || device === null) {
+    return <> </>;
+  }
+
+  let panelInner;
+  if (error) {
+    panelInner = <div>Error loading CPVs: {error}</div>;
+  } else if (isLoading) {
+    panelInner = <div>Loading applicable CPVs...</div>;
+  } else if (data) {
+    panelInner = renderCPVs(device, data as CPVResult[], activeCPV, onActiveCPVChange);
+  } else {
+    panelInner = <div>No data available</div>;
+  }
+
+  return (
+    <Panel 
+      className="bg-white dark:bg-neutral-900 border-2 border-indigo-600 rounded max-w-md" 
+      position={position}
+    >
+      <div className="flex flex-col max-h-[90vh] overflow-auto">
+        <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 pb-0 z-10">CPVs</h3>
+        <div className="p-2 pt-0">
+          {panelInner}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function App() {
   const { data: devices } = useSWR("/api/blueprints", fetcher);
 
@@ -423,7 +549,7 @@ function App() {
     if (!bpId && bpIds.length > 0) {
       setBpId(bpIds[0]);
     }
-  }, [devices]);
+  }, [devices, bpId]);
   const device = devices && bpId ? devices[bpId] : null;
 
   const [hypId, setHypId] = useState<HypothesisId | null>(null);
@@ -439,6 +565,11 @@ function App() {
     <AnalysisPanel name={showingAnalysis.name} app={showingAnalysis.app} onClose={() => setShowingAnalysis(null)} /> :
     <> </>;
 
+  // Add panel minimization state
+  const [panelMinimized, setPanelMinimized] = useState(true);
+
+  // Add activeCPV state
+  const [activeCPV, setActiveCPV] = useState<ActiveCPV>(undefined);
 
   let panelInner = null;
   if (bpId && device) {
@@ -464,16 +595,48 @@ function App() {
       panelInner = <Analyses {...analysesProps} />;
     }
   }
-  const panel = panelInner ?
-    <Panel className="bg-white dark:bg-neutral-900 p-4 max-w-md border-2 border-indigo-600 rounded" position="bottom-right">
-      {panelInner}
-    </Panel> :
-    <> </>;
+  
+  // Modified panel with minimization controls
+  const panel = panelInner ? (
+    <Panel 
+      className="bg-white dark:bg-neutral-900 border-2 p-4 border-indigo-600 rounded overflow-hidden" 
+      position="bottom-left"
+      style={{
+        maxHeight: panelMinimized ? 'auto' : '400px',
+        maxWidth: 'md',
+        transition: 'all 0.3s ease'
+      }}
+    >
+      <div className="float-right cursor-pointer"
+           onClick={() => setPanelMinimized(!panelMinimized)}>
+        {panelMinimized ? 
+          <Maximize2 className="text-indigo-600 ml-auto" size={20} /> : 
+          <Minimize2 className="text-indigo-600 ml-auto" size={20} />
+        }
+      </div>
+      {!panelMinimized && (
+        <div className="max-h-80 overflow-auto">
+          {panelInner}
+        </div>
+      )}
+    </Panel>
+  ) : (
+    <> </>
+  );
+
+  const cpvsPanel = <CPVsPanel 
+    bpId={bpId} 
+    device={device} 
+    position="top-right" 
+    activeCPV={activeCPV}
+    onActiveCPVChange={setActiveCPV}
+  />;
 
   const highlights = {
     entry: hypothesis?.entry_component,
     exit: hypothesis?.exit_component,
     involved: hoveringAnalysis?.components_included,
+    activePath: activeCPV?.path,
   };
 
   return (
@@ -491,6 +654,7 @@ function App() {
           </Panel>
           {panel}
           {analysisPanel}
+          {cpvsPanel}
         </Flow>
       </div>
     </>

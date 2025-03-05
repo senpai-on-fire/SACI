@@ -13,13 +13,11 @@ class WifiHigh(CyberComponentHigh):
         super().__init__(**kwargs)
         self.communication = communication
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list,
-            "protection": str,
-            "encryption_type": str,
-        }
+    parameter_types = {
+        "supported_protocols": list,
+        "protection": str,
+        "encryption_type": str,
+    }
 
 class WifiAlgorithmic(CyberComponentAlgorithmic):
 
@@ -33,11 +31,9 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
         else:
             return False
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list,
-        }
+    parameter_types = {
+        "supported_protocols": list,
+    }
 
 class Wifi(CyberComponentBase):
     """
@@ -61,10 +57,8 @@ class Wifi(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "supported_protocols": list,
-            "protection": str,
-            "encryption_type": str,
-        }
+    parameter_types = {
+        "supported_protocols": list,
+        "protection": str,
+        "encryption_type": str,
+    }

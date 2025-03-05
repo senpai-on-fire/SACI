@@ -1,0 +1,136 @@
+# Create the saci namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saci
+---
+# ServiceAccount to be used by app-controller
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-controller
+  namespace: saci
+---
+# Role for app-controller
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: app-controller
+  namespace: saci
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["*"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["*"]
+---
+# RoleBinding to grant app-controller role perms to app-controller ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: app-controller
+  namespace: saci
+subjects:
+  - kind: ServiceAccount
+    name: app-controller
+roleRef:
+  kind: Role
+  name: app-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+# Service to expose app-controller
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-controller
+  namespace: saci
+spec:
+  selector:
+    app: app-controller
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+---
+# Actual app-controller deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-controller
+  namespace: saci
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-controller
+  template:
+    metadata:
+      labels:
+        app: app-controller
+    spec:
+      containers:
+        - name: app-controller
+          image: ghcr.io/twizmwazin/app-controller/app-controller:latest
+          ports:
+            - containerPort: 3000
+      serviceAccountName: app-controller
+---
+# Service to expose SACI
+apiVersion: v1
+kind: Service
+metadata:
+  name: saci
+  namespace: saci
+spec:
+  selector:
+    app: saci
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
+---
+# SACI deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saci
+  namespace: saci
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saci
+  template:
+    metadata:
+      labels:
+        app: saci
+    spec:
+      containers:
+        - name: saci
+          image: ghcr.io/senpai-on-fire/saci/saci:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: APP_CONTROLLER_URL
+              value: http://app-controller.saci.svc.cluster.local
+---
+# Ingress to expose saci
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: saci-ingress
+  namespace: saci
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: saci
+                port:
+                  number: 80

@@ -193,6 +193,8 @@ class Deserializer:
 def port_name_to_attr(port_name: str) -> str:
     name_parts = port_name.split(" ")
     attr = "_".join(part.lower() for part in name_parts)
+    if attr[0].isdigit():
+        attr = "N" + attr
     if not attr.isidentifier():
         raise ValueError(f"Couldn't convert port name {port_name!r} to valid attribute name")
     return attr
@@ -247,7 +249,7 @@ class {{ device_path.class_name }}(saci.modeling.Device):
     def __init__(self, state=None):
         components = []
         {% for comp_name, comp_path in components.items() %}
-        {{ comp_path.attr_name }} = {{ comp_path.qualified_class_name }}(name={{ comp_name | repr }})
+        {{ comp_path.attr_name }} = {{ comp_path.class_name }}(name={{ comp_name | repr }})
         components.append({{ comp_path.attr_name }})
         {% endfor %}
 

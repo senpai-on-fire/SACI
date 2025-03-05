@@ -78,7 +78,7 @@ class SerialAlgorithmic(CyberComponentAlgorithmic):
 
 class Serial(CyberComponentBase):
 
-    __slots__ = ("ABSTRACTIONS", "supported_protocols")
+    __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, supported_protocols=None, protection=None, baud_rate=115200, **kwargs):
         super().__init__(**kwargs)

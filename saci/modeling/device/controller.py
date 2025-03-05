@@ -19,12 +19,10 @@ class ControllerHigh(CyberComponentHigh):
         self.operating_mode = operating_mode
         self.in_failsafe_mode = in_failsafe_mode
 
-    @property
-    def parameter_types(self):
-        return {
-            # TODO: How do we know if the controller has integrity check?
-            "has_integrity_check": bool,
-        }
+    parameter_types = {
+        # TODO: How do we know if the controller has integrity check?
+        "has_integrity_check": bool,
+    }
 
 
 class Controller(CyberComponentBase):
@@ -34,10 +32,8 @@ class Controller(CyberComponentBase):
             CyberAbstractionLevel.HIGH: ControllerHigh(),
         }
 
-    @property
-    def parameter_types(self):
-        # TODO: dedup this with the abstracted version; perhaps this can happen automatically once we 
-        return {
-            # TODO: How do we know if the controller has integrity check?
-            "has_integrity_check": bool,
-        }
+    # TODO: dedup this with the abstracted version; perhaps this can happen automatically once we 
+    parameter_types = {
+        # TODO: How do we know if the controller has integrity check?
+        "has_integrity_check": bool,
+    }

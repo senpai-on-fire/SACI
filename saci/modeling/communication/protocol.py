@@ -88,3 +88,18 @@ class TelemetryProtocol(UnauthenticatedCommunication):
 class NMEA0183Protocol(UnauthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):
         super().__init__(src=src, dst=dst, data=data)
+
+
+class WifiBProtocol(UnauthenticatedCommunication):
+    # 802.11b
+    pass
+
+
+class WifiGProtocol(UnauthenticatedCommunication):
+    # 802.11g
+    pass
+
+
+class WifiNProtocol(UnauthenticatedCommunication):
+    # 802.11n
+    pass

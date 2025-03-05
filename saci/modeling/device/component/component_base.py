@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Optional, Tuple, List, TypeAlias
+from typing import Any, Optional, Tuple, List, TypeAlias, Type
 from dataclasses import dataclass
 
 from saci.modeling.communication.base_comm import BaseCommunication
@@ -66,7 +66,7 @@ class ComponentBase:
             self,
             name: Optional[str] = None,
             _type=None,
-            parameters: Optional[dict[str, object]] = None,
+            parameters: Optional[dict[str, Any]] = None,
             ports: Optional[dict[str, Port]] = None,
     ):
         self.name = name or self.__class__.__name__
@@ -81,9 +81,7 @@ class ComponentBase:
         else:
             return self.name
 
-    @property
-    def parameter_types(self) -> dict[str, type]:
-        return {}
+    parameter_types: dict[str, Type] = {}
 
     def check_parameter_types(self):
         for param_name, param_value in self.parameters.items():
@@ -96,39 +94,3 @@ class ComponentBase:
     def has_external_input(self) -> bool:
         # TODO: remove this, this is just a temporary hack while other code still depend on has_external_input
         return any(port.direction in (PortDirection.IN, PortDirection.INOUT) for port in self.ports.values())
-
-    #
-    # Simulation Useful Functions
-    #
-
-    def state_update(self, source: "ComponentBase", data: BaseCommunication) -> List["ComponentBase"]:
-        """
-        A State Update function describes how a component's state changes when it receives data from another component.
-        Given a source component and data, the function should return a new component (of the same type as self) with
-        the updated state.
-
-        :param source:
-        :param data:
-        :return:
-        """
-        raise NotImplementedError
-
-    def inverse_state_update(self, state: "CyberComponentBase") -> List[Tuple["CyberComponentBase", BaseCommunication]]:
-        """
-        An Inverse State Update function describes what possible inputs could have caused the provided state.
-        The possible inputs are a list of
-
-        :param state:
-        :return:
-        """
-        raise NotImplementedError
-
-    def copy(self) -> "ComponentBase":
-        """
-        Copy the component
-        """
-        new_comp = self.__class__()
-        for attr in self.__slots__:
-            setattr(new_comp, attr.copy() if attr else None, getattr(self, attr))
-
-        return new_comp

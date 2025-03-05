@@ -39,19 +39,17 @@ class LocalizerHigh(CyberComponentHigh):
             "imu_drift_error": claripy.BVS("imu_drift_error", 32),  # IMU drift error
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "enabled": bool,
-            "localization_mode": str,
-        }
+    parameter_types = {
+        "enabled": bool,
+        "localization_mode": str,
+    }
 
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
 class LocalizerAlgorithmic(CyberComponentAlgorithmic):
 
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("sensor_fusion_enabled", "fault_tolerance" "variables",)
+    __slots__ = CyberComponentAlgorithmic.__slots__ + ("sensor_fusion_enabled", "fault_tolerance", "variables",)
 
     def __init__(self, sensor_fusion_enabled=True, fault_tolerance=True, **kwargs):
         """
@@ -78,14 +76,13 @@ class LocalizerAlgorithmic(CyberComponentAlgorithmic):
             return False
 
         # Check if at least one component provides valid localization data
-        return any(component.ABSTRACTIONS.get(CyberComponentHigh) for component in localization_components)
+        # TODO: fix once we have a new abstractions mechanism
+        return True
 
-    @property
-    def parameter_types(self):
-        return {
-            "sensor_fusion_enabled": bool,
-            "fault_tolerance": bool,
-        }
+    parameter_types = {
+        "sensor_fusion_enabled": bool,
+        "fault_tolerance": bool,
+    }
 
 
 # =================== Full CPS Localizer Model Abstraction (Cyber) ===================
@@ -119,14 +116,12 @@ class Localizer(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    @property
-    def parameter_types(self):
-        return {
-            "enabled": bool,
-            "localization_mode": str,
-            "sensor_fusion_enabled": bool,
-            "fault_tolerance": bool,
-        }
+    parameter_types = {
+        "enabled": bool,
+        "localization_mode": str,
+        "sensor_fusion_enabled": bool,
+        "fault_tolerance": bool,
+    }
 
 
 ######################################################    OLD VERSION    ########################################################################
