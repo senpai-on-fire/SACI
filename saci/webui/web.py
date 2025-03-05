@@ -19,7 +19,8 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, Field
+from sqlmodel import SQLModel
 from saci.modeling.cpv import CPV
 from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
@@ -54,11 +55,11 @@ async def serve_frontend_root():
 
 ### Endpoints for blueprint management
 
-class ComponentModel(SQLModel, table=True):
+class ComponentModel(BaseModel):
     name: str
     parameters: dict[str, object]
 
-def component_to_model(comp: ComponentBase, table=True) -> ComponentModel:
+def component_to_model(comp: ComponentBase) -> ComponentModel:
     return ComponentModel(
         name=comp.name,
         parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
@@ -121,7 +122,7 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
 
     return {}
 
-class CPVModel(SQLModel, table=True):
+class CPVModel(BaseModel):
     name: str
     exploit_steps: list[str]
 
@@ -134,13 +135,13 @@ def cpv_to_model(cpv: CPV) -> CPVModel:
         exploit_steps=exploit_steps
     )
 
-class CPVPathModel(SQLModel, table=True):
+class CPVPathModel(BaseModel):
     path: list[ComponentID]
 
 def cpv_path_to_model(path: CPVPath) -> CPVPathModel:
     return CPVPathModel(path=[c.id_ for c in path.path])
 
-class CPVResultModel(SQLModel, table=True):
+class CPVResultModel(BaseModel):
     cpv: CPVModel
     path: CPVPathModel
 
@@ -165,14 +166,14 @@ T = TypeVar('T')
 def _all_subclasses(c: type[T]) -> list[type[T]]:
     return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
 
-class ParameterTypeModel(SQLModel, table=True):
-    type_: Annotated[str, Field(alias="type")]
+class ParameterTypeModel(BaseModel):
+    type_: Annotated[str, Field(serialization_alias="type")]
     description: str
 
-class PortModel(SQLModel, table=True):
+class PortModel(BaseModel):
     direction: str
 
-class ComponentTypeModel(SQLModel, table=True):
+class ComponentTypeModel(BaseModel):
     name: str # human-readable name
     parameters: dict[str, ParameterTypeModel]
     ports: dict[str, PortModel]
@@ -246,7 +247,7 @@ try:
 except httpx.ConnectError:
     l.warning("can't connect to app-controller, is it up and the URL configured correctly?")
 
-class AnalysisUserInfo(SQLModel, table=True):
+class AnalysisUserInfo(BaseModel):
     """User-level metadata associated with an analysis type the user can run."""
     name: str
     components_included: list[ComponentID] = Field(default_factory=list)
