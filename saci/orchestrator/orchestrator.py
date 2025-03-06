@@ -1,14 +1,15 @@
 from time import sleep
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 
 from saci_db.cpvs import *
 
-from saci_db.devices.ngcrover import NGCRover
+from saci.modeling.device.device import Device
 from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
 from saci_db.devices.gs_quadcopter import GSQuadcopter
 
 from saci.modeling.cpv import CPV
+from saci.modeling.vulnerability import BaseVulnerability
 from saci.modeling.state import GlobalState
 from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
@@ -17,14 +18,15 @@ from saci.identifier import IdentifierCPV
 from saci.orchestrator.cpv_definitions import CPVS as cpv_database
 
 import logging
+
 l = logging.getLogger(__name__)
 
-def identify(cps, initial_state, cpv_model: CPV) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
+def identify(cps: Device, initial_state, cpv_model: CPV, vulns: Sequence[BaseVulnerability] | None = None) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
     """
     Identify if the given CPV model may exist in the CPS model.
     Return a CPV description if it exists, otherwise return None.
     """
-    identifier = IdentifierCPV(cps, initial_state)
+    identifier = IdentifierCPV(cps, initial_state, vulns=vulns)
     to_return = []
     for path in identifier.identify(cpv_model):
         to_return.append(CPVPath(path, Behaviors([])))
@@ -53,7 +55,7 @@ def process(cps, database, initial_state):
     return cpv_inputs
 
 def main():
-
+    from saci_db.devices.ngcrover import NGCRover
     # input: the CPS model
     
     #cps = PX4Quadcopter()
