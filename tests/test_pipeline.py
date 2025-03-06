@@ -156,5 +156,26 @@ class TestPipeline(unittest.TestCase):
             "Wifi auth vuln did not apply the expected effect despite indicating existence.",
         )
 
+        # Make sure the CPV-based identifier is applying component vulnerabilities' effects
+        initial_state = GlobalState(cps.components)
+        cpv = WifiWebCrashCPV()
+        _, cpv_paths_without_vulns = identify(cps, initial_state, cpv_model=cpv, vulns=[])
+        self.assertIn(
+            cpv_paths_without_vulns,
+            (None, []),
+            "Shouldn't be able to find a wifi-based CPV when the wifi module isn't an entry point"
+        )
+        vulns = [wifi_auth_vuln]
+        _, cpv_paths_with_vulns = identify(cps, initial_state, cpv_model=cpv, vulns=vulns)
+        self.assertIsNotNone(
+            cpv_paths_with_vulns,
+            "Should find a wifi-based CPV when the wifi auth vuln adds wifi as an entry point"
+        )
+        self.assertGreater(
+            len(cpv_paths_with_vulns), # type: ignore
+            0,
+            "Should find a wifi-based CPV when the wifi auth vuln adds wifi as an entry point"
+        )
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)
