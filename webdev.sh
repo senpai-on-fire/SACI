@@ -16,10 +16,8 @@ echo "=============================================================="
 cd web
 
 # Check if node_modules exists, if not run npm install
-if [ ! -d "node_modules" ]; then
-    echo "Installing npm dependencies..."
-    npm install
-fi
+echo "Installing npm dependencies..."
+npm install
 
 # Build static assets for FastAPI to serve
 echo "Building static assets..."
