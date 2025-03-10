@@ -56,12 +56,12 @@ async def serve_frontend_root():
 
 class ComponentModel(BaseModel):
     name: str
-    parameters: dict[str, object]
+    parameters: dict[str, str]
 
 def component_to_model(comp: ComponentBase) -> ComponentModel:
     return ComponentModel(
         name=comp.name,
-        parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
+        parameters={param_name: str(param_value) for param_name, param_value in comp.parameters.items()},
     )
 
 class HypothesisModel(BaseModel):
