@@ -5,23 +5,16 @@ import asyncio
 import logging
 import uuid
 
-import json
-import time
 import importlib
-from io import StringIO
 from pathlib import Path
 import os
-from typing import Annotated, Optional, TypeVar
+from typing import TypeVar
 
 import httpx
 
-# from flask import Flask, render_template, send_file, request, abort
-from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect, status
+from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
-from saci.modeling.cpv import CPV
-from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
@@ -34,10 +27,11 @@ from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.webserver import WebServer
 from saci.modeling.state.global_state import GlobalState
 from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
+from saci.webui.web_models import AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel
 
 from ..orchestrator import identify
 from ..deserializer import ingest
-from ..modeling import Device, ComponentBase
+from ..modeling import Device
 from ..modeling.device import Wifi, Motor, GPSReceiver
 
 l = logging.getLogger(__name__)
@@ -56,64 +50,13 @@ async def serve_frontend_root():
 
 ### Endpoints for blueprint management
 
-class ComponentModel(BaseModel):
-    name: str
-    parameters: dict[str, str]
-
-def component_to_model(comp: ComponentBase) -> ComponentModel:
-    return ComponentModel(
-        name=comp.name,
-        parameters={param_name: str(param_value) for param_name, param_value in comp.parameters.items()},
-    )
-
-class HypothesisModel(BaseModel):
-    name: str
-    entry_component: Optional[ComponentID]
-    exit_component: Optional[ComponentID]
-
-HypothesisID = str
-
-class AnnotationModel(BaseModel):
-    attack_surface: ComponentID
-    effect: str # TODO: add an EffectModel to capture the actual semantic data associated with a VulnerabilityEffect
-    attack_model: str | None
-
-def annotation_to_model(annot: Annotation) -> AnnotationModel:
-    return AnnotationModel(
-        attack_surface=annot.attack_surface,
-        effect=annot.effect.reason,
-        attack_model=annot.attack_model,
-    )
-
-AnnotationID = str
-
-class DeviceModel(BaseModel):
-    name: str
-    components: dict[ComponentID, ComponentModel]
-    connections: list[tuple[ComponentID, ComponentID]]
-    hypotheses: dict[HypothesisID, HypothesisModel]
-    annotations: dict[AnnotationID, AnnotationModel]
-
-def blueprint_to_model(
-        bp: Device,
-        hypotheses: dict[HypothesisID, HypothesisModel],
-        annotations: dict[AnnotationID, Annotation]
-) -> DeviceModel:
-    return DeviceModel(
-        name=bp.name,
-        components={comp_id: component_to_model(comp) for comp_id, comp in bp.components.items()},
-        connections=[(from_, to_) for (from_, to_) in bp.component_graph.edges],
-        hypotheses=hypotheses,
-        annotations={annot_id: annotation_to_model(annot) for annot_id, annot in annotations.items()},
-    )
-
-BlueprintID = str
 
 @app.get('/api/blueprints')
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
     # TODO: store the hypotheses per-blueprint
-    return {bp_id: blueprint_to_model(bp, hypotheses[bp_id], annotations[bp_id]) for bp_id, bp in blueprints.items()}
+    return {bp_id: DeviceModel.from_device(bp, hypotheses[bp_id], annotations[bp_id]) for bp_id, bp in blueprints.items()}
+
 
 @app.post("/api/blueprints/{bp_id}")
 def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response):
@@ -137,19 +80,12 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
     # TODO: probably don't need to reload *all* the ingested modules
     importlib.reload(ingested)
     blueprints[bp_id] = ingested.devices[bp_id]
-    
+
     if created:
         response.status_code = status.HTTP_201_CREATED
 
     return {}
 
-def model_to_annotation(annot_model: AnnotationModel) -> Annotation:
-    return Annotation(
-        attack_surface=annot_model.attack_surface,
-        effect=VulnerabilityEffect(reason=annot_model.effect),
-        attack_model=annot_model.attack_model,
-        underlying_vulnerability=None,
-    )
 
 @app.post("/api/blueprints/{bp_id}/annotation")
 def create_annotation(bp_id: str, annot_model: AnnotationModel) -> AnnotationID:
@@ -161,35 +97,10 @@ def create_annotation(bp_id: str, annot_model: AnnotationModel) -> AnnotationID:
     while annot_id in annotations[bp_id]:
         annot_id = str(uuid.uuid4())
 
-    annotations[bp_id][annot_id] = model_to_annotation(annot_model)
+    annotations[bp_id][annot_id] = annot_model.to_annotation()
 
     return annot_id
 
-class CPVModel(BaseModel):
-    name: str
-    exploit_steps: list[str]
-
-def cpv_to_model(cpv: CPV) -> CPVModel:
-    # Extract exploit steps if available, or use empty list as fallback
-    exploit_steps = cpv.exploit_steps if hasattr(cpv, 'exploit_steps') else []
-    
-    return CPVModel(
-        name=cpv.NAME,
-        exploit_steps=exploit_steps
-    )
-
-class CPVPathModel(BaseModel):
-    path: list[ComponentID]
-
-def cpv_path_to_model(path: CPVPath) -> CPVPathModel:
-    return CPVPathModel(path=[c.id_ for c in path.path])
-
-class CPVResultModel(BaseModel):
-    cpv: CPVModel
-    path: CPVPathModel
-
-def cpv_result_to_model(cpv: CPV, path: CPVPath) -> CPVResultModel:
-    return CPVResultModel(cpv=cpv_to_model(cpv), path=cpv_path_to_model(path))
 
 @app.get("/api/blueprints/{bp_id}/cpvs")
 def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
@@ -199,7 +110,7 @@ def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
     # TODO: re-introduce the queueing model once this takes more time
     initial_state = GlobalState(blueprint.components)
     return [
-        cpv_result_to_model(cpv, path)
+        CPVResultModel.from_cpv_result(cpv, path)
         for cpv in CPVS
         if (paths := identify(blueprint, initial_state, cpv_model=cpv)[1]) is not None
         for path in paths
@@ -209,19 +120,7 @@ T = TypeVar('T')
 def _all_subclasses(c: type[T]) -> list[type[T]]:
     return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
 
-class ParameterTypeModel(BaseModel):
-    type_: Annotated[str, Field(serialization_alias="type")]
-    description: str
 
-class PortModel(BaseModel):
-    direction: str
-
-class ComponentTypeModel(BaseModel):
-    name: str # human-readable name
-    parameters: dict[str, ParameterTypeModel]
-    ports: dict[str, PortModel]
-
-ComponentTypeID = str
 def component_type_id(comp_type: type[ComponentBase]) -> str:
     return f"{comp_type.__module__}.{comp_type.__qualname__}"
 
@@ -290,10 +189,6 @@ try:
 except httpx.ConnectError:
     l.warning("can't connect to app-controller, is it up and the URL configured correctly?")
 
-class AnalysisUserInfo(BaseModel):
-    """User-level metadata associated with an analysis type the user can run."""
-    name: str
-    components_included: list[ComponentID] = Field(default_factory=list)
 
 class InteractionModel(StrEnum):
     UNKNOWN = "Unknown"
