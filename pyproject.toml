@@ -22,8 +22,7 @@ dependencies = [
     "fastapi[standard]",
     "httpx",
     "matplotlib",
-    "saci_db",
-    "sqlmodel>=0.0.23",
+    "saci_db"
 ]
 dynamic = ["version"]
 

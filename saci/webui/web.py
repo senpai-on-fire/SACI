@@ -20,7 +20,6 @@ from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket,
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
-from sqlmodel import SQLModel
 from saci.modeling.cpv import CPV
 from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
@@ -65,14 +64,14 @@ def component_to_model(comp: ComponentBase) -> ComponentModel:
         parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
     )
 
-class HypothesisModel(SQLModel, table=True):
+class HypothesisModel(BaseModel):
     name: str
     entry_component: Optional[ComponentID]
     exit_component: Optional[ComponentID]
 
 HypothesisID = str
 
-class DeviceModel(SQLModel, table=True):
+class DeviceModel(BaseModel):
     name: str
     components: dict[ComponentID, ComponentModel]
     connections: list[tuple[ComponentID, ComponentID]]
