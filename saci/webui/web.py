@@ -1,9 +1,9 @@
-from __future__ import annotations
 from dataclasses import dataclass
 from collections import defaultdict
 from enum import StrEnum
 import asyncio
 import logging
+import uuid
 
 import json
 import time
@@ -25,6 +25,7 @@ from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
+from saci.modeling.annotation import Annotation
 from saci.modeling.device import ComponentID, ComponentBase
 from saci.modeling.device.control.controller import Controller
 from saci.modeling.device.sensor.compass import CompassSensor
@@ -32,6 +33,7 @@ from saci.modeling.device.esc import ESC
 from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.webserver import WebServer
 from saci.modeling.state.global_state import GlobalState
+from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
 
 from ..orchestrator import identify
 from ..deserializer import ingest
@@ -71,18 +73,38 @@ class HypothesisModel(BaseModel):
 
 HypothesisID = str
 
+class AnnotationModel(BaseModel):
+    attack_surface: ComponentID
+    effect: str # TODO: add an EffectModel to capture the actual semantic data associated with a VulnerabilityEffect
+    attack_model: str | None
+
+def annotation_to_model(annot: Annotation) -> AnnotationModel:
+    return AnnotationModel(
+        attack_surface=annot.attack_surface,
+        effect=annot.effect.reason,
+        attack_model=annot.attack_model,
+    )
+
+AnnotationID = str
+
 class DeviceModel(BaseModel):
     name: str
     components: dict[ComponentID, ComponentModel]
     connections: list[tuple[ComponentID, ComponentID]]
     hypotheses: dict[HypothesisID, HypothesisModel]
+    annotations: dict[AnnotationID, AnnotationModel]
 
-def blueprint_to_model(bp: Device, hypotheses: dict[HypothesisID, HypothesisModel]) -> DeviceModel:
+def blueprint_to_model(
+        bp: Device,
+        hypotheses: dict[HypothesisID, HypothesisModel],
+        annotations: dict[AnnotationID, Annotation]
+) -> DeviceModel:
     return DeviceModel(
         name=bp.name,
         components={comp_id: component_to_model(comp) for comp_id, comp in bp.components.items()},
         connections=[(from_, to_) for (from_, to_) in bp.component_graph.edges],
         hypotheses=hypotheses,
+        annotations={annot_id: annotation_to_model(annot) for annot_id, annot in annotations.items()},
     )
 
 BlueprintID = str
@@ -91,7 +113,7 @@ BlueprintID = str
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
     # TODO: store the hypotheses per-blueprint
-    return {bp_id: blueprint_to_model(bp, hypotheses[bp_id]) for bp_id, bp in blueprints.items()}
+    return {bp_id: blueprint_to_model(bp, hypotheses[bp_id], annotations[bp_id]) for bp_id, bp in blueprints.items()}
 
 @app.post("/api/blueprints/{bp_id}")
 def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response):
@@ -120,6 +142,28 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         response.status_code = status.HTTP_201_CREATED
 
     return {}
+
+def model_to_annotation(annot_model: AnnotationModel) -> Annotation:
+    return Annotation(
+        attack_surface=annot_model.attack_surface,
+        effect=VulnerabilityEffect(reason=annot_model.effect),
+        attack_model=annot_model.attack_model,
+        underlying_vulnerability=None,
+    )
+
+@app.post("/api/blueprints/{bp_id}/annotation")
+def create_annotation(bp_id: str, annot_model: AnnotationModel) -> AnnotationID:
+    # this AnnotationID selection is a stupid mock for until we get the database code in here :)
+    if bp_id not in blueprints:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+
+    annot_id = str(uuid.uuid4())
+    while annot_id in annotations[bp_id]:
+        annot_id = str(uuid.uuid4())
+
+    annotations[bp_id][annot_id] = model_to_annotation(annot_model)
+
+    return annot_id
 
 class CPVModel(BaseModel):
     name: str
@@ -448,6 +492,23 @@ hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict
             name="Over WiFi, subvert the control system to roll the rover.",
             entry_component=_find_comp(rover, Wifi),
             exit_component=_find_comp(rover, Steering),
+        ),
+    },
+})
+
+annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(dict, {
+    "ngcrover": {
+        "wifi_open": Annotation(
+            attack_surface=ComponentID("wifi"),
+            effect=MakeEntryEffect(reason="wifi is open", nodes=frozenset([ComponentID("wifi")])),
+            underlying_vulnerability=None,
+            attack_model="connect to the AP without creds",
+        ),
+        "hidden_stop": Annotation(
+            attack_surface=ComponentID("webserver"),
+            effect=VulnerabilityEffect(reason="hidden stop command in the webserver"),
+            underlying_vulnerability=None,
+            attack_model="hit the stop endpoint on the webserver",
         ),
     },
 })
