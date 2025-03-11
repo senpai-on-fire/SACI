@@ -7,51 +7,72 @@ const mockData = {
       "components": {
           "wifi": {
               "name": "Wifi",
-              "parameters": {}
+              "parameters": {},
+              "annotations": [{
+                "attack": "aaa",
+                "effect": "bbb",
+              }, {
+                "attack": "ccc",
+                "effect": "ddd",
+              }]
           },
           "webserver": {
               "name": "WebServer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": [{
+                "attack": "eee",
+                "effect": "fff",
+              }]
           },
           "gps": {
               "name": "GPSReceiver",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "compass": {
               "name": "CompassSensor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "uno_r4": {
               "name": "Controller",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "uno_r3": {
               "name": "Controller",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "pwm_channel_esc": {
               "name": "PWMChannel",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "pwm_channel_servo": {
               "name": "PWMChannel",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "esc": {
               "name": "ESC",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "steering": {
               "name": "Steering",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "motor": {
               "name": "Motor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           }
       },
       "connections": [
@@ -123,23 +144,28 @@ const mockData = {
       "components": {
           "gcs": {
               "name": "GCS",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "sik": {
               "name": "SikRadio",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dsmx": {
               "name": "DSMx",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "mavlink": {
               "name": "Mavlink",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "icmp": {
               "name": "ICMP",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "wifi": {
               "name": "Wifi",
@@ -147,111 +173,138 @@ const mockData = {
           },
           "px4_telemetry": {
               "name": "TelemetryHigh",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gps": {
               "name": "GPSReceiver",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gps_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "accel": {
               "name": "Accelerometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "accel_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gyro": {
               "name": "Gyroscope",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gyro_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "magnet": {
               "name": "Magnetometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "magnet_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "baro": {
               "name": "Barometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "baro_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "camera": {
               "name": "Camera",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dnn_tracking": {
               "name": "DNNTracking",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dnn_obstacle": {
               "name": "ObjectAvoidanceDNN",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "depth_camera": {
               "name": "DepthCamera",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "obstacle": {
               "name": "ObstacleAvoidanceLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "optical_camera": {
               "name": "OpticalFlowSensor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "emergency_stop": {
               "name": "EmergencyStopLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "speed_control": {
               "name": "SpeedControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "attitude_control": {
               "name": "AttitudeControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "navigation_control": {
               "name": "NavigationControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "px4_cont": {
               "name": "PX4Controller",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "pwm_channel": {
               "name": "PWMChannel",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "esc": {
               "name": "ESC",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "motor": {
               "name": "MultiCopterMotor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gnss": {
               "name": "GNSSReceiver",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gnss_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           }
       },
       "connections": [
@@ -415,31 +468,38 @@ const mockData = {
       "components": {
           "debug": {
               "name": "Debug",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "esc": {
               "name": "ESC",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "bms": {
               "name": "BMS",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "smbus": {
               "name": "SMBus",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "motor": {
               "name": "Motor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "battery": {
               "name": "Battery",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           }
       },
       "connections": [
@@ -479,103 +539,128 @@ const mockData = {
       "components": {
           "gcs": {
               "name": "GCS",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "sik": {
               "name": "SikRadio",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dsmx": {
               "name": "DSMx",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "mavlink": {
               "name": "Mavlink",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "icmp": {
               "name": "ICMP",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "wifi": {
               "name": "Wifi",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "ard": {
               "name": "ARDiscovery",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "ardu_telemetry": {
               "name": "TelemetryHigh",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gps": {
               "name": "GPSReceiver",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gps_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "accel": {
               "name": "Accelerometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "accel_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gyro": {
               "name": "Gyroscope",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gyro_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "magnet": {
               "name": "Magnetometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "magnet_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "baro": {
               "name": "Barometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "baro_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "camera": {
               "name": "Camera",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dnn_tracking": {
               "name": "DNNTracking",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dnn_obstacle": {
               "name": "ObjectAvoidanceDNN",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "depth_camera": {
               "name": "DepthCamera",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "obstacle": {
               "name": "ObstacleAvoidanceLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "optical_camera": {
               "name": "OpticalFlowSensor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "emergency_stop": {
               "name": "EmergencyStopLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "speed_control": {
               "name": "SpeedControlLogic",
@@ -583,43 +668,53 @@ const mockData = {
           },
           "attitude_control": {
               "name": "AttitudeControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "navigation_control": {
               "name": "NavigationControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "ardu_cont": {
               "name": "ArduPilotController",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "pwm_channel": {
               "name": "PWMChannel",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "esc": {
               "name": "ESC",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "motor": {
               "name": "MultiCopterMotor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gnss": {
               "name": "GNSSReceiver",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gnss_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "telnet": {
               "name": "Telnet",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "ftp": {
               "name": "FTP",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           }
       },
       "connections": [
@@ -803,135 +898,168 @@ const mockData = {
       "components": {
           "gcs": {
               "name": "GCS",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "sik": {
               "name": "SikRadio",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dsmx": {
               "name": "DSMx",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "mavlink": {
               "name": "Mavlink",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "icmp": {
               "name": "ICMP",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "wifi": {
               "name": "Wifi",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "propriety_telemetry": {
               "name": "TelemetryHigh",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gps": {
               "name": "GPSReceiver",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gps_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "accel": {
               "name": "Accelerometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "accel_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gyro": {
               "name": "Gyroscope",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gyro_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "magnet": {
               "name": "Magnetometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "magnet_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "baro": {
               "name": "Barometer",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "baro_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "camera": {
               "name": "Camera",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dnn_tracking": {
               "name": "DNNTracking",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "dnn_obstacle": {
               "name": "ObjectAvoidanceDNN",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "depth_camera": {
               "name": "DepthCamera",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "obstacle": {
               "name": "ObstacleAvoidanceLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "optical_camera": {
               "name": "OpticalFlowSensor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "emergency_stop": {
               "name": "EmergencyStopLogic",
-              "parameters": {}
+                "parameters": {},
+              "annotations": []
           },
           "speed_control": {
               "name": "SpeedControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "attitude_control": {
               "name": "AttitudeControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "navigation_control": {
               "name": "NavigationControlLogic",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "propriety_cont": {
               "name": "ProprietyController",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "pwm_channel": {
               "name": "PWMChannel",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "esc": {
               "name": "ESC",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "motor": {
               "name": "MultiCopterMotor",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gnss_serial": {
               "name": "Serial",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           },
           "gnss": {
               "name": "GNSSReceiver",
-              "parameters": {}
+              "parameters": {},
+              "annotations": []
           }
       },
       "connections": [
