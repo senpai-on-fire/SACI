@@ -15,6 +15,7 @@ from websockets.asyncio.client import connect as ws_connect, ClientConnection as
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
 import saci.webui.data as data
+import saci.webui.db as db
 from saci.modeling.state.global_state import GlobalState
 from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, ParameterTypeModel
 from saci_db.cpvs import CPVS
@@ -24,6 +25,7 @@ from ..deserializer import ingest
 
 l = logging.getLogger(__name__)
 
+db.init_db()
 app = FastAPI()
 
 SACI_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -43,7 +45,10 @@ async def serve_frontend_root():
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
     # TODO: store the hypotheses per-blueprint
-    return {bp_id: DeviceModel.from_device(bp, data.hypotheses[bp_id], data.annotations[bp_id]) for bp_id, bp in data.blueprints.items()}
+    data_devices = {bp_id: DeviceModel.from_device(bp, data.hypotheses[bp_id], data.annotations[bp_id]) for bp_id, bp in data.blueprints.items()}
+    with db.get_session() as session:
+        db_devices = session.query(db.Device).all()
+        return {device.name: device.to_web_model() for device in db_devices} | data_devices
 
 
 @app.post("/api/blueprints/{bp_id}")

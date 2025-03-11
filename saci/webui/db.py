@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 
 from sqlalchemy import (
     Column,
@@ -254,18 +255,18 @@ class Device(Base):
 
 
 # Database connection functions
-def get_engine(db_url="sqlite:///:memory:") -> Engine:
-    return create_engine(db_url)
+def get_engine(db_url: str | None = None) -> Engine:
+    return create_engine(db_url or os.getenv("SACI_DATABASE_URL", "sqlite:///saci.db"))
 
 
-def get_session(engine=None) -> Session:
+def get_session(engine: Engine | None = None) -> Session:
     if engine is None:
         engine = get_engine()
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal()
 
 
-def init_db(engine=None):
+def init_db(engine: Engine | None = None):
     if engine is None:
         engine = get_engine()
     Base.metadata.create_all(bind=engine)
