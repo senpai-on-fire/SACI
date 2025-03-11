@@ -1,415 +1,30 @@
-import { ReactNode, useEffect, useState, useCallback } from 'react';
-import { ReactFlow, Background, Panel, PanelPosition } from '@xyflow/react';
+import { useEffect, useState } from 'react';
+import { Panel } from '@xyflow/react';
 import useSWR from 'swr';
-import ELK from 'elkjs/lib/elk-api';
 import { VncScreen } from 'react-vnc';
 import { Maximize2, Minimize2 } from 'react-feather';
-import { CustomNode } from './CustomNode';
-import { AnnotationNode, AnnotationNodeData } from './AnnotationNode';
+import { Flow } from './components/Flow';
+import { CPVsPanel, ActiveCPV } from './components/CPVsPanel';
+import { DeviceSelector } from './components/DeviceSelector';
+import { HypothesisSelector } from './components/HypothesisSelector';
+import { fetcher } from './utils/api';
+import { 
+  BlueprintId, 
+  HypothesisId, 
+  Hypothesis, 
+  Device, 
+  Component
+} from './types';
 
 import './App.css';
 import '@xyflow/react/dist/style.css';
-
-const elk = new ELK({
-  workerFactory: () =>
-    new Worker(new URL('elkjs/lib/elk-worker.min.js', import.meta.url)),
-});
-
-type Component = {
-  name: string,
-  parameters?: {[name: string]: string | number | boolean | null},
-  annotations?: Array<{attack: string, effect: string}>,
-};
-
-type Device = {
-  name: string,
-  components: {[name: string]: Component},
-  connections: [from: string, to: string][],
-};
-
-class FetchError extends Error {
-  info: unknown;
-  status?: number;
-}
-
-const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
-  const res = await fetch(input, init);
-
-  if (res.ok) {
-    return await res.json();
-  } else {
-    const error = new FetchError('error while fetching');
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
-  }
-};
-
-/*
-function Hypothesis({hypothesis}) {
-  return (
-    <> </>
-  );
-}
- */
-
-type ActiveCPV = {
-  deviceName: string;
-  index: number;
-  path: string[];
-} | undefined;
-
-type HighlightProps = {
-  entry?: string | null,
-  exit?: string | null,
-  involved?: string[] | null,
-  activePath?: string[],
-};
-
-type FlowProps = {
-  device?: Device,
-  onComponentClick?: (componentName: string) => void,
-  onPaneClick?: () => void,
-  children: ReactNode,
-  highlights?: HighlightProps,
-};
-
-// Create the nodeTypes object with our custom node
-const nodeTypes = {
-  custom: CustomNode,
-  annotation: AnnotationNode
-};
-
-function Flow({device, onComponentClick, onPaneClick, children, highlights}: FlowProps) {
-  type GraphLayoutState =
-    {state: "laying"} |
-    {state: "laid", compLayout: {[compId: string]: {x: number, y: number}}, forDevice: Device} |
-    {state: "error"} |
-    {state: "nodevice"};
-  const [state, setState] = useState<GraphLayoutState>({state: "laying"});
-  
-  // State to track the active annotation node
-  const [activeAnnotationNode, setActiveAnnotationNode] = useState<string | null>(null);
-  
-  // Handler for annotation button clicks
-  const handleAnnotationClick = useCallback((nodeId: string) => {
-    setActiveAnnotationNode(current => current === nodeId ? null : nodeId);
-  }, []);
-  
-  // Handler for closing annotation nodes
-  const handleCloseAnnotation = useCallback(() => {
-    setActiveAnnotationNode(null);
-  }, []);
-
-  // Handler for adding annotations to a component
-  const handleAddAnnotation = useCallback((componentId: string, annotation: { attack: string, effect: string }) => {
-    if (device && componentId && device.components[componentId]) {
-      // Create a copy of the component
-      const component = { ...device.components[componentId] };
-      
-      // Initialize annotations array if it doesn't exist
-      if (!component.annotations) {
-        component.annotations = [];
-      }
-      
-      // Add the new annotation
-      component.annotations.push(annotation);
-      
-      // Create a copy of the device with the updated component
-      const updatedDevice = {
-        ...device,
-        components: {
-          ...device.components,
-          [componentId]: component
-        }
-      };
-      
-      // Log the action - in a real app, you would update the state or send to server
-      console.log('Added annotation to component', componentId, annotation);
-      console.log('Updated device:', updatedDevice);
-    }
-  }, [device]);
-
-  useEffect(() => {
-    if (!device) {
-      setState({state: "nodevice"});
-      return;
-    }
-    setState({state: "laying"});
-    const elkGraph = {
-      id: "root",
-      layoutOptions: {
-        'elk.algorithm': 'layered',
-        'elk.direction': 'DOWN',
-        'elk.spacing.nodeNode': '200',
-        'elk.spacing.edgeNode': '200',
-        'elk.layered.spacing.nodeNodeBetweenLayers': '75',
-      },
-      children: Object.keys(device.components).map(id => ({
-        id
-      })),
-      edges: device.connections.map(([source, target]) => ({
-        id: `${source}-${target}`,
-        sources: [source],
-        targets: [target]
-      }))
-    };
-    elk.layout(elkGraph)
-       .then(layout => {
-         const compLayout: {[compId: string]: {x: number, y: number}} = {};
-         for (const node of layout.children ?? []) {
-           compLayout[node.id] = {x: node.x ?? 0, y: node.y ?? 0};
-         }
-         setState({
-           state: "laid",
-           forDevice: device,
-           compLayout,
-         });
-       })
-      .catch(e => {
-        console.log(e);
-        setState({state: "error"});
-      });
-  }, [device]);
-
-  let statusPanel, nodes, edges: {
-    id: string, 
-    source: string, 
-    target: string, 
-    animated?: boolean, 
-    style?: React.CSSProperties,
-    sourceHandle?: string,
-    targetHandle?: string
-  }[];
-  if (state.state === "laying") {
-    statusPanel = <Panel position="bottom-right">laying out the graph...</Panel>;
-    nodes = edges = [];
-  } else if (state.state === "error") {
-    statusPanel = <Panel position="bottom-right">error laying it out??</Panel>;
-    nodes = edges = [];
-  } else if (state.state === "nodevice") {
-    statusPanel = <Panel position="bottom-right">waiting for device...</Panel>;
-    nodes = edges = [];
-  } else if (device && Object.is(device, state.forDevice)) {
-    statusPanel = <> </>;
-    
-    // Create the regular nodes
-    nodes = Object.entries(device.components).map(([compId, comp]) => {
-      let className = 'react-flow__node-default';
-      if (compId === highlights?.entry) {
-        className = "!border-green-500";
-      } else if (compId === highlights?.exit) {
-        className = "!border-red-500";
-      } else if (highlights?.involved?.includes(compId)) {
-        className = "!border-yellow-500";
-      } else if (highlights?.activePath?.includes(compId)) {
-        className = "react-flow__node-default !border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
-      }
-      
-      const position = state.compLayout[compId];
-      return {
-        id: compId,
-        data: { 
-          label: comp.name,
-          annotations: comp.annotations || [],
-          onAnnotationClick: handleAnnotationClick,
-        },
-        position,
-        className,
-        type: 'custom', // Use our custom node
-      };
-    });
-    
-    // Add annotation node if active
-    if (activeAnnotationNode && device.components[activeAnnotationNode]) {
-      const sourceNode = nodes.find(node => node.id === activeAnnotationNode);
-      if (sourceNode) {
-        const annotationNodeId = `annotation-${activeAnnotationNode}`;
-        // Position to the right of the source node
-        const position = {
-          x: sourceNode.position.x + 170,
-          y: sourceNode.position.y - 30
-        };
-        
-        // Add the annotation node
-        nodes.push({
-          id: annotationNodeId,
-          type: 'annotation',
-          data: {
-            label: `${activeAnnotationNode} Annotations`,
-            deviceName: device.name,
-            componentName: activeAnnotationNode,
-            annotations: device.components[activeAnnotationNode].annotations || [],
-            onClose: handleCloseAnnotation,
-            onAnnotationClick: handleAnnotationClick,
-            onAddAnnotation: (annotation) => handleAddAnnotation(activeAnnotationNode, annotation)
-          } as AnnotationNodeData,
-          position,
-          className: 'annotation-node'
-        });
-        
-        // Create edges for device connections only (no annotation edges)
-        edges = device.connections.map(([from, to]) => {
-          const isAnimated = highlights?.activePath && 
-                          highlights.activePath.length > 1 && 
-                          highlights.activePath.indexOf(from) !== -1 && 
-                          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
-                          
-          return {
-            id: `${from}-${to}`,
-            source: from,
-            target: to,
-            animated: isAnimated,
-            style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
-          };
-        });
-      } else {
-        edges = device.connections.map(([from, to]) => {
-          const isAnimated = highlights?.activePath && 
-                          highlights.activePath.length > 1 && 
-                          highlights.activePath.indexOf(from) !== -1 && 
-                          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
-                          
-          return {
-            id: `${from}-${to}`,
-            source: from,
-            target: to,
-            animated: isAnimated,
-            style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
-          };
-        });
-      }
-    } else {
-      edges = device.connections.map(([from, to]) => {
-        const isAnimated = highlights?.activePath && 
-                        highlights.activePath.length > 1 && 
-                        highlights.activePath.indexOf(from) !== -1 && 
-                        highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
-                        
-        return {
-          id: `${from}-${to}`,
-          source: from,
-          target: to,
-          animated: isAnimated,
-          style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
-        };
-      });
-    }
-  } else {
-    statusPanel = <> </>;
-    // wait for the nodevice state to take hold...
-    nodes = edges = [];
-  }
-
-  return (
-    <ReactFlow
-      onNodeClick={(_e, n) => {
-        if (!n.id.startsWith('annotation-') && onComponentClick) {
-          onComponentClick(n.id);
-        }
-      }}
-      onPaneClick={() => {
-        setActiveAnnotationNode(null);
-        if (onPaneClick) onPaneClick();
-      }}
-      colorMode="system"
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={nodeTypes}
-    >
-      <Background />
-      {children}
-      {statusPanel}
-    </ReactFlow>
-  );
-}
-
-type BlueprintID = string;
-type DeviceSelectorProps = {
-  devices?: {[bpId: string]: Device}, /// should be null/undefined when devices are still loading
-  selected?: string | null,
-  onSelection: (bpId: string) => void,
-};
-function DeviceSelector({devices, selected, onSelection}: DeviceSelectorProps) {
-  // TODO: do a request here? or should that be bubbled up higher?
-  const options = devices ?
-    Object.entries(devices).map(([bpId, d]) => <option key={bpId} value={bpId}>{d.name}</option>) :
-    [<option key={null} value="0">loading...</option>];
-  return (
-    <div>
-      <label>
-        Device:&nbsp;
-          <select
-            value={`${devices ? selected : 0}`}
-            onChange={e => onSelection(e.target.value)}
-            disabled={!devices} >
-          {options}
-        </select>
-      </label>
-    </div>
-  );
-}
-
-type HypothesisId = string;
-type Hypothesis = {
-  name: string,
-  path: string[],
-  annotations: string[],
-};
-type HypothesisSelectorProps = {
-  hypotheses?: {[hypId: HypothesisId]: Hypothesis} | null,
-  selected: string | null,
-  onSelection: (hypId: HypothesisId) => void,
-};
-function HypothesisSelector({hypotheses, selected, onSelection}: HypothesisSelectorProps) {
-  // TODO: this JSON.stringify for the value seems like a hack. Is there a better way of storing
-  // non-string values for the value? Or a way to access the key?
-  const options = hypotheses ?
-    [<option key={null} value="null">none</option>].concat(
-      Object.entries(hypotheses).map(([hypId, d]) =>
-        <option key={hypId} value={JSON.stringify(hypId)}>{d.name}</option>
-      )
-    ) :
-    [<option key={null} value="null">loading...</option>];
-  return (
-    <div>
-      <label>
-        Hypothesis:&nbsp;
-          <select
-            value={`${hypotheses ? JSON.stringify(selected) : null}`}
-            onChange={e => onSelection(JSON.parse(e.target.value))}
-            disabled={!hypotheses} >
-          {options}
-        </select>
-      </label>
-    </div>
-  );
-}
-
-/*
-function CPV({name}: {name: string}) {
-  const { data, error, isLoading } = useSWR(`/api/cpv_info?name=${name}`, fetcher);
-
-  if (error) {
-    return <div>Error loading CPV {name}: {error}</div>;
-  } else if (isLoading) {
-    return <div>Loading CPV {name}...</div>;
-  } else {
-    return (
-      <div>
-        {data.name} has entry {data.entry_component} and exit {data.exit_component}
-      </div>
-    );
-  }
-}
- */
 
 type AnalysisInfo = {
   name: string,
   components_included: string[],
 };
 type AnalysisLauncherProps = {
-  bpId: BlueprintID,
+  bpId: BlueprintId,
   analysisId: string,
   analysisInfo: AnalysisInfo,
   onLaunch: (app: number) => void,
@@ -478,7 +93,7 @@ function AnalysisLauncher({bpId, analysisId, analysisInfo, onLaunch, onHover, on
 }
 
 type AnalysesProps = {
-  bpId: string,
+  bpId: BlueprintId,
   analysisFilter?: (analysisInfo: AnalysisInfo) => boolean,
   onAnalysisLaunch: (analysisInfo: AnalysisInfo, app: number) => void,
   onAnalysisHover?: (analysisInfo: AnalysisInfo) => void,
@@ -508,7 +123,7 @@ function Analyses({bpId, analysisFilter, onAnalysisLaunch, onAnalysisHover, onAn
     );
     return (
       <div>
-        <h3 className="text-2xl font-bold">Analyses</h3>
+        <h3 className="text-2xl font-bold pl-1 pb-2">Analyses</h3>
         <ul>
           {analyses}
         </ul>
@@ -547,7 +162,7 @@ type AnalysisPanelProps = {
 function AnalysisPanel({name, app, onClose}: AnalysisPanelProps) {
   // TODO: fix this hacky width/height calc somehow?
   return <Panel className="flex flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
-    <div className="flex-none text-xl"><button onClick={onClose}>✕</button> {name}</div>
+    <div className="flex-none text-xl"><button onClick={onClose}>✕</button>{name}</div>
     <VncScreen className="flex-1" url={`/api/vnc?app_id=${app}`} scaleViewport />
   </Panel>;
 }
@@ -569,118 +184,10 @@ function HypothesisPanel({bpId, device, hypothesis, ...analysesProps}: Hypothesi
   </>;
 }
 
-type CPVResult = {
-  cpv: {
-    name: string, 
-    exploit_steps: string[]
-  },
-  path: {path: string[]},
-};
-
-function renderCPVs(
-  device: Device, 
-  cpvs: CPVResult[], 
-  activeCPV: ActiveCPV, 
-  onCPVClick: (cpv: ActiveCPV) => void
-) {
-  const cpvItems = cpvs.map(({cpv: {name, exploit_steps}, path: {path}}, i) => {
-    const isActive = activeCPV && 
-                     activeCPV.deviceName === device.name && 
-                     activeCPV.index === i;
-    
-    return (
-      <li 
-        key={i} 
-        className={`cursor-pointer hover:text-indigo-600 transition-colors px-2 py-1 rounded ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}
-        onClick={() => {
-          if (isActive) {
-            onCPVClick(undefined);
-          } else {
-            onCPVClick({
-              deviceName: device.name,
-              index: i,
-              path: path
-            });
-          }
-        }}
-      >
-        <div className="font-medium">{name}</div>
-        {isActive && (
-          <>
-            {exploit_steps && exploit_steps.length > 0 && (
-              <div className="ml-2 mt-2">
-                <div className="text-sm">Exploit Steps:</div>
-                <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 mt-1">
-                  {exploit_steps.map((step, idx) => (
-                    <li key={idx} className="mb-1">{step}</li>
-                  ))}
-                </ol>
-              </div>
-            )}
-          </>
-        )}
-      </li>
-    );
-  });
-  return <ul>{cpvItems}</ul>;
-}
-
-function CPVsPanel({
-  bpId, 
-  device, 
-  position, 
-  activeCPV, 
-  onActiveCPVChange
-}: {
-  bpId: string | null, 
-  device: Device | null, 
-  position?: PanelPosition,
-  activeCPV: ActiveCPV,
-  onActiveCPVChange: (cpv: ActiveCPV) => void
-}) {
-  // Define hook at the top level, even if we might not use the data
-  const { data, error, isLoading } = useSWR(
-    bpId !== null ? `/api/blueprints/${bpId}/cpvs` : null, 
-    fetcher
-  );
-
-  if (bpId === null || device === null) {
-    return <> </>;
-  }
-
-  let panelInner;
-  if (error) {
-    panelInner = <div>Error loading CPVs: {error}</div>;
-  } else if (isLoading) {
-    panelInner = <div>Loading applicable CPVs...</div>;
-  } else if (data) {
-    panelInner = renderCPVs(device, data as CPVResult[], activeCPV, onActiveCPVChange);
-  } else {
-    panelInner = <div>No data available</div>;
-  }
-
-  return (
-    <Panel 
-      className="bg-white dark:bg-neutral-900 border-2 border-indigo-600 rounded max-w-md" 
-      position={position}
-    >
-      <div className="flex flex-col max-h-[90vh] overflow-auto">
-        <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 pb-2 z-10 flex justify-between items-center">
-          CPVs
-          <button className="text-sm px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white dark:hover:bg-indigo-800 rounded transition-colors shadow-sm">Update</button>
-        </h3>
-        <div className="p-2 pt-0">
-          {panelInner}
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
 function App() {
   const { data: devices } = useSWR("/api/blueprints", fetcher);
 
-  const [bpId, setBpId] = useState<string | null>(null);
+  const [bpId, setBpId] = useState<BlueprintId | null>(null);
   // TODO: is there a less janky way to have this "default"?
   useEffect(() => {
     const bpIds = devices ? Object.keys(devices) : [];
@@ -691,7 +198,7 @@ function App() {
   const device = devices && bpId ? devices[bpId] : null;
 
   const [hypId, setHypId] = useState<HypothesisId | null>(null);
-  const hypothesis = device && hypId ? device.hypotheses[hypId] : null;
+  const hypothesis = device && hypId ? device.hypotheses?.[hypId] : null;
 
   const [hoveringAnalysis, setHoveringAnalysis] = useState<AnalysisInfo | null>(null);
 
@@ -781,14 +288,19 @@ function App() {
     <>
       <div style={{ width: '100vw', height: '100vh'}}>
         <Flow
+          bpId={bpId}
           device={device}
           highlights={highlights}
           onComponentClick={setSelectedComponent}
           onPaneClick={() => setSelectedComponent(null)} >
           <Panel className="p-4" position="top-left">
-            <h1 className="font-bold">SACI</h1>
-            <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
-            <HypothesisSelector hypotheses={device?.hypotheses} selected={hypId} onSelection={setHypId} />
+            <div className="flex items-start">
+              <h1 className="font-bold mr-6 mt-1">SACI</h1>
+              <div className="flex flex-col">
+                <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
+                <HypothesisSelector hypotheses={device?.hypotheses} selected={hypId} onSelection={setHypId} />
+              </div>
+            </div>
           </Panel>
           {panel}
           {analysisPanel}

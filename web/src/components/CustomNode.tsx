@@ -2,14 +2,9 @@ import { Position, Handle } from "@xyflow/react";
 import { useState } from "react";
 import { Plus } from "react-feather";
 
-export type Annotation = {
-  attack: string;
-  effect: string;
-};
-
 export type CustomNodeData = {
   label: string;
-  annotations?: Array<Annotation>;
+  numberOfAnnotations: number;
   onAnnotationClick: (nodeId: string) => void;
 };
 
@@ -21,9 +16,8 @@ type CustomNodeProps = {
 // Custom node component with annotation button
 export const CustomNode = ({ id, data }: CustomNodeProps) => {
     const [hover, setHover] = useState(false);
-    // Use nullish coalescing operator to safely handle undefined annotations
-    const annotationsLength = data.annotations?.length ?? 0;
-    const hasAnnotations = annotationsLength > 0;
+    
+    const hasAnnotations = data.numberOfAnnotations > 0;
     
     return (
       <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
@@ -49,7 +43,7 @@ export const CustomNode = ({ id, data }: CustomNodeProps) => {
           }}
         >
           {hasAnnotations 
-            ? annotationsLength 
+            ? data.numberOfAnnotations 
             : <Plus size={14} className="stroke-2" />
           }
         </div>
