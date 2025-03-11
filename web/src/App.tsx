@@ -1,10 +1,12 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useCallback } from 'react';
 import { ReactFlow, Background, Panel, PanelPosition } from '@xyflow/react';
 import useSWR from 'swr';
 import ELK from 'elkjs/lib/elk-api';
 import { VncScreen } from 'react-vnc';
 import { Maximize2, Minimize2 } from 'react-feather';
- 
+import { CustomNode } from './CustomNode';
+import { AnnotationNode, AnnotationNodeData } from './AnnotationNode';
+
 import './App.css';
 import '@xyflow/react/dist/style.css';
 
@@ -16,6 +18,7 @@ const elk = new ELK({
 type Component = {
   name: string,
   parameters?: {[name: string]: string | number | boolean | null},
+  annotations?: Array<{attack: string, effect: string}>,
 };
 
 type Device = {
@@ -70,6 +73,13 @@ type FlowProps = {
   children: ReactNode,
   highlights?: HighlightProps,
 };
+
+// Create the nodeTypes object with our custom node
+const nodeTypes = {
+  custom: CustomNode,
+  annotation: AnnotationNode
+};
+
 function Flow({device, onComponentClick, onPaneClick, children, highlights}: FlowProps) {
   type GraphLayoutState =
     {state: "laying"} |
@@ -77,6 +87,48 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
     {state: "error"} |
     {state: "nodevice"};
   const [state, setState] = useState<GraphLayoutState>({state: "laying"});
+  
+  // State to track the active annotation node
+  const [activeAnnotationNode, setActiveAnnotationNode] = useState<string | null>(null);
+  
+  // Handler for annotation button clicks
+  const handleAnnotationClick = useCallback((nodeId: string) => {
+    setActiveAnnotationNode(current => current === nodeId ? null : nodeId);
+  }, []);
+  
+  // Handler for closing annotation nodes
+  const handleCloseAnnotation = useCallback(() => {
+    setActiveAnnotationNode(null);
+  }, []);
+
+  // Handler for adding annotations to a component
+  const handleAddAnnotation = useCallback((componentId: string, annotation: { attack: string, effect: string }) => {
+    if (device && componentId && device.components[componentId]) {
+      // Create a copy of the component
+      const component = { ...device.components[componentId] };
+      
+      // Initialize annotations array if it doesn't exist
+      if (!component.annotations) {
+        component.annotations = [];
+      }
+      
+      // Add the new annotation
+      component.annotations.push(annotation);
+      
+      // Create a copy of the device with the updated component
+      const updatedDevice = {
+        ...device,
+        components: {
+          ...device.components,
+          [componentId]: component
+        }
+      };
+      
+      // Log the action - in a real app, you would update the state or send to server
+      console.log('Added annotation to component', componentId, annotation);
+      console.log('Updated device:', updatedDevice);
+    }
+  }, [device]);
 
   useEffect(() => {
     if (!device) {
@@ -120,7 +172,15 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
       });
   }, [device]);
 
-  let statusPanel, nodes, edges: {id: string, source: string, target: string, animated?: boolean, style?: React.CSSProperties}[];
+  let statusPanel, nodes, edges: {
+    id: string, 
+    source: string, 
+    target: string, 
+    animated?: boolean, 
+    style?: React.CSSProperties,
+    sourceHandle?: string,
+    targetHandle?: string
+  }[];
   if (state.state === "laying") {
     statusPanel = <Panel position="bottom-right">laying out the graph...</Panel>;
     nodes = edges = [];
@@ -132,8 +192,10 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
     nodes = edges = [];
   } else if (device && Object.is(device, state.forDevice)) {
     statusPanel = <> </>;
+    
+    // Create the regular nodes
     nodes = Object.entries(device.components).map(([compId, comp]) => {
-      let className = '';
+      let className = 'react-flow__node-default';
       if (compId === highlights?.entry) {
         className = "!border-green-500";
       } else if (compId === highlights?.exit) {
@@ -141,31 +203,96 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
       } else if (highlights?.involved?.includes(compId)) {
         className = "!border-yellow-500";
       } else if (highlights?.activePath?.includes(compId)) {
-        className = "!border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
+        className = "react-flow__node-default !border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
       }
       
       const position = state.compLayout[compId];
       return {
         id: compId,
-        data: {label: comp.name},
+        data: { 
+          label: comp.name,
+          annotations: comp.annotations || [],
+          onAnnotationClick: handleAnnotationClick,
+        },
         position,
         className,
+        type: 'custom', // Use our custom node
       };
     });
-
-    edges = [];
-    for (const [from, to] of device.connections) {
-      const isAnimated = highlights?.activePath && 
+    
+    // Add annotation node if active
+    if (activeAnnotationNode && device.components[activeAnnotationNode]) {
+      const sourceNode = nodes.find(node => node.id === activeAnnotationNode);
+      if (sourceNode) {
+        const annotationNodeId = `annotation-${activeAnnotationNode}`;
+        // Position to the right of the source node
+        const position = {
+          x: sourceNode.position.x + 170,
+          y: sourceNode.position.y - 30
+        };
+        
+        // Add the annotation node
+        nodes.push({
+          id: annotationNodeId,
+          type: 'annotation',
+          data: {
+            label: `${activeAnnotationNode} Annotations`,
+            deviceName: device.name,
+            componentName: activeAnnotationNode,
+            annotations: device.components[activeAnnotationNode].annotations || [],
+            onClose: handleCloseAnnotation,
+            onAnnotationClick: handleAnnotationClick,
+            onAddAnnotation: (annotation) => handleAddAnnotation(activeAnnotationNode, annotation)
+          } as AnnotationNodeData,
+          position,
+          className: 'annotation-node'
+        });
+        
+        // Create edges for device connections only (no annotation edges)
+        edges = device.connections.map(([from, to]) => {
+          const isAnimated = highlights?.activePath && 
+                          highlights.activePath.length > 1 && 
+                          highlights.activePath.indexOf(from) !== -1 && 
+                          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
+                          
+          return {
+            id: `${from}-${to}`,
+            source: from,
+            target: to,
+            animated: isAnimated,
+            style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
+          };
+        });
+      } else {
+        edges = device.connections.map(([from, to]) => {
+          const isAnimated = highlights?.activePath && 
+                          highlights.activePath.length > 1 && 
+                          highlights.activePath.indexOf(from) !== -1 && 
+                          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
+                          
+          return {
+            id: `${from}-${to}`,
+            source: from,
+            target: to,
+            animated: isAnimated,
+            style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
+          };
+        });
+      }
+    } else {
+      edges = device.connections.map(([from, to]) => {
+        const isAnimated = highlights?.activePath && 
                         highlights.activePath.length > 1 && 
                         highlights.activePath.indexOf(from) !== -1 && 
                         highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
                         
-      edges.push({
-        id: `${from}-${to}`,
-        source: from,
-        target: to,
-        animated: isAnimated,
-        style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
+        return {
+          id: `${from}-${to}`,
+          source: from,
+          target: to,
+          animated: isAnimated,
+          style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
+        };
       });
     }
   } else {
@@ -176,11 +303,19 @@ function Flow({device, onComponentClick, onPaneClick, children, highlights}: Flo
 
   return (
     <ReactFlow
-      onNodeClick={(_e, n) => onComponentClick ? onComponentClick(n.id) : undefined}
-      onPaneClick={onPaneClick}
+      onNodeClick={(_e, n) => {
+        if (!n.id.startsWith('annotation-') && onComponentClick) {
+          onComponentClick(n.id);
+        }
+      }}
+      onPaneClick={() => {
+        setActiveAnnotationNode(null);
+        if (onPaneClick) onPaneClick();
+      }}
       colorMode="system"
       nodes={nodes}
       edges={edges}
+      nodeTypes={nodeTypes}
     >
       <Background />
       {children}
@@ -530,7 +665,10 @@ function CPVsPanel({
       position={position}
     >
       <div className="flex flex-col max-h-[90vh] overflow-auto">
-        <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 pb-0 z-10">CPVs</h3>
+        <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 pb-2 z-10 flex justify-between items-center">
+          CPVs
+          <button className="text-sm px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white dark:hover:bg-indigo-800 rounded transition-colors shadow-sm">Update</button>
+        </h3>
         <div className="p-2 pt-0">
           {panelInner}
         </div>
