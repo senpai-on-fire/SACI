@@ -1,47 +1,31 @@
-from dataclasses import dataclass
-from collections import defaultdict
-from enum import StrEnum
 import asyncio
 import logging
 import uuid
 
-import json
-import time
 import importlib
-from io import StringIO
 from pathlib import Path
 import os
-from typing import Annotated, Optional, TypeVar
 
 import httpx
 
-# from flask import Flask, render_template, send_file, request, abort
-from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect, status
+from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
-from saci.modeling.cpv import CPV
-from saci.modeling.cpvpath import CPVPath
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 
-from saci.modeling.annotation import Annotation
-from saci.modeling.device import ComponentID, ComponentBase
-from saci.modeling.device.control.controller import Controller
-from saci.modeling.device.sensor.compass import CompassSensor
-from saci.modeling.device.esc import ESC
-from saci.modeling.device.motor.steering import Steering
-from saci.modeling.device.webserver import WebServer
+import saci.webui.data as data
+import saci.webui.db as db
 from saci.modeling.state.global_state import GlobalState
-from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
+from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, ParameterTypeModel
+from saci_db.cpvs import CPVS
 
 from ..orchestrator import identify
 from ..deserializer import ingest
-from ..modeling import Device, ComponentBase
-from ..modeling.device import Wifi, Motor, GPSReceiver
 
 l = logging.getLogger(__name__)
 
+db.init_db()
 app = FastAPI()
 
 SACI_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -56,64 +40,15 @@ async def serve_frontend_root():
 
 ### Endpoints for blueprint management
 
-class ComponentModel(BaseModel):
-    name: str
-    parameters: dict[str, str]
-
-def component_to_model(comp: ComponentBase) -> ComponentModel:
-    return ComponentModel(
-        name=comp.name,
-        parameters={param_name: str(param_value) for param_name, param_value in comp.parameters.items()},
-    )
-
-class AnnotationModel(BaseModel):
-    attack_surface: ComponentID
-    effect: str # TODO: add an EffectModel to capture the actual semantic data associated with a VulnerabilityEffect
-    attack_model: str | None
-
-def annotation_to_model(annot: Annotation) -> AnnotationModel:
-    return AnnotationModel(
-        attack_surface=annot.attack_surface,
-        effect=annot.effect.reason,
-        attack_model=annot.attack_model,
-    )
-
-AnnotationID = str
-
-class HypothesisModel(BaseModel):
-    name: str
-    path: list[ComponentID]
-    annotations: list[AnnotationID]
-
-HypothesisID = str
-
-class DeviceModel(BaseModel):
-    name: str
-    components: dict[ComponentID, ComponentModel]
-    connections: list[tuple[ComponentID, ComponentID]]
-    hypotheses: dict[HypothesisID, HypothesisModel]
-    annotations: dict[AnnotationID, AnnotationModel]
-
-def blueprint_to_model(
-        bp: Device,
-        hypotheses: dict[HypothesisID, HypothesisModel],
-        annotations: dict[AnnotationID, Annotation]
-) -> DeviceModel:
-    return DeviceModel(
-        name=bp.name,
-        components={comp_id: component_to_model(comp) for comp_id, comp in bp.components.items()},
-        connections=[(from_, to_) for (from_, to_) in bp.component_graph.edges],
-        hypotheses=hypotheses,
-        annotations={annot_id: annotation_to_model(annot) for annot_id, annot in annotations.items()},
-    )
-
-BlueprintID = str
-
 @app.get('/api/blueprints')
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
     # TODO: store the hypotheses per-blueprint
-    return {bp_id: blueprint_to_model(bp, hypotheses[bp_id], annotations[bp_id]) for bp_id, bp in blueprints.items()}
+    data_devices = {bp_id: DeviceModel.from_device(bp, data.hypotheses[bp_id], data.annotations[bp_id]) for bp_id, bp in data.blueprints.items()}
+    with db.get_session() as session:
+        db_devices = session.query(db.Device).all()
+        return {device.name: device.to_web_model() for device in db_devices} | data_devices
+
 
 @app.post("/api/blueprints/{bp_id}")
 def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response):
@@ -122,9 +57,9 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         raise HTTPException(status_code=400, detail=err)
 
     try:
-        ingest(serialized, INGESTION_DIR / bp_id, force=True)
+        ingest(serialized, data.INGESTION_DIR / bp_id, force=True)
 
-        if bp_id in blueprints:
+        if bp_id in data.blueprints:
             # TODO: actually check to make sure this is actually a fast-forwarded version
             created = False
         else:
@@ -135,111 +70,52 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
 
     importlib.invalidate_caches()
     # TODO: probably don't need to reload *all* the ingested modules
-    importlib.reload(ingested)
-    blueprints[bp_id] = ingested.devices[bp_id]
-    
+    importlib.reload(data.ingested)
+    data.blueprints[bp_id] = data.ingested.devices[bp_id]
+
     if created:
         response.status_code = status.HTTP_201_CREATED
 
     return {}
 
-def model_to_annotation(annot_model: AnnotationModel) -> Annotation:
-    return Annotation(
-        attack_surface=annot_model.attack_surface,
-        effect=VulnerabilityEffect(reason=annot_model.effect),
-        attack_model=annot_model.attack_model,
-        underlying_vulnerability=None,
-    )
 
 @app.post("/api/blueprints/{bp_id}/annotation")
 def create_annotation(bp_id: str, annot_model: AnnotationModel) -> AnnotationID:
     # this AnnotationID selection is a stupid mock for until we get the database code in here :)
-    if bp_id not in blueprints:
+    if bp_id not in data.blueprints:
         raise HTTPException(status_code=404, detail="Blueprint not found")
 
     annot_id = str(uuid.uuid4())
-    while annot_id in annotations[bp_id]:
+    while annot_id in data.annotations[bp_id]:
         annot_id = str(uuid.uuid4())
 
-    annotations[bp_id][annot_id] = model_to_annotation(annot_model)
+    data.annotations[bp_id][annot_id] = annot_model.to_annotation()
 
     return annot_id
 
-class CPVModel(BaseModel):
-    name: str
-    exploit_steps: list[str]
-
-def cpv_to_model(cpv: CPV) -> CPVModel:
-    # Extract exploit steps if available, or use empty list as fallback
-    exploit_steps = cpv.exploit_steps if hasattr(cpv, 'exploit_steps') else []
-    
-    return CPVModel(
-        name=cpv.NAME,
-        exploit_steps=exploit_steps
-    )
-
-class CPVPathModel(BaseModel):
-    path: list[ComponentID]
-
-def cpv_path_to_model(path: CPVPath) -> CPVPathModel:
-    return CPVPathModel(path=[c.id_ for c in path.path])
-
-class CPVResultModel(BaseModel):
-    cpv: CPVModel
-    path: CPVPathModel
-
-def cpv_result_to_model(cpv: CPV, path: CPVPath) -> CPVResultModel:
-    return CPVResultModel(cpv=cpv_to_model(cpv), path=cpv_path_to_model(path))
 
 @app.get("/api/blueprints/{bp_id}/cpvs")
 def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
-    if (blueprint := blueprints.get(bp_id)) is None:
+    if (blueprint := data.blueprints.get(bp_id)) is None:
         raise HTTPException(status_code=404, detail="Blueprint not found")
 
     # TODO: re-introduce the queueing model once this takes more time
     initial_state = GlobalState(blueprint.components)
     return [
-        cpv_result_to_model(cpv, path)
+        CPVResultModel.from_cpv_result(cpv, path)
         for cpv in CPVS
         if (paths := identify(blueprint, initial_state, cpv_model=cpv)[1]) is not None
         for path in paths
     ]
 
-T = TypeVar('T')
-def _all_subclasses(c: type[T]) -> list[type[T]]:
-    return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
-
-class ParameterTypeModel(BaseModel):
-    type_: Annotated[str, Field(serialization_alias="type")]
-    description: str
-
-class PortModel(BaseModel):
-    direction: str
-
-class ComponentTypeModel(BaseModel):
-    name: str # human-readable name
-    parameters: dict[str, ParameterTypeModel]
-    ports: dict[str, PortModel]
-
-ComponentTypeID = str
-def component_type_id(comp_type: type[ComponentBase]) -> str:
-    return f"{comp_type.__module__}.{comp_type.__qualname__}"
-
-# TODO: so janky
-all_component_types: dict[ComponentTypeID, type[ComponentBase]] = {}
-for comp_type in _all_subclasses(ComponentBase):
-    type_id = component_type_id(comp_type)
-    if dup := all_component_types.get(type_id):
-        l.warning(f"duplicately-IDed component types {dup} and {comp_type} (both have ID {type_id}), only including {dup}")
-    all_component_types[type_id] = comp_type
-
 @app.get("/api/components/")
 def list_component_types() -> list[ComponentTypeID]:
-    return list(all_component_types)
+    return list(data.all_component_types)
+
 
 @app.get("/api/components/{type_id}")
 def component_type_details(type_id: str) -> ComponentTypeModel:
-    if (comp_type := all_component_types.get(type_id)) is None:
+    if (comp_type := data.all_component_types.get(type_id)) is None:
         raise HTTPException(status_code=404, detail="No component type with that ID")
     return ComponentTypeModel(
         # TODO: have component types have better human-readable names
@@ -251,11 +127,11 @@ def component_type_details(type_id: str) -> ComponentTypeModel:
 
 @app.post("/api/ingest_blueprint")
 def ingest_blueprint_legacy(name: str, serialized: dict, force: bool = False):
-    if name in blueprints:
+    if name in data.blueprints:
         return {"error": "exists"}, 400
     try:
         # TODO: move this to another thread and return a promise?
-        ingest(serialized, INGESTION_DIR / name, force=force)
+        ingest(serialized, data.INGESTION_DIR / name, force=force)
     except FileExistsError as e:
         return {"error": "exists"}, 400
     except ValueError as e:
@@ -264,11 +140,11 @@ def ingest_blueprint_legacy(name: str, serialized: dict, force: bool = False):
 
     importlib.invalidate_caches()
     # TODO: probably don't need to reload *all* the ingested modules
-    importlib.reload(ingested)
+    importlib.reload(data.ingested)
     # TODO: should probably just separate builtin and ingested blueprints...
     blueprint_id = name
-    device = ingested.devices[blueprint_id]
-    blueprints[blueprint_id] = device
+    device = data.ingested.devices[blueprint_id]
+    data.blueprints[blueprint_id] = device
 
     return {"id": blueprint_id, "name": device.name}
 
@@ -290,43 +166,19 @@ try:
 except httpx.ConnectError:
     l.warning("can't connect to app-controller, is it up and the URL configured correctly?")
 
-class AnalysisUserInfo(BaseModel):
-    """User-level metadata associated with an analysis type the user can run."""
-    name: str
-    components_included: list[ComponentID] = Field(default_factory=list)
 
-class InteractionModel(StrEnum):
-    UNKNOWN = "Unknown"
-    X11 = "X11"
-
-@dataclass(frozen=True)
-class Analysis:
-    """All the information associated with an analysis type, including what the system needs to know to launch it."""
-    user_info: AnalysisUserInfo
-    interaction_model: InteractionModel
-    images: list[str]
-
-    def as_appconfig(self):
-        return {
-            "name": "app",
-            "interaction_model": self.interaction_model,
-            "images": self.images,
-            "always_pull_images": False,
-        }
-
-AnalysisID = str
 
 @app.get("/api/blueprints/{bp_id}/analyses")
 def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
     # for now ignore bp_id, but eventually analyses will be available per-device or something.
     # return mapping of analysis ID to analysis info
-    return {id_: analysis.user_info for id_, analysis in analyses.items()}
+    return {id_: analysis.user_info for id_, analysis in data.analyses.items()}
 
 @app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
 async def launch_analysis(bp_id: str, analysis_id: str) -> int:
-    if analysis_id not in analyses:
+    if analysis_id not in data.analyses:
         raise HTTPException(status_code=400, detail="analysis not found")
-    analysis = analyses[analysis_id]
+    analysis = data.analyses[analysis_id]
     async with httpx.AsyncClient() as client:
         create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=analysis.as_appconfig())
         if not create_resp.is_success:
@@ -383,154 +235,3 @@ async def vnc_proxy(*, websocket: WebSocket, app_id: int):
         _, rest = e.split(lambda e: isinstance(e, WebSocketDisconnect) and e.code in (1000, 1001, 1005))
         if rest is not None:
             raise rest
-
-# delayed import
-from saci_db.devices import devices, ingested
-from saci_db.cpvs import CPVS
-
-if (dirname := os.getenv("INGESTION_DIR")) is not None:
-    INGESTION_DIR = Path(dirname)
-else:
-    INGESTION_DIR = Path(ingested.__file__).resolve().parent
-del dirname
-
-blueprints: dict[BlueprintID, Device] = devices | ingested.devices
-
-# TODO: this is hacky and an indication that we should have a better way of doing this...
-def _find_comps(device: Device, comp_type: type[ComponentBase]) -> list[ComponentID]:
-    return [comp_id for comp_id, comp in device.components.items() if isinstance(comp, comp_type)]
-
-def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentID:
-    comps = _find_comps(device, comp_type)
-    if len(comps) == 0:
-        raise ValueError(f"device {device!r} has no component of type {comp_type}")
-    elif len(comps) > 1:
-        raise ValueError(f"device {device!r} has more than one component of type {comp_type}")
-    else:
-        return comps[0]
-
-rover = blueprints["ngcrover"]
-
-analyses: dict[AnalysisID, Analysis] = {
-    "taveren_model": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: Ta'veren Controller",
-            # TODO: hackyyyyy... should either use different controllers' different IDs (now that they have them!) or have some nice query mechanism
-            components_included=[
-                _find_comps(rover, WebServer)[0],
-                _find_comps(rover, Controller)[0],
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["taveren:latest"],
-    ),
-    "binsync_re": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: BinSync-enabled RE",
-            components_included=[_find_comps(rover, Controller)[0]],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
-    ),
-    "hybrid_automata": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: Hybrid Automata",
-            components_included=_find_comps(rover, Controller) + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
-    ),
-    "gazebo_hybrid_automata": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Co-Simulation: Gazebo + Hybrid Automata",
-            components_included=_find_comps(rover, Controller) + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/cpslab-asu/gzcm/px4/firmware:0.2.0", "ghcr.io/cpslab-asu/gzcm/px4/gazebo:harmonic"],
-    ),
-    "gazebo_firmware": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Co-Simulation: Gazebo + Firmware",
-            components_included=_find_comps(rover, Controller) + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["onex:latest"],
-    ),
-}
-
-hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict, {
-    "ngcrover": {
-        "webserver_stop": HypothesisModel(
-            name="From the webserver, stop the rover.",
-            path=[
-                ComponentID("wifi"),
-                ComponentID("webserver"),
-                ComponentID("uno_r4"),
-                ComponentID("uno_r3"),
-                ComponentID("pwm_channel_esc"),
-                ComponentID("esc"),
-                ComponentID("motor"),
-            ],
-            annotations=["wifi_open", "hidden_stop"],
-        ),
-        "emi_compass": HypothesisModel(
-            name="Using EMI, influence the compass to affect the mission.",
-            path=[
-                ComponentID("compass"),
-                ComponentID("uno_r4"),
-                ComponentID("uno_r3"),
-                ComponentID("pwm_channel_servo"),
-                ComponentID("steering"),
-            ],
-            annotations=[],
-        ),
-        "wifi_rollover": HypothesisModel(
-            name="Over WiFi, subvert the control system to roll the rover.",
-            path=[
-                ComponentID("wifi"),
-                ComponentID("webserver"),
-                ComponentID("uno_r4"),
-                ComponentID("uno_r3"),
-                ComponentID("pwm_channel_esc"),
-                ComponentID("esc"),
-                ComponentID("motor"),
-            ],
-            annotations=["wifi_open"],
-        ),
-    },
-})
-
-annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(dict, {
-    "ngcrover": {
-        "wifi_open": Annotation(
-            attack_surface=ComponentID("wifi"),
-            effect=MakeEntryEffect(reason="wifi is open", nodes=frozenset([ComponentID("wifi")])),
-            underlying_vulnerability=None,
-            attack_model="connect to the AP without creds",
-        ),
-        "hidden_stop": Annotation(
-            attack_surface=ComponentID("webserver"),
-            effect=VulnerabilityEffect(reason="hidden stop command in the webserver"),
-            underlying_vulnerability=None,
-            attack_model="hit the stop endpoint on the webserver",
-        ),
-    },
-})
