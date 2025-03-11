@@ -1,31 +1,37 @@
-import { useEffect, useState } from 'react';
 import { Panel } from '@xyflow/react';
-import useSWR from 'swr';
-import { VncScreen } from 'react-vnc';
+import { useEffect, useState } from 'react';
 import { Maximize2, Minimize2 } from 'react-feather';
-import { Flow } from './components/Flow';
-import { CPVsPanel, ActiveCPV } from './components/CPVsPanel';
-import { DeviceSelector } from './components/DeviceSelector';
-import { HypothesisSelector } from './components/HypothesisSelector';
-import { fetcher } from './utils/api';
-import { 
-  BlueprintId, 
-  HypothesisId, 
-  Hypothesis, 
-  Device, 
-  Component
+import { VncScreen } from 'react-vnc';
+import useSWR from 'swr';
+import {
+  ActiveCPV,
+  CPVsPanel,
+  DeviceSelector,
+  Flow,
+  HypothesisCreatePanel,
+  HypothesisSelector
+} from './components';
+import {
+  BlueprintId,
+  Component,
+  ComponentId,
+  Device,
+  Hypothesis,
+  HypothesisId
 } from './types';
+import { fetcher } from './utils/api';
 
-import './App.css';
 import '@xyflow/react/dist/style.css';
+import './App.css';
 
+type AnalysisId = string;
 type AnalysisInfo = {
   name: string,
-  components_included: string[],
+  components_included: ComponentId[],
 };
 type AnalysisLauncherProps = {
   bpId: BlueprintId,
-  analysisId: string,
+  analysisId: AnalysisId,
   analysisInfo: AnalysisInfo,
   onLaunch: (app: number) => void,
   onHover?: () => void,
@@ -203,6 +209,8 @@ function App() {
   const [hoveringAnalysis, setHoveringAnalysis] = useState<AnalysisInfo | null>(null);
 
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
+  
+  const [showHypothesisPanel, setShowHypothesisPanel] = useState(false);
 
   type RunningAnalysis = {name: string, app: number};
   const [showingAnalysis, setShowingAnalysis] = useState<RunningAnalysis | null>(null);
@@ -215,6 +223,9 @@ function App() {
 
   // Add activeCPV state
   const [activeCPV, setActiveCPV] = useState<ActiveCPV>(undefined);
+  
+  // Add hoveredComponent state for highlighting in Flow
+  const [hoveredComponent, setHoveredComponent] = useState<ComponentId | null>(null);
 
   let panelInner = null;
   if (bpId && device) {
@@ -277,11 +288,21 @@ function App() {
     onActiveCPVChange={setActiveCPV}
   />;
 
+  const hypothesisCreatePanel = <HypothesisCreatePanel
+    bpId={bpId}
+    position="bottom-center"
+    isOpen={showHypothesisPanel}
+    onClose={() => setShowHypothesisPanel(false)}
+    device={device}
+    onHoverComponent={setHoveredComponent}
+  />;
+
   const highlights = {
-    entry: hypothesis?.entry_component,
-    exit: hypothesis?.exit_component,
+    entry: hypothesis?.path[0],
+    exit: hypothesis?.path[hypothesis?.path.length - 1],
     involved: hoveringAnalysis?.components_included,
     activePath: activeCPV?.path,
+    hoveredComponent: hoveredComponent,
   };
 
   return (
@@ -298,13 +319,21 @@ function App() {
               <h1 className="font-bold mr-6 mt-1">SACI</h1>
               <div className="flex flex-col">
                 <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
-                <HypothesisSelector hypotheses={device?.hypotheses} selected={hypId} onSelection={setHypId} />
+                <HypothesisSelector 
+                  hypotheses={device?.hypotheses} 
+                  selected={hypId} 
+                  onSelection={setHypId} 
+                  bpId={bpId}
+                  onAddClick={() => setShowHypothesisPanel(!showHypothesisPanel)}
+                  isPanelOpen={showHypothesisPanel}
+                />
               </div>
             </div>
           </Panel>
           {panel}
           {analysisPanel}
           {cpvsPanel}
+          {hypothesisCreatePanel}
         </Flow>
       </div>
     </>

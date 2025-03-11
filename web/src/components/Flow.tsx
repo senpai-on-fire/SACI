@@ -3,39 +3,14 @@ import { ReactFlow, Background, Panel, Node, Edge } from '@xyflow/react';
 import ELK from 'elkjs/lib/elk-api';
 import { CustomNode } from './CustomNode';
 import { AnnotationNode, AnnotationNodeData } from './AnnotationNode';
-import { BlueprintId, HypothesisId, ComponentId } from '../types';
+import { BlueprintId, ComponentId, Device } from '../types';
+import { groupAnnotationsByComponentId } from '../utils/helpers';
 
 // Create a new ELK instance for layout
 const elk = new ELK({
   workerFactory: () =>
     new Worker(new URL('elkjs/lib/elk-worker.min.js', import.meta.url)),
 });
-
-// Component and Device types
-type Component = {
-  name: string,
-  parameters?: {[name: string]: string | number | boolean | null},
-};
-
-type Device = {
-  name: string,
-  components: {[compId: ComponentId]: Component},
-  connections: [from: ComponentId, to: ComponentId][],
-  hypotheses?: {[hypId: HypothesisId]: Hypothesis},
-  annotations?: {
-    [id: string]: {
-      attack_surface: ComponentId,
-      effect: string,
-      attack_model: string
-    }
-  }
-};
-
-type Hypothesis = {
-  name: string,
-  entry_component?: string | null,
-  exit_component?: string | null,
-};
 
 // Create node types for ReactFlow
 const nodeTypes = {
@@ -49,55 +24,17 @@ type HighlightProps = {
   exit?: string | null,
   involved?: string[] | null,
   activePath?: string[],
+  hoveredComponent?: ComponentId | null, // Component ID that's being hovered in another UI component
 };
 
 type FlowProps = {
   bpId: BlueprintId | null,
   device?: Device,
-  onComponentClick?: (componentName: string) => void,
+  onComponentClick?: (componentId: ComponentId) => void,
   onPaneClick?: () => void,
   children: ReactNode,
   highlights?: HighlightProps,
 };
-
-// Helper function to transform annotations 
-function transformAnnotations(annotations: {
-  [id: string]: {
-    attack_surface: string;
-    effect: string;
-    attack_model: string;
-  }
-} | undefined) {
-  if (!annotations) return {};
-  
-  // Group annotations by attack_surface
-  const groupedAnnotations: {
-    [attack_surface: string]: {
-      [id: string]: {
-        effect: string;
-        attack_model: string;
-      }
-    }
-  } = {};
-  
-  // Iterate through each annotation and group by attack_surface
-  Object.entries(annotations).forEach(([id, annotation]) => {
-    const { attack_surface, effect, attack_model } = annotation;
-    
-    // Initialize the attack surface group if it doesn't exist
-    if (!groupedAnnotations[attack_surface]) {
-      groupedAnnotations[attack_surface] = {};
-    }
-    
-    // Add the annotation to its attack surface group
-    groupedAnnotations[attack_surface][id] = {
-      effect,
-      attack_model
-    };
-  });
-  
-  return groupedAnnotations;
-}
 
 // Flow component
 export function Flow({bpId, device, onComponentClick, onPaneClick, children, highlights}: FlowProps) {
@@ -181,17 +118,19 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
   } else if (device && Object.is(device, state.forDevice)) {
     statusPanel = <> </>;
     
-    const groupedAnnotations = transformAnnotations(device.annotations);
+    const groupedAnnotations = groupAnnotationsByComponentId(device.annotations);
 
     // Create the regular nodes
     nodes = Object.entries(device.components).map(([compId, comp]) => {
       let className = 'react-flow__node-default ';
-      if (compId === highlights?.entry) {
-        className += "!border-green-500";
+      if (compId === highlights?.hoveredComponent) {
+        className += "!border-purple-500 !border-2 !shadow-lg !shadow-purple-200 dark:!shadow-purple-900";
+      } else if (compId === highlights?.entry) {
+        className += "!border-green-500 !border-2 !shadow-lg !shadow-green-200 dark:!shadow-green-900";
       } else if (compId === highlights?.exit) {
-        className += "!border-red-500";
+        className += "!border-red-500 !border-2 !shadow-lg !shadow-red-200 dark:!shadow-red-900";
       } else if (highlights?.involved?.includes(compId)) {
-        className += "!border-yellow-500";
+        className += "!border-yellow-500 !border-2 !shadow-lg !shadow-yellow-200 dark:!shadow-yellow-900";
       } else if (highlights?.activePath?.includes(compId)) {
         className += "!border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
       }
@@ -205,6 +144,7 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
           label: comp.name,
           numberOfAnnotations: Object.keys(groupedAnnotations[compId] ?? {}).length ?? 0,
           onAnnotationClick: handleAnnotationClick,
+          isAnnotationOpen: compId === activeAnnotationNode,
         },
         position,
         className,
@@ -225,7 +165,7 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
         };
         
         // Group annotations by attack_surface for this specific node
-        const groupedAnnotations = transformAnnotations(device.annotations);
+        const groupedAnnotations = groupAnnotationsByComponentId(device.annotations);
         
         // Add the annotation node
         nodes.push({
@@ -308,7 +248,7 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
     <ReactFlow
       onNodeClick={(_e, n) => {
         if (!n.id.startsWith('annotation-') && onComponentClick) {
-          onComponentClick(n.id);
+          onComponentClick(n.id as ComponentId);
         }
       }}
       onPaneClick={() => {

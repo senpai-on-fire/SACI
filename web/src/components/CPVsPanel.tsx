@@ -1,35 +1,12 @@
 import { Panel, PanelPosition } from '@xyflow/react';
 import useSWR from 'swr';
+import { Device, BlueprintId } from '../types';
 import { fetcher } from '../utils/api';
 
 // Types
-type Device = {
-  name: string,
-  components: {[name: string]: Component},
-  connections: [from: string, to: string][],
-  hypotheses?: {[id: string]: Hypothesis},
-  annotations?: {
-    [id: string]: {
-      attack_surface: string,
-      effect: string,
-      attack_model: string
-    }
-  }
-};
-
-type Component = {
-  name: string,
-  parameters?: {[name: string]: string | number | boolean | null},
-};
-
-type Hypothesis = {
-  name: string,
-  entry_component?: string | null,
-  exit_component?: string | null,
-};
 
 export type ActiveCPV = {
-  bpId: string;
+  bpId: BlueprintId;
   index: number;
   path: string[];
 } | undefined;
@@ -44,7 +21,7 @@ type CPVResult = {
 
 // Props type for the component
 interface CPVsPanelProps {
-  bpId: string | null;
+  bpId: BlueprintId | null;
   device: Device | null;
   position?: PanelPosition;
   activeCPV: ActiveCPV;
@@ -53,7 +30,7 @@ interface CPVsPanelProps {
 
 // Helper function to render CPVs list
 function renderCPVs(
-  bpId: string,
+  bpId: BlueprintId,
   cpvs: CPVResult[],
   activeCPV: ActiveCPV,
   onCPVClick: (cpv: ActiveCPV) => void

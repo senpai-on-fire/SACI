@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { mutate } from 'swr';
 import { postData } from '../utils/api';
 import { BlueprintId, ComponentId } from '../types';
@@ -25,21 +25,12 @@ export type Annotations = {
 };
 
 export const AnnotationNode = ({ data }: AnnotationNodeProps) => {
-  const [isVisible, setIsVisible] = useState(false);
   const [newEffect, setNewEffect] = useState('');
   const [newAttack, setNewAttack] = useState('');
   const [attackFocused, setAttackFocused] = useState(false);
   const [effectFocused, setEffectFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Add an entrance animation effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Handle adding a new annotation
   const handleAddAnnotation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,11 +74,7 @@ export const AnnotationNode = ({ data }: AnnotationNodeProps) => {
 
   return (
     <div 
-      className={`rounded-lg overflow-hidden backdrop-blur-sm transition-all duration-300 ease-in-out ${
-        isVisible 
-          ? 'opacity-100 transform-none' 
-          : 'opacity-0 translate-x-4'
-      }`}
+      className="rounded-lg overflow-hidden backdrop-blur-sm opacity-100"
       style={{
         background: 'var(--annotation-bg, rgba(255, 255, 255, 0.85))',
         boxShadow: 'var(--annotation-shadow, 0 4px 15px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05))',

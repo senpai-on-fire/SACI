@@ -5,26 +5,29 @@ export type Component = {
   parameters?: {[name: string]: string | number | boolean | null},
 };
 
+export type Connection = [from: ComponentId, to: ComponentId];
+
 export type Device = {
   name: string,
   components: {[name: string]: Component},
-  connections: [from: string, to: string][],
-  hypotheses?: {[id: string]: Hypothesis},
-  annotations?: {
-    [id: string]: {
-      attack_surface: string,
-      effect: string,
-      attack_model: string
-    }
-  }
+  connections: Connection[],
+  hypotheses?: {[id: HypothesisId]: Hypothesis},
+  annotations?: {[id: AnnotationId]: Annotation}
 };
+
+export type Annotation = {
+  attack_surface: ComponentId,
+  effect: string,
+  attack_model: string
+}
 
 export type Hypothesis = {
   name: string,
-  path: string[],
-  annotations: string[]
+  path: ComponentId[],
+  annotations: AnnotationId[]
 };
 
+export type AnnotationId = string;
 export type BlueprintId = string;
-export type HypothesisId = string;
 export type ComponentId = string;
+export type HypothesisId = string;

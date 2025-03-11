@@ -6,6 +6,7 @@ export type CustomNodeData = {
   label: string;
   numberOfAnnotations: number;
   onAnnotationClick: (nodeId: string) => void;
+  isAnnotationOpen?: boolean;
 };
 
 type CustomNodeProps = {
@@ -18,6 +19,7 @@ export const CustomNode = ({ id, data }: CustomNodeProps) => {
     const [hover, setHover] = useState(false);
     
     const hasAnnotations = data.numberOfAnnotations > 0;
+    const isAnnotationOpen = data.isAnnotationOpen || false;
     
     return (
       <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
@@ -27,12 +29,12 @@ export const CustomNode = ({ id, data }: CustomNodeProps) => {
         
         {data.label}
         
-        {/* Annotation button - shown always if has annotations, or on hover if empty */}
+        {/* Annotation button - shown always if has annotations, or on hover/open if empty */}
         <div 
           className={`annotation-button absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer z-10
             ${hasAnnotations 
               ? 'bg-indigo-600 text-white shadow-md'
-              : hover 
+              : (hover || isAnnotationOpen)
                 ? 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 opacity-100 scale-100'
                 : 'opacity-0 scale-75'
             }`}
