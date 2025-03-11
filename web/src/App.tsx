@@ -353,8 +353,8 @@ function DeviceSelector({devices, selected, onSelection}: DeviceSelectorProps) {
 type HypothesisId = string;
 type Hypothesis = {
   name: string,
-  entry_component?: string | null,
-  exit_component?: string | null,
+  path: string[],
+  annotations: string[],
 };
 type HypothesisSelectorProps = {
   hypotheses?: {[hypId: HypothesisId]: Hypothesis} | null,
@@ -559,11 +559,11 @@ type HypothesisPanelProps = {
 function HypothesisPanel({bpId, device, hypothesis, ...analysesProps}: HypothesisPanelProps) {
   return <>
     <h3 className="text-2xl font-bold">Hypothesis: {hypothesis.name}</h3>
-    {hypothesis.entry_component ?
-      <div>Entry: {device.components[hypothesis.entry_component].name}</div> :
+    {hypothesis.path.length > 0 ?
+      <div>Entry: {device.components[hypothesis.path[0]].name}</div> :
       <> </>}
-    {hypothesis.exit_component ?
-      <div>Exit: {device.components[hypothesis.exit_component].name}</div> :
+    {hypothesis.path.length > 0 ?
+      <div>Exit: {device.components[hypothesis.path[hypothesis.path.length-1]].name}</div> :
       <> </>}
     <Analyses bpId={bpId} {...analysesProps} />
   </>;

@@ -66,13 +66,6 @@ def component_to_model(comp: ComponentBase) -> ComponentModel:
         parameters={param_name: str(param_value) for param_name, param_value in comp.parameters.items()},
     )
 
-class HypothesisModel(BaseModel):
-    name: str
-    entry_component: Optional[ComponentID]
-    exit_component: Optional[ComponentID]
-
-HypothesisID = str
-
 class AnnotationModel(BaseModel):
     attack_surface: ComponentID
     effect: str # TODO: add an EffectModel to capture the actual semantic data associated with a VulnerabilityEffect
@@ -86,6 +79,13 @@ def annotation_to_model(annot: Annotation) -> AnnotationModel:
     )
 
 AnnotationID = str
+
+class HypothesisModel(BaseModel):
+    name: str
+    path: list[ComponentID]
+    annotations: list[AnnotationID]
+
+HypothesisID = str
 
 class DeviceModel(BaseModel):
     name: str
@@ -480,18 +480,40 @@ hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict
     "ngcrover": {
         "webserver_stop": HypothesisModel(
             name="From the webserver, stop the rover.",
-            entry_component=_find_comp(rover, Wifi),
-            exit_component=_find_comp(rover, Motor),
+            path=[
+                ComponentID("wifi"),
+                ComponentID("webserver"),
+                ComponentID("uno_r4"),
+                ComponentID("uno_r3"),
+                ComponentID("pwm_channel_esc"),
+                ComponentID("esc"),
+                ComponentID("motor"),
+            ],
+            annotations=["wifi_open", "hidden_stop"],
         ),
         "emi_compass": HypothesisModel(
             name="Using EMI, influence the compass to affect the mission.",
-            entry_component=_find_comp(rover, CompassSensor),
-            exit_component=None,
+            path=[
+                ComponentID("compass"),
+                ComponentID("uno_r4"),
+                ComponentID("uno_r3"),
+                ComponentID("pwm_channel_servo"),
+                ComponentID("steering"),
+            ],
+            annotations=[],
         ),
         "wifi_rollover": HypothesisModel(
             name="Over WiFi, subvert the control system to roll the rover.",
-            entry_component=_find_comp(rover, Wifi),
-            exit_component=_find_comp(rover, Steering),
+            path=[
+                ComponentID("wifi"),
+                ComponentID("webserver"),
+                ComponentID("uno_r4"),
+                ComponentID("uno_r3"),
+                ComponentID("pwm_channel_esc"),
+                ComponentID("esc"),
+                ComponentID("motor"),
+            ],
+            annotations=["wifi_open"],
         ),
     },
 })
