@@ -116,46 +116,56 @@ class TestHypothesisConversion(unittest.TestCase):
         self.hypothesis_name = "TestHypothesis"
         self.entry_component = "component1"
         self.exit_component = "component2"
+        self.annot_id = "annot_1"
+
+        # Create Annotation database model for testing attaching to a hypothesis
+        self.annot_db_model = Annotation(
+            id=self.annot_id,
+            attack_surface=self.entry_component,
+            attack_model=None,
+            device_id=self.device_id,
+            hypothesis_id=self.hypothesis_id,
+        )
 
         # Create models for testing
         self.web_model = HypothesisModel(
             name=self.hypothesis_name,
-            entry_component=self.entry_component,
-            exit_component=self.exit_component,
+            path=[self.entry_component, self.exit_component],
+            annotations=[self.annot_id],
         )
 
-        # Also test with None values
+        # Also test with empty values
         self.web_model_with_none = HypothesisModel(
-            name=self.hypothesis_name, entry_component=None, exit_component=None
+            name=self.hypothesis_name, path=[], annotations=[]
         )
 
     def test_from_web_model(self):
         # Test from_web_model conversion
         db_model = Hypothesis.from_web_model(
-            self.web_model, self.hypothesis_id, self.device_id
+            self.web_model, self.hypothesis_id, self.device_id, {self.annot_id: self.annot_db_model}
         )
 
         # Verify conversion
         self.assertEqual(db_model.id, self.hypothesis_id)
         self.assertEqual(db_model.name, self.hypothesis_name)
-        self.assertEqual(db_model.entry_component, self.entry_component)
-        self.assertEqual(db_model.exit_component, self.exit_component)
+        self.assertEqual(db_model.path, [self.entry_component, self.exit_component])
         self.assertEqual(db_model.device_id, self.device_id)
+        self.assertEqual(db_model.annotations, [self.annot_db_model])
 
-        # Test with None values
+        # Test with empty values
         db_model_none = Hypothesis.from_web_model(
-            self.web_model_with_none, self.hypothesis_id, self.device_id
+            self.web_model_with_none, self.hypothesis_id, self.device_id, {}
         )
-        self.assertIsNone(db_model_none.entry_component)
-        self.assertIsNone(db_model_none.exit_component)
+        self.assertEqual(db_model_none.path, [])
+        self.assertEqual(db_model_none.annotations, [])
 
     def test_to_web_model(self):
         # Create DB model
         db_model = Hypothesis(
             id=self.hypothesis_id,
             name=self.hypothesis_name,
-            entry_component=self.entry_component,
-            exit_component=self.exit_component,
+            path=[self.entry_component, self.exit_component],
+            annotations=[self.annot_db_model],
             device_id=self.device_id,
         )
 
@@ -164,45 +174,40 @@ class TestHypothesisConversion(unittest.TestCase):
 
         # Verify conversion
         self.assertEqual(web_model.name, self.hypothesis_name)
-        self.assertEqual(web_model.entry_component, self.entry_component)
-        self.assertEqual(web_model.exit_component, self.exit_component)
+        self.assertEqual(web_model.path, [self.entry_component, self.exit_component])
 
-        # Test with None values
+        # Test with empty values
         db_model_none = Hypothesis(
             id=self.hypothesis_id,
             name=self.hypothesis_name,
-            entry_component=None,
-            exit_component=None,
+            path=[],
+            annotations=[],
             device_id=self.device_id,
         )
         web_model_none = db_model_none.to_web_model()
-        self.assertIsNone(web_model_none.entry_component)
-        self.assertIsNone(web_model_none.exit_component)
+        self.assertEqual(web_model_none.path, [])
+        self.assertEqual(web_model_none.annotations, [])
 
     def test_roundtrip_conversion(self):
         # Web model -> DB model -> Web model
         db_model = Hypothesis.from_web_model(
-            self.web_model, self.hypothesis_id, self.device_id
+            self.web_model, self.hypothesis_id, self.device_id, {self.annot_id: self.annot_db_model}
         )
         roundtrip_web_model = db_model.to_web_model()
 
         # Verify no data loss
         self.assertEqual(roundtrip_web_model.name, self.web_model.name)
-        self.assertEqual(
-            roundtrip_web_model.entry_component, self.web_model.entry_component
-        )
-        self.assertEqual(
-            roundtrip_web_model.exit_component, self.web_model.exit_component
-        )
+        self.assertEqual(roundtrip_web_model.path, [self.entry_component, self.exit_component])
+        self.assertEqual(roundtrip_web_model.annotations, [self.annot_id])
 
-        # Test with None values
+        # Test with empty values
         db_model_none = Hypothesis.from_web_model(
-            self.web_model_with_none, self.hypothesis_id, self.device_id
+            self.web_model_with_none, self.hypothesis_id, self.device_id, {}
         )
         roundtrip_web_model_none = db_model_none.to_web_model()
         self.assertEqual(roundtrip_web_model_none.name, self.web_model_with_none.name)
-        self.assertIsNone(roundtrip_web_model_none.entry_component)
-        self.assertIsNone(roundtrip_web_model_none.exit_component)
+        self.assertEqual(roundtrip_web_model_none.path, [])
+        self.assertEqual(roundtrip_web_model_none.annotations, [])
 
 
 class TestAnnotationConversion(unittest.TestCase):
@@ -340,8 +345,8 @@ class TestDeviceConversion(unittest.TestCase):
         # Create web model for hypothesis
         self.hyp_model = HypothesisModel(
             name=self.hyp_name,
-            entry_component=self.comp1_id,
-            exit_component=self.comp2_id,
+            path=[self.comp1_id, self.comp2_id],
+            annotations=[self.annot_id]
         )
 
         # Create web model for annotation
@@ -407,8 +412,7 @@ class TestDeviceConversion(unittest.TestCase):
         hyp = db_model.hypotheses[0]
         self.assertEqual(hyp.id, self.hyp_id)
         self.assertEqual(hyp.name, self.hyp_name)
-        self.assertEqual(hyp.entry_component, self.comp1_id)
-        self.assertEqual(hyp.exit_component, self.comp2_id)
+        self.assertEqual(hyp.path, [self.comp1_id, self.comp2_id])
 
         # Verify annotations were added correctly
         self.assertEqual(len(db_model.annotations), 1)
@@ -417,6 +421,9 @@ class TestDeviceConversion(unittest.TestCase):
         self.assertEqual(annot.attack_surface, self.comp1_id)
         self.assertEqual(annot.effect, self.effect)
         self.assertEqual(annot.attack_model, self.attack_model)
+
+        # Verify hypothesis's annotation was added correctly
+        self.assertEqual(hyp.annotations, [annot])
 
         # Test with empty model
         empty_db_model = Device.from_web_model(self.empty_web_model, "empty_device")
@@ -456,8 +463,8 @@ class TestDeviceConversion(unittest.TestCase):
         hyp = Hypothesis(
             id=self.hyp_id,
             name=self.hyp_name,
-            entry_component=self.comp1_id,
-            exit_component=self.comp2_id,
+            path=[self.comp1_id, self.comp2_id],
+            annotations=[],
             device_id=self.device_id,
         )
         device.hypotheses = [hyp]
@@ -469,8 +476,10 @@ class TestDeviceConversion(unittest.TestCase):
             effect=self.effect,
             attack_model=self.attack_model,
             device_id=self.device_id,
+            hypothesis_id=self.hyp_id,
         )
         device.annotations = [annot]
+        hyp.annotations.append(annot)
 
         # Convert to web model
         result_web_model = device.to_web_model()
@@ -501,8 +510,8 @@ class TestDeviceConversion(unittest.TestCase):
         self.assertIn(self.hyp_id, result_web_model.hypotheses)
         hyp_model = result_web_model.hypotheses[self.hyp_id]
         self.assertEqual(hyp_model.name, self.hyp_name)
-        self.assertEqual(hyp_model.entry_component, self.comp1_id)
-        self.assertEqual(hyp_model.exit_component, self.comp2_id)
+        self.assertEqual(hyp_model.path, [self.comp1_id, self.comp2_id])
+        self.assertEqual(hyp_model.annotations, [self.annot_id])
 
         # Verify annotations
         self.assertEqual(len(result_web_model.annotations), 1)
@@ -545,8 +554,8 @@ class TestDeviceConversion(unittest.TestCase):
             self.assertIn(hyp_id, roundtrip_web_model.hypotheses)
             rt_hyp = roundtrip_web_model.hypotheses[hyp_id]
             self.assertEqual(rt_hyp.name, hyp_model.name)
-            self.assertEqual(rt_hyp.entry_component, hyp_model.entry_component)
-            self.assertEqual(rt_hyp.exit_component, hyp_model.exit_component)
+            self.assertEqual(rt_hyp.path, hyp_model.path)
+            self.assertEqual(rt_hyp.annotations, hyp_model.annotations)
 
         # Verify annotations
         self.assertEqual(

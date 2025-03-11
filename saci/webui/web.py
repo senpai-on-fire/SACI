@@ -40,7 +40,6 @@ async def serve_frontend_root():
 
 ### Endpoints for blueprint management
 
-
 @app.get('/api/blueprints')
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
@@ -236,4 +235,3 @@ async def vnc_proxy(*, websocket: WebSocket, app_id: int):
         _, rest = e.split(lambda e: isinstance(e, WebSocketDisconnect) and e.code in (1000, 1001, 1005))
         if rest is not None:
             raise rest
-

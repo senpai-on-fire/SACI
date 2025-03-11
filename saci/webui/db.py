@@ -29,6 +29,7 @@ from saci.webui.web_models import (
     AnnotationModel,
     DeviceModel,
     ComponentID,
+    AnnotationID,
 )
 
 class Base(DeclarativeBase):
@@ -114,32 +115,35 @@ class Hypothesis(Base):
 
     id = mapped_column(String, primary_key=True)  # HypothesisID
     name: Mapped[str]
-    entry_component: Mapped[ComponentID | None]
-    exit_component: Mapped[ComponentID | None]
+    path: Mapped[list[ComponentID]] = mapped_column(JSON)
     device_id = mapped_column(String, ForeignKey("devices.id"))
 
     device = relationship("Device", back_populates="hypotheses")
+    annotations = relationship("Annotation", back_populates="hypothesis")
 
     @classmethod
     def from_web_model(
-        cls, model: HypothesisModel, hypothesis_id: str, device_id: str
+            cls,
+            model: HypothesisModel,
+            hypothesis_id: str,
+            device_id: str,
+            device_annotations: dict[AnnotationID, Annotation],
     ) -> Hypothesis:
+        # TODO: does this make sense?
+        annotations = [device_annotations[annot_id] for annot_id in model.annotations]
         return cls(
             id=hypothesis_id,
             name=model.name,
-            entry_component=model.entry_component,
-            exit_component=model.exit_component,
+            path=model.path,
             device_id=device_id,
+            annotations=annotations,
         )
 
     def to_web_model(self) -> HypothesisModel:
-        entry_comp = self.entry_component
-        exit_comp = self.exit_component
-
         return HypothesisModel(
             name=str(self.name),
-            entry_component=entry_comp if entry_comp is not None else None,
-            exit_component=exit_comp if exit_comp is not None else None,
+            path=self.path,
+            annotations=[annot.id for annot in self.annotations],
         )
 
 
@@ -151,8 +155,10 @@ class Annotation(Base):
     effect: Mapped[str]
     attack_model: Mapped[str | None]
     device_id = mapped_column(String, ForeignKey("devices.id"))
+    hypothesis_id = mapped_column(String, ForeignKey("hypotheses.id"))
 
     device = relationship("Device", back_populates="annotations")
+    hypothesis = relationship("Hypothesis", back_populates="annotations")
 
     @classmethod
     def from_web_model(
@@ -216,16 +222,17 @@ class Device(Base):
                 Connection.from_connection_tuple(conn_tuple, device_id)
             )
 
+        # Add annotations
+        annot_mapping: dict[AnnotationID, Annotation] = {}
+        for annot_id, annot_model in model.annotations.items():
+            annot = Annotation.from_web_model(annot_model, annot_id, device_id)
+            annot_mapping[annot_id] = annot
+            device.annotations.append(annot)
+
         # Add hypotheses
         for hyp_id, hyp_model in model.hypotheses.items():
             device.hypotheses.append(
-                Hypothesis.from_web_model(hyp_model, hyp_id, device_id)
-            )
-
-        # Add annotations
-        for annot_id, annot_model in model.annotations.items():
-            device.annotations.append(
-                Annotation.from_web_model(annot_model, annot_id, device_id)
+                Hypothesis.from_web_model(hyp_model, hyp_id, device_id, annot_mapping)
             )
 
         return device

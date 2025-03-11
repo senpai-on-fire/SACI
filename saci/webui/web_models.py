@@ -29,15 +29,6 @@ class ComponentModel(BaseModel):
         )
 
 
-class HypothesisModel(BaseModel):
-    name: str
-    entry_component: ComponentID | None
-    exit_component: ComponentID | None
-
-
-HypothesisID = str
-
-
 class AnnotationModel(BaseModel):
     attack_surface: ComponentID
     effect: str  # TODO: add an EffectModel to capture the actual semantic data associated with a VulnerabilityEffect
@@ -61,6 +52,15 @@ class AnnotationModel(BaseModel):
 
 
 AnnotationID = str
+
+
+class HypothesisModel(BaseModel):
+    name: str
+    path: list[ComponentID]
+    annotations: list[AnnotationID]
+
+
+HypothesisID = str
 
 
 class DeviceModel(BaseModel):
