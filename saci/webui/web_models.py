@@ -4,6 +4,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
+from saci.hypothesis import Hypothesis
 from saci.modeling.annotation import Annotation
 from saci.modeling.cpv import CPV
 from saci.modeling.cpvpath import CPVPath
@@ -58,6 +59,15 @@ class HypothesisModel(BaseModel):
     name: str
     path: list[ComponentID]
     annotations: list[AnnotationID]
+
+    def to_hypothesis(self, annotation_mapping: dict[AnnotationID, Annotation]) -> Hypothesis:
+        return Hypothesis(
+            description=self.name,
+            path=self.path,
+            assumptions=[], # hopefully my idea for assumptions will come to pass... i think at some point they will
+                            # merge with annotations. but for now, empty
+            annotations=[annotation_mapping[annot_id] for annot_id in self.annotations],
+        )
 
 
 HypothesisID = str
