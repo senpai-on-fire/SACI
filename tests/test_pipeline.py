@@ -7,6 +7,7 @@ from typing import Optional
 
 import saci
 from saci.modeling import CPV, ComponentBase
+from saci.modeling.annotation import Annotation
 from saci.modeling.device.sensor.compass import CompassSensor
 from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.motor.motor import Motor
@@ -16,6 +17,7 @@ from saci.modeling.state import GlobalState
 from saci.modeling.device import ComponentID, MultiCopterMotor, Wifi, SikRadio
 from saci.orchestrator import process, identify
 from saci.hypothesis import Hypothesis, ParameterAssumption, RemoveComponentsAssumption, AddComponentAssumption
+from saci.identifier import IdentifierCPV
 
 from saci_db.cpvs import MavlinkSiKCPV, SerialRollOverCPV, CompassPermanentSpoofingCPV, WifiWebCrashCPV
 from saci_db.devices.ngcrover import NGCRover
@@ -175,6 +177,65 @@ class TestPipeline(unittest.TestCase):
             len(cpv_paths_with_vulns), # type: ignore
             0,
             "Should find a wifi-based CPV when the wifi auth vuln adds wifi as an entry point"
+        )
+
+    def test_identifier_hypothesis(self):
+        cps = NGCRover()
+        # Let's say we don't know a priori that we can access the wifi interface. Soon we'll update the actual device
+        # model for this assumption but now we'll just set it manually.
+        cps.component_graph.nodes[ComponentID("wifi")]["is_entry"] = False
+
+        wifi_auth_vuln = LackWifiAuthenticationVuln()
+        self.assertTrue(
+            wifi_auth_vuln.exists(cps),
+            "Wifi auth vuln not found on the NGCRover.",
+        )
+        effects = wifi_auth_vuln.effects(cps)
+        self.assertEqual(
+            len(effects),
+            1,
+            "Oops, fix this test to take into account that LackWifiAuthenticationVuln returns more (or fewer?) than one effect now."
+        )
+        effect = effects[0]
+
+        wifi_web_crash_path = [
+            ComponentID("wifi"),
+            ComponentID("webserver"),
+            ComponentID("uno_r4"),
+            ComponentID("uno_r3"),
+            ComponentID("pwm_channel_esc"),
+            ComponentID("esc"),
+            ComponentID("motor"),
+        ]
+        cpv = WifiWebCrashCPV()
+        state = GlobalState(cps.components)
+        identifier = IdentifierCPV(cps, state)
+
+        # Verify that with no annotations added, the WifiWebCrashCPV doesn't match, since we can't access the wifi AP.
+        hypothesis_no_annotations = Hypothesis(
+            description="Null hypothesis (lol)",
+            path=wifi_web_crash_path,
+        )
+        self.assertFalse(
+            identifier.check_hypothesis(cpv, hypothesis_no_annotations),
+            "Without annotations, the hypothesis shouldn't find a match, but it did!"
+        )
+
+        # Verify that with an annotation added that has the effects of LackWifiAuthenticationVuln, the WifiWebCrashCPV
+        # does match, since we can access the wifi AP in the transformed device.
+        hypothesis_with_annotations = Hypothesis(
+            description="Null hypothesis (lol)",
+            path=wifi_web_crash_path,
+            annotations=[Annotation(
+                attack_surface=ComponentID("wifi"),
+                underlying_vulnerability=None, # we could put wifi_auth_vuln here but it's not needed
+                effect=effect,
+                attack_model="foo",
+            )],
+        )
+        self.assertTrue(
+            identifier.check_hypothesis(cpv, hypothesis_with_annotations),
+            "With annotations, the hypothesis should find a match, but it didn't!"
         )
 
 if __name__ == "__main__":

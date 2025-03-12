@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Sequence, TypeVar
 from copy import deepcopy
 
+from saci.hypothesis import Hypothesis
 from saci.modeling import Device, CPV, ComponentBase
 from saci.modeling.device.device import IdentifiedComponent, ComponentID
 from saci.modeling.state import GlobalState
@@ -13,17 +14,40 @@ def get_next_components(component_id: ComponentID, device: Device) -> list[Compo
     return list(device.component_graph.successors(component_id))
 
 class IdentifierCPV:
-    def __init__(self, device: Device, initial_state: GlobalState, vulns: Sequence[BaseVulnerability] | None = None):
+    def __init__(
+            self,
+            device: Device,
+            initial_state: GlobalState,
+            vulns: Sequence[BaseVulnerability] | None = None,
+    ):
         self.device = device
         self.initial_state = initial_state
         self.vulns = vulns or []
 
-    def identify(self, cpv: CPV) -> list[list[IdentifiedComponent]]:
+    def prepare_device(self) -> Device:
         device = deepcopy(self.device)
-        # First apply any effects of vulnerabilities the device has
+        # Apply any effects of vulnerabilities the device has
         for vuln in self.vulns:
             if vuln.exists(device):
                 vuln.apply_effects(device)
+        return device
+
+    def check_hypothesis(self, cpv: CPV, hypothesis: Hypothesis) -> bool:
+        device = self.prepare_device()
+        hypothesis.apply_to(device)
+
+        path = hypothesis.path
+        if len(path) == 0:
+            raise ValueError("Hypothesis's path should be nonempty")
+
+        # Make sure we can actually enter the path in the first place!
+        if not device.component_graph.nodes[path[0]].get("is_entry", False):
+            return False
+
+        return cpv.is_possible_path([device.components[comp_id] for comp_id in path])
+
+    def identify(self, cpv: CPV) -> list[list[IdentifiedComponent]]:
+        device = self.prepare_device()
 
         # Get the starting locations (components with external input)
         starting_locations: list[ComponentID] = [

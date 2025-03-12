@@ -1,9 +1,12 @@
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Iterable
 
 from saci.modeling.device.component.component_base import ComponentBase
 from saci.modeling.device.device import ComponentID
+from saci.modeling.cpv import CPV
 from .modeling.device import Device, DeviceFragment
+from .modeling.annotation import Annotation
 
 @dataclass(frozen=True)
 class Assumption:
@@ -53,13 +56,18 @@ class Hypothesis:
     """A guess at where a CPV may lie and at how to expose it."""
     description: str
     path: list[ComponentID]
-    assumptions: list[Assumption]
+    assumptions: list[Assumption] = field(default_factory=list)
+    annotations: list[Annotation] = field(default_factory=list)
 
     def apply_to(self, device: Device):
+        """Mutably applies the transformations specified by this hypothesis's assumptions and annotations to device."""
         for assm in self.assumptions:
             assm.apply_to(device)
+        for annot in self.annotations:
+            annot.effect.apply_to_device(device)
 
     def transform(self, device: Device) -> Device:
+        """Like apply_to, but returns a new device instead of mutating the given one."""
         new_device = deepcopy(device)
         self.apply_to(new_device)
         return new_device

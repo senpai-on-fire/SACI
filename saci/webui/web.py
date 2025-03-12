@@ -17,10 +17,11 @@ from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionCl
 import saci.webui.data as data
 import saci.webui.db as db
 from saci.modeling.state.global_state import GlobalState
-from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, ParameterTypeModel
+from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVModel, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel
 from saci_db.cpvs import CPVS
 
 from ..orchestrator import identify
+from ..identifier import IdentifierCPV
 from ..deserializer import ingest
 
 l = logging.getLogger(__name__)
@@ -107,6 +108,33 @@ def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
         if (paths := identify(blueprint, initial_state, cpv_model=cpv)[1]) is not None
         for path in paths
     ]
+
+@app.post("/api/blueprints/{bp_id}/hypotheses")
+def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel) -> HypothesisID:
+    if bp_id not in data.blueprints:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+
+    hypot_id = str(uuid.uuid4())
+    while hypot_id in data.hypotheses[bp_id]:
+        hypot_id = str(uuid.uuid4())
+
+    data.hypotheses[bp_id][hypot_id] = hypothesis_model
+
+    return hypot_id
+
+@app.get("/api/blueprints/{bp_id}/hypotheses/{hypot_id}/cpvs")
+def hypothesis_cpvs(bp_id: str, hypot_id: str) -> list[CPVModel]:
+    if (device := data.blueprints.get(bp_id)) is None:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+
+    if (hypot_model := data.hypotheses[bp_id].get(hypot_id)) is None:
+        raise HTTPException(status_code=404, detail="Hypothesis not found")
+
+    hypot = hypot_model.to_hypothesis(data.annotations[bp_id])
+    identifier = IdentifierCPV(device, GlobalState(device.components))
+    matched_cpvs = [cpv for cpv in CPVS if identifier.check_hypothesis(cpv, hypot)]
+
+    return [CPVModel.from_cpv(cpv) for cpv in matched_cpvs]
 
 @app.get("/api/components/")
 def list_component_types() -> list[ComponentTypeID]:
