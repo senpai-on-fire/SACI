@@ -295,6 +295,7 @@ function App() {
     onClose={() => setShowHypothesisPanel(false)}
     device={device}
     onHoverComponent={setHoveredComponent}
+    onHypothesisCreated={setHypId}
   />;
 
   const highlights = {

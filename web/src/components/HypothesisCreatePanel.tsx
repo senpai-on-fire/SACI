@@ -5,6 +5,8 @@ import { X } from 'react-feather';
 import { adjacencyListOfComponentIds, groupAnnotationsByComponentId } from '../utils/helpers';
 import * as Select from '@radix-ui/react-select';
 import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
+import { useSWRConfig } from 'swr';
+import { postData } from '../utils/api';
 
 // Props for the hypothesis create panel component
 interface HypothesisCreatePanelProps {
@@ -13,7 +15,8 @@ interface HypothesisCreatePanelProps {
   isOpen: boolean;
   onClose: () => void;
   device: Device;
-  onHoverComponent?: (componentId: ComponentId | null) => void;
+  onHoverComponent: (componentId: ComponentId | null) => void;
+  onHypothesisCreated: (hypothesisId: string) => void;
 }
 
 // Type for annotation data with component info
@@ -50,10 +53,22 @@ const getRelevantAnnotations = (device: Device, components: ComponentId[]) => {
 };
 
 // The hypothesis create panel component
-export function HypothesisCreatePanel({ isOpen, onClose, position, bpId, device, onHoverComponent }: HypothesisCreatePanelProps) {
+export function HypothesisCreatePanel({ 
+  isOpen, 
+  onClose, 
+  position, 
+  bpId, 
+  device, 
+  onHoverComponent,
+  onHypothesisCreated 
+}: HypothesisCreatePanelProps) {
   const [hypothesisName, setHypothesisName] = useState('');
   const [selectedComponents, setSelectedComponents] = useState<ComponentId[]>([]);
   const [selectedAnnotations, setSelectedAnnotations] = useState<{[id: AnnotationId]: boolean}>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Get the mutate function from SWR config
+  const { mutate } = useSWRConfig();
   
   if (!isOpen || !bpId) return null;
  
@@ -87,10 +102,7 @@ export function HypothesisCreatePanel({ isOpen, onClose, position, bpId, device,
   
   // Handle hovering over a component option in dropdown
   const handleComponentHover = (compId: ComponentId | null) => {
-    console.log('hovering over component', compId);
-    if (onHoverComponent) {
-      onHoverComponent(compId);
-    }
+    onHoverComponent(compId);
   };
   
   // Handle annotation selection
@@ -102,7 +114,7 @@ export function HypothesisCreatePanel({ isOpen, onClose, position, bpId, device,
   };
   
   // Handle form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!hypothesisName) {
       alert('Please enter a hypothesis name');
       return;
@@ -113,15 +125,39 @@ export function HypothesisCreatePanel({ isOpen, onClose, position, bpId, device,
       .filter(([, selected]) => selected)
       .map(([id]) => id);
     
-    // TODO: Add API call to create hypothesis
-    console.log('Creating hypothesis:', {
+    // Create hypothesis model to send to API
+    const hypothesisData = {
       name: hypothesisName,
-      components: selectedComponents,
+      path: selectedComponents,
       annotations: finalAnnotations
-    });
+    };
     
-    // Clear inputs and close
-    handleCancel();
+    setIsSubmitting(true);
+    
+    try {
+      // Make API call to create hypothesis using the helper function
+      const hypothesisId = await postData<typeof hypothesisData, string>(
+        `/api/blueprints/${bpId}/hypotheses`, 
+        hypothesisData
+      );
+      
+      // Mutate the blueprints cache to refresh data
+      await mutate('/api/blueprints');
+      
+      // Call the callback with the new hypothesis ID if provided
+      onHypothesisCreated(hypothesisId);
+
+      // Clear the hover component if it exists
+      onHoverComponent(null);
+      
+      // Clear inputs and close panel
+      handleCancel();
+    } catch (error) {
+      console.error('Error creating hypothesis:', error);
+      alert('Failed to create hypothesis. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   // Function to handle cancel/close
@@ -130,6 +166,7 @@ export function HypothesisCreatePanel({ isOpen, onClose, position, bpId, device,
     setHypothesisName('');
     setSelectedComponents([]);
     setSelectedAnnotations({});
+    setIsSubmitting(false);
     // Close panel
     onClose();
   };
@@ -441,14 +478,16 @@ export function HypothesisCreatePanel({ isOpen, onClose, position, bpId, device,
           <button
             onClick={handleCancel}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            disabled={isSubmitting}
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md disabled:bg-indigo-400"
+            disabled={isSubmitting}
           >
-            Create
+            {isSubmitting ? 'Creating...' : 'Create'}
           </button>
         </div>
       </div>
