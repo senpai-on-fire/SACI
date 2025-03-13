@@ -5,13 +5,14 @@ import string
 import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypeVar
 
 import networkx as nx
 import matplotlib.pyplot as plt
 from jinja2 import Template, Environment
 
 from saci.modeling.device import GPSReceiver, Controller
+from saci.modeling.device.component.component_base import ComponentBase
 from saci.modeling.device.sensor import CompassSensorHigh
 
 
@@ -40,7 +41,7 @@ class ComponentPath:
         if self.local:
             return f"from .{self.module_path} import {self.class_name}"
         else:
-            return f"import {self.module_path}"
+            return f"from {self.module_path} import {self.class_name}"
 
 # TODO: probably have this in some more centralized location
 BUILTIN_SYSTEM_COMPONENTS: dict[str, ComponentPath] = {
@@ -50,24 +51,23 @@ BUILTIN_SYSTEM_COMPONENTS: dict[str, ComponentPath] = {
     "Drive Motor Control": ComponentPath("saci.modeling.device", "Controller", "drive_motor_control"),
 }
 
-SACI_TYPE_MAPPING: dict[str, ComponentPath] = {
-    "MOTOR": ComponentPath("saci.modeling.device.motor", "Motor", "motor"),
-    "MULTIMOTOR": ComponentPath("saci.modeling.device.motor", "MultiMotor", "multimotor"),
-    "MULTICOPTERMOTOR": ComponentPath("saci.modeling.device.motor", "MultiCopterMotor", "multicoptermotor"),
-    "SERVO": ComponentPath("saci.modeling.device.motor", "Servo", "servo"),
-    "STEERING": ComponentPath("saci.modeling.device.motor", "Steering", "steering"),
-    "CAMERA": ComponentPath("saci.modeling.device.camera", "Camera", "camera"),
-    "COMPASS": ComponentPath("saci.modeling.device.compass", "CompassSensor", "compass"),
-    "CONTROLLER": ComponentPath("saci.modeling.device.controller", "Controller", "controller"),
-    "GPS": ComponentPath("saci.modeling.device.gps", "GPSReceiver", "gps"),
-    "GYROSCOPE": ComponentPath("saci.modeling.device.gyroscope", "Gyroscope", "gyroscope"),
-    "MAVLINK": ComponentPath("saci.modeling.device.mavlink", "Mavlink", "mavlink"),
-    # TODO: oops
-    "MICROCONTROLLER": ComponentPath("saci.modeling.device.controller", "Controller", "controller"),
-    "SIKRADIO": ComponentPath("saci.modeling.device.sikradio", "SikRadio", "sikradio"),
-    "TELEMETRY": ComponentPath("saci.modeling.device.telemetry", "Telemetry", "telemetry"),
-    "WIFI": ComponentPath("saci.modeling.device.wifi", "Wifi", "wifi"),
-}
+# TODO: dedup this code with that in saci.web.data, or better yet replace with a better solution
+T = TypeVar("T")
+
+def _all_subclasses(c: type[T]) -> list[type[T]]:
+    return [c] + [
+        subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)
+    ]
+
+# TODO: janky
+saci_type_mapping: dict[str, ComponentPath] = {}
+for comp_type in _all_subclasses(ComponentBase):
+    name = comp_type.__qualname__
+    saci_type_mapping[name] = ComponentPath(
+        comp_type.__module__,
+        name,
+        name.lower(),
+    )
 
 def split_any(s: str, split_on: set[str]) -> list[str]:
     out = []
@@ -94,7 +94,7 @@ def system_name_to_path(system_name: str, saci_type: str) -> ComponentPath:
     class_name = "".join(name_parts)
     if any(not name.isidentifier() for name in (module_name, class_name, attr_name)):
         raise ValueError(f"Couldn't convert system name {system_name!r} to valid names")
-    if (path := SACI_TYPE_MAPPING.get(saci_type)) is not None:
+    if (path := saci_type_mapping.get(saci_type)) is not None:
         return dataclasses.replace(path, attr_name=attr_name)
     return ComponentPath(module_name, class_name, attr_name, local=True, file_name=f"{module_name}.py")
 
@@ -117,6 +117,11 @@ class System:
     @property
     def all_subsystems(self):
         return [subsub for sub in self.subsystems for subsub in [sub] + sub.all_subsystems]
+
+    @property
+    def parent_child_edges(self):
+        return [(self.name, child.name) for child in self.subsystems] + \
+               [edge for child in self.subsystems for edge in child.parent_child_edges]
 
     def __repr__(self):
         return self.name
@@ -308,7 +313,8 @@ def ingest(serialized: dict, output_dir: Path, render: bool=False, force: bool=F
         components[sub.name] = emit_system(output_dir, sub)
 
     # TODO: do we want to model connections to the top-level device in some better way than just filtering them out...
-    connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name]
+    connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name] + \
+        [(src, dst) for src, dst in device.parent_child_edges if src != device.name]
     emit_device(output_dir, components, connections, device.name, device.saci_type)
 
 if __name__ == '__main__':
