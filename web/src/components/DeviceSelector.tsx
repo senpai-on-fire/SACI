@@ -8,6 +8,7 @@ export interface DeviceSelectorProps {
   devices?: {[bpId: BlueprintId]: Device}; // should be null/undefined when devices are still loading
   selected?: BlueprintId | null;
   onSelection: (bpId: BlueprintId) => void;
+  onDeviceChange?: () => void; // Callback to reset hypothesis selection
 }
 
 /**
@@ -16,11 +17,19 @@ export interface DeviceSelectorProps {
 export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
   devices,
   selected,
-  onSelection
+  onSelection,
+  onDeviceChange
 }) => {
   // Prepare options for the select element
   const isLoading = !devices;
   const selectValue = `${devices ? selected : 0}`;
+
+  const handleSelection = (bpId: BlueprintId) => {
+    onSelection(bpId);
+    if (onDeviceChange) {
+      onDeviceChange();
+    }
+  };
 
   return (
     <div className="mb-2">
@@ -28,7 +37,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
         <span className="font-medium text-sm">Device:</span>
         <Select.Root
           value={selectValue}
-          onValueChange={onSelection}
+          onValueChange={handleSelection}
           disabled={isLoading}
         >
           <Select.Trigger 

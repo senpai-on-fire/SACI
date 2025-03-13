@@ -4,6 +4,7 @@ import { DeviceSelector } from "./DeviceSelector";
 import { Flow } from "./Flow";
 import { HypothesisCreatePanel } from "./HypothesisCreatePanel";
 import { HypothesisSelector } from "./HypothesisSelector";
+import { HypothesisTestPanel } from "./HypothesisTestPanel";
 
 export {
     AnnotationNode,
@@ -11,6 +12,9 @@ export {
     DeviceSelector,
     Flow,
     HypothesisCreatePanel,
-    HypothesisSelector
+    HypothesisSelector,
+    HypothesisTestPanel,
 };
 export type { ActiveCPV };
+
+export { CustomNode } from "./CustomNode";

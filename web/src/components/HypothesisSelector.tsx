@@ -9,9 +9,11 @@ export interface HypothesisSelectorProps {
   hypotheses?: {[hypId: HypothesisId]: Hypothesis} | null;
   selected: HypothesisId | null;
   onSelection: (hypId: HypothesisId) => void;
-  bpId: BlueprintId | null; // Blueprint ID for creating new hypotheses
-  onAddClick: () => void; // Callback for when the add button is clicked
-  isPanelOpen: boolean; // Whether the hypothesis create panel is open
+  bpId: BlueprintId | null;
+  onAddClick: () => void;
+  isCreatePanelOpen: boolean;
+  onTestClick: () => void;
+  isTestPanelOpen: boolean;
 }
 
 /**
@@ -23,11 +25,26 @@ export const HypothesisSelector: React.FC<HypothesisSelectorProps> = ({
   onSelection,
   bpId,
   onAddClick,
-  isPanelOpen
+  isCreatePanelOpen,
+  onTestClick,
+  isTestPanelOpen
 }) => {
   const isLoading = !hypotheses;
   const selectValue = `${hypotheses ? JSON.stringify(selected) : "null"}`;
 
+  const handleTestClick = () => {
+    if (isCreatePanelOpen) {
+      onAddClick();
+    }
+    onTestClick();
+  };
+
+  const handleAddClick = () => {
+    if (isTestPanelOpen) {
+      onTestClick();
+    }
+    onAddClick();
+  };
   return (
     <div className="mb-2 flex items-center">
       <label className="flex items-center space-x-2 mr-2">
@@ -35,7 +52,7 @@ export const HypothesisSelector: React.FC<HypothesisSelectorProps> = ({
         <Select.Root
           value={selectValue}
           onValueChange={(value) => onSelection(JSON.parse(value))}
-          disabled={isLoading}
+          disabled={isLoading || isTestPanelOpen}
         >
           <Select.Trigger 
             className="inline-flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded py-1 pl-2 pr-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 min-w-[140px]"
@@ -89,11 +106,33 @@ export const HypothesisSelector: React.FC<HypothesisSelectorProps> = ({
           </Select.Portal>
         </Select.Root>
       </label>
+
+      {selected && (
+        <button
+          onClick={handleTestClick}
+          className={`inline-flex items-center px-2 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white transition-colors mr-2 ${
+            isTestPanelOpen 
+              ? 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500' 
+              : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+          }`}
+          title={
+            isTestPanelOpen 
+              ? "Close test panel" 
+              : "Test hypothesis"
+          }
+          aria-label={isTestPanelOpen ? "Close test panel" : "Test hypothesis"}
+          focus-outline="none"
+          focus-ring="2"
+          focus-ring-offset="2"
+        >
+          {isTestPanelOpen ? "Close" : "Test"}
+        </button>
+      )}
       
       <button
-        onClick={onAddClick}
+        onClick={handleAddClick}
         className={`inline-flex items-center px-2 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white transition-colors ${
-          isPanelOpen 
+          isCreatePanelOpen 
             ? 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500' 
             : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
         }`}
@@ -101,23 +140,19 @@ export const HypothesisSelector: React.FC<HypothesisSelectorProps> = ({
         title={
           !bpId 
             ? "Select a blueprint first" 
-            : isPanelOpen 
+            : isCreatePanelOpen 
               ? "Close hypothesis panel" 
               : "Create a new hypothesis"
         }
-        aria-label={isPanelOpen ? "Close panel" : "Create new hypothesis"}
+        aria-label={isCreatePanelOpen ? "Close panel" : "Create new hypothesis"}
         focus-outline="none"
         focus-ring="2"
         focus-ring-offset="2"
       >
-        {isPanelOpen ? (
-          <>
-            <X size={14} />
-          </>
+        {isCreatePanelOpen ? (
+          <X size={16} />
         ) : (
-          <>
-            <Plus size={14} />
-          </>
+          <Plus size={16} />
         )}
       </button>
     </div>

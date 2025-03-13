@@ -1,6 +1,6 @@
 import { Panel, PanelPosition } from '@xyflow/react';
 import { BlueprintId, Device, ComponentId, AnnotationId } from '../types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'react-feather';
 import { adjacencyListOfComponentIds, groupAnnotationsByComponentId } from '../utils/helpers';
 import * as Select from '@radix-ui/react-select';
@@ -17,6 +17,7 @@ interface HypothesisCreatePanelProps {
   device: Device;
   onHoverComponent: (componentId: ComponentId | null) => void;
   onHypothesisCreated: (hypothesisId: string) => void;
+  importedData?: { name: string; path: string[] } | null;
 }
 
 // Type for annotation data with component info
@@ -60,7 +61,8 @@ export function HypothesisCreatePanel({
   bpId, 
   device, 
   onHoverComponent,
-  onHypothesisCreated 
+  onHypothesisCreated,
+  importedData
 }: HypothesisCreatePanelProps) {
   const [hypothesisName, setHypothesisName] = useState('');
   const [selectedComponents, setSelectedComponents] = useState<ComponentId[]>([]);
@@ -69,6 +71,14 @@ export function HypothesisCreatePanel({
   
   // Get the mutate function from SWR config
   const { mutate } = useSWRConfig();
+  
+  // Update form when imported data changes
+  useEffect(() => {
+    if (importedData) {
+      setHypothesisName(importedData.name);
+      setSelectedComponents(importedData.path);
+    }
+  }, [importedData]);
   
   if (!isOpen || !bpId) return null;
  

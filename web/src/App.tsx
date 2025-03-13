@@ -9,7 +9,8 @@ import {
   DeviceSelector,
   Flow,
   HypothesisCreatePanel,
-  HypothesisSelector
+  HypothesisSelector,
+  HypothesisTestPanel
 } from './components';
 import {
   BlueprintId,
@@ -153,8 +154,7 @@ function ComponentPanel({componentId, component, analysisFilter, ...analysesProp
         {parameters}
       </ul>
         <Analyses
-        analysisFilter={info => info.components_included.includes(componentId) &&
-                                (!analysisFilter || analysisFilter(info))}
+          analysisFilter={info => info.components_included.includes(componentId) && (!analysisFilter || analysisFilter(info))}
           {...analysesProps} />
     </>
   );
@@ -207,16 +207,35 @@ function App() {
   const hypothesis = device && hypId ? device.hypotheses?.[hypId] : null;
 
   const [hoveringAnalysis, setHoveringAnalysis] = useState<AnalysisInfo | null>(null);
+  const [hoveredComponents, setHoveredComponents] = useState<string[] | null>(null);
+
+  const handleSimulationHover = (components: string[] | null) => {
+    setHoveredComponents(components);
+  };
 
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
   
-  const [showHypothesisPanel, setShowHypothesisPanel] = useState(false);
+  const [showHypothesisCreatePanel, setShowHypothesisCreatePanel] = useState(false);
+  const [showHypothesisTestPanel, setShowHypothesisTestPanel] = useState(false);
+  const [importedCPVData, setImportedCPVData] = useState<{name: string, path: string[]} | null>(null);
+
+  // Update handlers to close activeCPV when panels are opened
+  const handleCreatePanelOpen = (open: boolean) => {
+    setShowHypothesisCreatePanel(open);
+    if (open) {
+      setActiveCPV(undefined);
+    }
+  };
+
+  const handleTestPanelOpen = (open: boolean) => {
+    setShowHypothesisTestPanel(open);
+    if (open) {
+      setActiveCPV(undefined);
+    }
+  };
 
   type RunningAnalysis = {name: string, app: number};
   const [showingAnalysis, setShowingAnalysis] = useState<RunningAnalysis | null>(null);
-  const analysisPanel = showingAnalysis ?
-    <AnalysisPanel name={showingAnalysis.name} app={showingAnalysis.app} onClose={() => setShowingAnalysis(null)} /> :
-    <> </>;
 
   // Add panel minimization state
   const [panelMinimized, setPanelMinimized] = useState(true);
@@ -226,6 +245,18 @@ function App() {
   
   // Add hoveredComponent state for highlighting in Flow
   const [hoveredComponent, setHoveredComponent] = useState<ComponentId | null>(null);
+
+  // Handle importing CPV data
+  const handleImportCPV = (name: string, path: string[]) => {
+    setImportedCPVData({ name, path });
+    setShowHypothesisCreatePanel(true);
+  };
+
+  const handleDeviceChange = (newBpId: BlueprintId) => {
+    setBpId(newBpId);
+    setHypId(null);
+    setShowHypothesisTestPanel(false);
+  };
 
   let panelInner = null;
   if (bpId && device) {
@@ -251,59 +282,14 @@ function App() {
       panelInner = <Analyses {...analysesProps} />;
     }
   }
-  
-  // Modified panel with minimization controls
-  const panel = panelInner ? (
-    <Panel 
-      className="bg-white dark:bg-neutral-900 border-2 p-4 border-indigo-600 rounded overflow-hidden" 
-      position="bottom-left"
-      style={{
-        maxHeight: panelMinimized ? 'auto' : '400px',
-        maxWidth: 'md',
-        transition: 'all 0.3s ease'
-      }}
-    >
-      <div className="float-right cursor-pointer"
-           onClick={() => setPanelMinimized(!panelMinimized)}>
-        {panelMinimized ? 
-          <Maximize2 className="text-indigo-600 ml-auto" size={20} /> : 
-          <Minimize2 className="text-indigo-600 ml-auto" size={20} />
-        }
-      </div>
-      {!panelMinimized && (
-        <div className="max-h-80 overflow-auto">
-          {panelInner}
-        </div>
-      )}
-    </Panel>
-  ) : (
-    <> </>
-  );
-
-  const cpvsPanel = <CPVsPanel 
-    bpId={bpId} 
-    device={device} 
-    position="top-right" 
-    activeCPV={activeCPV}
-    onActiveCPVChange={setActiveCPV}
-  />;
-
-  const hypothesisCreatePanel = <HypothesisCreatePanel
-    bpId={bpId}
-    position="bottom-center"
-    isOpen={showHypothesisPanel}
-    onClose={() => setShowHypothesisPanel(false)}
-    device={device}
-    onHoverComponent={setHoveredComponent}
-    onHypothesisCreated={setHypId}
-  />;
 
   const highlights = {
     entry: hypothesis?.path[0],
     exit: hypothesis?.path[hypothesis?.path.length - 1],
-    involved: hoveringAnalysis?.components_included,
+    involved: hoveredComponents || hoveringAnalysis?.components_included,
     activePath: activeCPV?.path,
     hoveredComponent: hoveredComponent,
+    hypothesisPath: hypothesis?.path,
   };
 
   return (
@@ -319,22 +305,83 @@ function App() {
             <div className="flex items-start">
               <h1 className="font-bold mr-6 mt-1">SACI</h1>
               <div className="flex flex-col">
-                <DeviceSelector devices={devices} selected={bpId} onSelection={setBpId} />
+                <DeviceSelector 
+                  devices={devices} 
+                  selected={bpId} 
+                  onSelection={handleDeviceChange}
+                />
                 <HypothesisSelector 
                   hypotheses={device?.hypotheses} 
                   selected={hypId} 
                   onSelection={setHypId} 
                   bpId={bpId}
-                  onAddClick={() => setShowHypothesisPanel(!showHypothesisPanel)}
-                  isPanelOpen={showHypothesisPanel}
+                  onAddClick={() => handleCreatePanelOpen(!showHypothesisCreatePanel)}
+                  isCreatePanelOpen={showHypothesisCreatePanel}
+                  onTestClick={() => handleTestPanelOpen(!showHypothesisTestPanel)}
+                  isTestPanelOpen={showHypothesisTestPanel}
                 />
               </div>
             </div>
           </Panel>
-          {panel}
-          {analysisPanel}
-          {cpvsPanel}
-          {hypothesisCreatePanel}
+          {panelInner ? (
+            <Panel 
+              className="bg-white dark:bg-neutral-900 border-2 p-4 border-indigo-600 rounded overflow-hidden" 
+              position="bottom-left"
+              style={{
+                maxHeight: panelMinimized ? 'auto' : '400px',
+                maxWidth: 'md',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <div className="float-right cursor-pointer"
+                  onClick={() => setPanelMinimized(!panelMinimized)}>
+                {panelMinimized ? 
+                  <Maximize2 className="text-indigo-600 ml-auto" size={20} /> : 
+                  <Minimize2 className="text-indigo-600 ml-auto" size={20} />
+                }
+              </div>
+              {!panelMinimized && (
+                <div className="max-h-80 overflow-auto">
+                  {panelInner}
+                </div>
+              )}
+            </Panel>
+          ) : (
+            <> </>
+          )}
+          {showingAnalysis ?
+            <AnalysisPanel name={showingAnalysis.name} app={showingAnalysis.app} onClose={() => setShowingAnalysis(null)} /> :
+            <> </>}
+          <CPVsPanel 
+            bpId={bpId} 
+            device={device} 
+            position="top-right" 
+            activeCPV={activeCPV}
+            onActiveCPVChange={setActiveCPV}
+            onImportCPV={handleImportCPV}
+          />
+          <HypothesisCreatePanel
+            bpId={bpId}
+            position="bottom-center"
+            isOpen={showHypothesisCreatePanel}
+            onClose={() => {
+              handleCreatePanelOpen(false);
+              setImportedCPVData(null);
+            }}
+            device={device}
+            onHoverComponent={setHoveredComponent}
+            onHypothesisCreated={setHypId}
+            importedData={importedCPVData}
+          />
+          <HypothesisTestPanel 
+            position="bottom-center"
+            isOpen={showHypothesisTestPanel} 
+            onClose={() => handleTestPanelOpen(false)}
+            hypothesis={hypothesis}
+            device={device}
+            bpId={bpId || ''}
+            onSimulationHover={handleSimulationHover}
+          />
         </Flow>
       </div>
     </>

@@ -23,9 +23,10 @@ type CPVResult = {
 interface CPVsPanelProps {
   bpId: BlueprintId | null;
   device: Device | null;
-  position?: PanelPosition;
+  position: PanelPosition;
   activeCPV: ActiveCPV;
   onActiveCPVChange: (cpv: ActiveCPV) => void;
+  onImportCPV: (name: string, path: string[]) => void;
 }
 
 // Helper function to render CPVs list
@@ -33,7 +34,8 @@ function renderCPVs(
   bpId: BlueprintId,
   cpvs: CPVResult[],
   activeCPV: ActiveCPV,
-  onCPVClick: (cpv: ActiveCPV) => void
+  onCPVClick: (cpv: ActiveCPV) => void,
+  onImportCPV: (name: string, path: string[]) => void
 ) {
   const cpvItems = cpvs.map(({cpv: {name, exploit_steps}, path: {path}}, i) => {
     const isActive = activeCPV && 
@@ -56,7 +58,20 @@ function renderCPVs(
           }
         }}
       >
-        <div className="font-medium">{name}</div>
+        <div className="font-medium flex items-center justify-between">
+          <span>{name}</span>
+          {isActive && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onImportCPV(name, path);
+              }}
+              className="px-1.5 py-0.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors"
+            >
+              Import
+            </button>
+          )}
+        </div>
         {isActive && (
           <>
             {exploit_steps && exploit_steps.length > 0 && (
@@ -83,7 +98,8 @@ export const CPVsPanel: React.FC<CPVsPanelProps> = ({
   device,
   position,
   activeCPV,
-  onActiveCPVChange
+  onActiveCPVChange,
+  onImportCPV
 }) => {
   // Define hook at the top level, even if we might not use the data
   const { data, error, isLoading } = useSWR(
@@ -101,7 +117,7 @@ export const CPVsPanel: React.FC<CPVsPanelProps> = ({
   } else if (isLoading) {
     panelInner = <div>Loading applicable CPVs...</div>;
   } else if (data) {
-    panelInner = renderCPVs(bpId, data as CPVResult[], activeCPV, onActiveCPVChange);
+    panelInner = renderCPVs(bpId, data as CPVResult[], activeCPV, onActiveCPVChange, onImportCPV);
   } else {
     panelInner = <div>No data available</div>;
   }
@@ -113,7 +129,7 @@ export const CPVsPanel: React.FC<CPVsPanelProps> = ({
     >
       <div className="flex flex-col max-h-[90vh] overflow-auto">
         <h3 className="text-2xl font-bold sticky top-0 bg-white dark:bg-neutral-900 p-4 pb-2 z-10 flex justify-between items-center">
-          CPVs
+          Suggested CPV Hypotheses
           <button className="text-sm px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white dark:hover:bg-indigo-800 rounded transition-colors shadow-sm">Update</button>
         </h3>
         <div className="p-2 pt-0">

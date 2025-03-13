@@ -25,6 +25,7 @@ type HighlightProps = {
   involved?: string[] | null,
   activePath?: string[],
   hoveredComponent?: ComponentId | null, // Component ID that's being hovered in another UI component
+  hypothesisPath?: string[] | null,
 };
 
 type FlowProps = {
@@ -125,13 +126,11 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
       let className = 'react-flow__node-default ';
       if (compId === highlights?.hoveredComponent) {
         className += "!border-purple-500 !border-2 !shadow-lg !shadow-purple-200 dark:!shadow-purple-900";
-      } else if (compId === highlights?.entry) {
-        className += "!border-green-500 !border-2 !shadow-lg !shadow-green-200 dark:!shadow-green-900";
-      } else if (compId === highlights?.exit) {
-        className += "!border-red-500 !border-2 !shadow-lg !shadow-red-200 dark:!shadow-red-900";
       } else if (highlights?.involved?.includes(compId)) {
         className += "!border-yellow-500 !border-2 !shadow-lg !shadow-yellow-200 dark:!shadow-yellow-900";
       } else if (highlights?.activePath?.includes(compId)) {
+        className += "!border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
+      } else if (highlights?.hypothesisPath?.includes(compId)) {
         className += "!border-indigo-500 !border-2 !shadow-lg !shadow-indigo-200 dark:!shadow-indigo-900";
       }
       className = className.trim();
@@ -193,10 +192,16 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
         
         // Create edges for device connections only (no annotation edges)
         edges = device.connections.map(([from, to]) => {
-          const isAnimated = highlights?.activePath && 
-                          highlights.activePath.length > 1 && 
-                          highlights.activePath.indexOf(from) !== -1 && 
-                          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
+          const isAnimated = Boolean(
+            (highlights?.activePath && 
+            highlights.activePath.length > 1 && 
+            highlights.activePath.indexOf(from) !== -1 && 
+            highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1) ||
+            (highlights?.hypothesisPath &&
+            highlights.hypothesisPath.length > 1 &&
+            highlights.hypothesisPath.indexOf(from) !== -1 &&
+            highlights.hypothesisPath.indexOf(to) === highlights.hypothesisPath.indexOf(from) + 1)
+          );
                           
           return {
             id: `${from}-${to}`,
@@ -208,10 +213,16 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
         });
       } else {
         edges = device.connections.map(([from, to]) => {
-          const isAnimated = highlights?.activePath && 
-                          highlights.activePath.length > 1 && 
-                          highlights.activePath.indexOf(from) !== -1 && 
-                          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
+          const isAnimated = Boolean(
+            (highlights?.activePath && 
+            highlights.activePath.length > 1 && 
+            highlights.activePath.indexOf(from) !== -1 && 
+            highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1) ||
+            (highlights?.hypothesisPath &&
+            highlights.hypothesisPath.length > 1 &&
+            highlights.hypothesisPath.indexOf(from) !== -1 &&
+            highlights.hypothesisPath.indexOf(to) === highlights.hypothesisPath.indexOf(from) + 1)
+          );
                           
           return {
             id: `${from}-${to}`,
@@ -224,10 +235,16 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
       }
     } else {
       edges = device.connections.map(([from, to]) => {
-        const isAnimated = highlights?.activePath && 
-                        highlights.activePath.length > 1 && 
-                        highlights.activePath.indexOf(from) !== -1 && 
-                        highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1;
+        const isAnimated = Boolean(
+          (highlights?.activePath && 
+          highlights.activePath.length > 1 && 
+          highlights.activePath.indexOf(from) !== -1 && 
+          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1) ||
+          (highlights?.hypothesisPath &&
+          highlights.hypothesisPath.length > 1 &&
+          highlights.hypothesisPath.indexOf(from) !== -1 &&
+          highlights.hypothesisPath.indexOf(to) === highlights.hypothesisPath.indexOf(from) + 1)
+        );
                         
         return {
           id: `${from}-${to}`,
