@@ -118,6 +118,11 @@ class System:
     def all_subsystems(self):
         return [subsub for sub in self.subsystems for subsub in [sub] + sub.all_subsystems]
 
+    @property
+    def parent_child_edges(self):
+        return [(self.name, child.name) for child in self.subsystems] + \
+               [edge for child in self.subsystems for edge in child.parent_child_edges]
+
     def __repr__(self):
         return self.name
 
@@ -308,7 +313,8 @@ def ingest(serialized: dict, output_dir: Path, render: bool=False, force: bool=F
         components[sub.name] = emit_system(output_dir, sub)
 
     # TODO: do we want to model connections to the top-level device in some better way than just filtering them out...
-    connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name]
+    connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name] + \
+        [(src, dst) for src, dst in device.parent_child_edges if src != device.name]
     emit_device(output_dir, components, connections, device.name, device.saci_type)
 
 if __name__ == '__main__':
