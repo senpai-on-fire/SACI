@@ -17,6 +17,7 @@ from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionCl
 import saci.webui.data as data
 import saci.webui.db as db
 from saci.modeling.state.global_state import GlobalState
+from saci.webui.excavate_import import Blueprint
 from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVModel, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel
 from saci_db.cpvs import CPVS
 
@@ -57,24 +58,10 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         err = "Blueprint ID is not a valid Python identifier (this restriction will be removed in the future"
         raise HTTPException(status_code=400, detail=err)
 
-    try:
-        ingest(serialized, data.INGESTION_DIR / bp_id, force=True)
-
-        if bp_id in data.blueprints:
-            # TODO: actually check to make sure this is actually a fast-forwarded version
-            created = False
-        else:
-            created = True
-    except ValueError as e:
-        l.warning(f"got deserialization error {e} when attempting to ingest blueprint")
-        raise HTTPException(status_code=400, detail="Couldn't deserialize provided blueprint")
-
-    importlib.invalidate_caches()
-    # TODO: probably don't need to reload *all* the ingested modules
-    importlib.reload(data.ingested)
-    data.blueprints[bp_id] = data.ingested.devices[bp_id]
-
-    if created:
+    web_model = Blueprint(**serialized).to_saci_device()
+    with db.get_session() as session:
+        session.add(db.Device.from_web_model(web_model, device_id=bp_id))
+        session.commit()
         response.status_code = status.HTTP_201_CREATED
 
     return {}
