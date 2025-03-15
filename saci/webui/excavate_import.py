@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-import saci.webui.web_models as model
+import saci.webui.db as db
 
 
 class ConnectionItem(BaseModel):
@@ -32,7 +32,7 @@ class Port(BaseModel):
     connections: dict[  # Connections represent multiple Signal formats
         str, Connection
     ] = {}
-    unique_instance_id: str | None = None
+    unique_instance_id: str
 
 
 class Interface(BaseModel):
@@ -42,13 +42,6 @@ class Interface(BaseModel):
     conversions: dict[str, dict[str, str | None]] = {}  # Mapping of format conversions
     src_port: Port
     dest_port: Port
-
-    def to_saci_connection(self) -> tuple[model.ComponentID, model.ComponentID]:
-        """Convert the Interface to a connection tuple for SACI."""
-        return (
-            model.ComponentID(self.src_port.name),
-            model.ComponentID(self.dest_port.name),
-        )
 
 
 class Action(BaseModel):
@@ -79,6 +72,16 @@ class Component(BaseModel):
     ]
 
 
+class Specification(BaseModel):
+    """A specific value of something associated with a system."""
+
+    id: int | None = None
+    name: str
+    value: str | int | float
+    units: str
+    comments: str | None = None
+
+
 class System(BaseModel):
     """A functional block representing a cyber-physical unit in the blueprint."""
 
@@ -91,52 +94,89 @@ class System(BaseModel):
     actions: dict[str, Action] = {}  # Dictionary of Actions mapped by their names
     components: list[Component] = []  # Stores configuration data for Project conversion
     artifacts: list[Artifact] = []
+    specifications: list[Specification] = []
 
-    def to_saci_component(self) -> model.ComponentModel:
-        """Convert the System to a Component object. Should only be called on
-        second-level Systems.
+    def collect_ports(self) -> dict[str, int]:
+        """Collect a mapping of each port's unique_instance_id to its System's identity, for this system and all its
+        subsystems.
+
+        NB: the system's "identity" is `id(system)`, not `system.id`, in order to support cases where no `id` field
+        value is supplied in the blueprint.
+
         """
-        paramaters = {}
+        port_to_system = {}
 
-        # TODO: figure out what goes in parameters
+        for sub in self.systems:
+            port_to_system |= sub.collect_ports()
 
-        return model.ComponentModel(
+        for port in self.ports:
+            port_to_system[port.unique_instance_id] = id(self)
+
+        return port_to_system
+
+    def collect_db_components(self) -> dict[int, db.Component]:
+        """Collect a mapping of each system's identity to a newly-created db.Component with its data.
+
+        NB: same identity as documented in System.collect_ports.
+
+        """
+        system_to_component = {}
+
+        for sub in self.systems:
+            system_to_component |= sub.collect_db_components()
+
+        # TODO: flesh out our notion of parameters
+        parameters = {spec.name: str(spec.value) for spec in self.specifications}
+        system_to_component[id(self)] = db.Component(name=self.name, type_=self.saciType, parameters=parameters)
+
+        return system_to_component
+
+    def collect_db_connections(self, port_to_system: dict[str, int], system_to_component: dict[int, db.Component]) -> list[db.Connection]:
+        """Collect a list of connections between components, based on all the systems' interfaces.
+
+        Assumes port_to_system and system_to_component have been generated according to System.collect_ports and
+        System.collect_db_components respectively, on the whole system.
+
+        """
+        connections = []
+
+        for sub in self.systems:
+            connections += sub.collect_db_connections(port_to_system, system_to_component)
+
+        for interface in self.interfaces:
+            connections.append(db.Connection(
+                from_component=system_to_component[port_to_system[interface.src_port.unique_instance_id]],
+                to_component=system_to_component[port_to_system[interface.dest_port.unique_instance_id]],
+            ))
+
+        return connections
+
+    def to_db_device(self, device_id: str) -> db.Device:
+        """Turn this top-level system into a db.Device, collecting all of the subsystems and connections between them."""
+
+        # I think these three steps could be done all in one pass, assuming a blueprint's interfaces are well-scoped,
+        # but I think it's clearer this way and blueprints will be small (< 1000 subsystems), so I wrote it like this
+        # instead.
+        
+        # First collect port-to-system mapping
+        port_to_system = self.collect_ports()
+
+        # Second collect system identity-to-db.Component mapping
+        #
+        # NB: use `id(system)`, not `system.id`, as documented in System.collect_ports
+        system_to_component = self.collect_db_components()
+
+        # Third collect connections from all interfaces
+        connections = self.collect_db_connections(port_to_system, system_to_component)
+
+        return db.Device(
+            id=device_id,
             name=self.name,
-            parameters=paramaters,
-        )
-
-
-class Blueprint(BaseModel):
-    """Top-level structure representing a project blueprint."""
-
-    id: int | None = None
-    name: str
-    saciType: str | None
-    systems: list[System] = []
-
-    def to_saci_device(self) -> model.DeviceModel:
-        """Convert the Blueprint to a Device object."""
-
-        components = {
-            model.ComponentID(system.name): system.to_saci_component()
-            for system in self.systems
-        }
-
-        interfaces = [
-            (
-                model.ComponentID(interface.src_port.name),
-                model.ComponentID(interface.dest_port.name),
-            )
-            for system in self.systems
-            for interface in system.interfaces
-        ]
-
-        return model.DeviceModel(
-            name=self.name,
-            components=components,
-            connections=interfaces,
-            hypotheses={},  # Hypotheses are not included in the Blueprint
-            annotations={},  # Annotations are not included in the Blueprint, unsure how to map
+            # TODO: this includes the top-level system. do we want that?
+            components=list(system_to_component.values()),
+            connections=connections,
+            hypotheses=[],
+            annotations=[],
         )
 
 
@@ -147,9 +187,11 @@ if __name__ == "__main__":
     file = sys.argv[1]
     with open(file) as f:
         data = json.load(f)
-        blueprint = Blueprint(**data)
+        blueprint = System(**data)
 
-    device = blueprint.to_saci_device()
+    # Convert the blueprint to a db.Device
+    device_id = sys.argv[2] if len(sys.argv) >= 3 else blueprint.name
+    device = blueprint.to_db_device(device_id)
 
     # Add example of converting and saving to database
     from saci.webui.db import get_session, init_db, get_engine, Device
@@ -159,8 +201,6 @@ if __name__ == "__main__":
     init_db(engine)
     session = get_session(engine)
 
-    # Convert the blueprint and save to DB
-    device = Device.from_web_model(
-        device, device_id=str(blueprint.id) if blueprint.id else None
-    )
-    print(f"Saved blueprint as device with ID: {device.id}")
+    # Save the device to DB
+    session.add(device)
+    session.commit()
