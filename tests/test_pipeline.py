@@ -5,6 +5,8 @@ from copy import deepcopy
 import unittest
 from typing import Optional
 
+import networkx as nx
+
 import saci
 from saci.modeling import CPV, ComponentBase
 from saci.modeling.annotation import Annotation
@@ -13,6 +15,7 @@ from saci.modeling.device.motor.steering import Steering
 from saci.modeling.device.motor.motor import Motor
 from saci.modeling.device.interface.serial import Serial
 from saci.modeling.device.gcs import GCS
+from saci.modeling.device import Device
 from saci.modeling.state import GlobalState
 from saci.modeling.device import ComponentID, MultiCopterMotor, Wifi, SikRadio
 from saci.orchestrator import process, identify
@@ -237,6 +240,28 @@ class TestPipeline(unittest.TestCase):
             identifier.check_hypothesis(cpv, hypothesis_with_annotations),
             "With annotations, the hypothesis should find a match, but it didn't!"
         )
+
+    def test_device_int_compids(self):
+        """Make sure the pipeline basically works with non-string component ID types."""
+        cps: Device[ComponentID] = PX4Quadcopter()
+
+        compid_mapping: dict[str, int] = {orig_id: i for i, orig_id in enumerate(cps.components)}
+        new_components = {compid_mapping[orig_id]: comp for orig_id, comp in cps.components.items()}
+        new_graph = nx.DiGraph()
+        for comp_id, data in cps.component_graph.nodes(data=True):
+            new_graph.add_node(compid_mapping[comp_id], **data) # type: ignore
+        for from_, to, data in cps.component_graph.edges(data=True): # type: ignore
+            new_graph.add_edge(compid_mapping[from_], compid_mapping[to], **data) # type: ignore
+
+        new_cps: Device[int] = Device(name="foo", components=new_components, component_graph=new_graph)
+        initial_state: GlobalState[int] = GlobalState(new_cps.components)
+
+        _, cpv_paths = identify(cps, initial_state, cpv_model=MavlinkSiKCPV())
+        self.assertIsNotNone(cpv_paths)
+        self.assertGreater(len(cpv_paths), 0) # type: ignore
+        path = cpv_paths[0].path # type: ignore
+        self.assertIsInstance(path[0].component, GCS)
+        self.assertIsInstance(path[-1].component, MultiCopterMotor)
 
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)
