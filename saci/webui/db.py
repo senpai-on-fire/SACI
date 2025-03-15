@@ -37,43 +37,25 @@ class Base(DeclarativeBase):
         ComponentID: String,
     }
 
-
-# Connection table for many-to-many relationships
-device_component_association = Table(
-    "device_component_association",
-    Base.metadata,
-    Column("device_id", String, ForeignKey("devices.id")),
-    Column("component_id", String, ForeignKey("components.id")),
-)
-
-connection_table = Table(
-    "connections",
-    Base.metadata,
-    Column("id", Integer, primary_key=True),
-    Column("device_id", String, ForeignKey("devices.id")),
-    Column("from_component", String),
-    Column("to_component", String),
-)
-
 # SQLAlchemy models matching the Pydantic models
 
 
 class Component(Base):
     __tablename__ = "components"
 
-    id: Mapped[ComponentID] = mapped_column(String, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
+    type_: Mapped[str]
     parameters: Mapped[dict[str, str]] = mapped_column(JSON)
-    device_id = mapped_column(String, ForeignKey("devices.id"))
+    device_id = mapped_column(ForeignKey("devices.id"))
 
-    device = relationship("Device", back_populates="components")
+    device: Mapped["Device"] = relationship(back_populates="components")
 
     @classmethod
     def from_web_model(
-        cls, model: ComponentModel, component_id: str, device_id: str
+        cls, model: ComponentModel, device_id: str
     ) -> Component:
         return cls(
-            id=component_id,
             name=model.name,
             parameters=model.parameters,
             device_id=device_id,
@@ -86,53 +68,55 @@ class Component(Base):
 class Connection(Base):
     __tablename__ = "component_connections"
 
-    id = mapped_column(Integer, primary_key=True)
-    from_component: Mapped[ComponentID]
-    to_component: Mapped[ComponentID]
-    device_id = mapped_column(String, ForeignKey("devices.id"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    from_component_id = mapped_column(ForeignKey("components.id"))
+    to_component_id = mapped_column(ForeignKey("components.id"))
+    device_id = mapped_column(ForeignKey("devices.id"))
 
-    device = relationship("Device", back_populates="connections")
+    from_component: Mapped[Component] = relationship(foreign_keys=from_component_id)
+    to_component: Mapped[Component] = relationship(foreign_keys=to_component_id)
+    device: Mapped["Device"] = relationship(back_populates="connections")
+
+    # we should have from_component.device == to_component.device == device
+    # (in this case we might not need device ourselves here? but keeping it for now)
 
     @classmethod
     def from_connection_tuple(
-        cls, conn_tuple: tuple[str, str], device_id: str
+        cls, conn_tuple: tuple[int, int], device_id: str
     ) -> Connection:
         return cls(
-            from_component=conn_tuple[0],
-            to_component=conn_tuple[1],
+            from_component_id=conn_tuple[0],
+            to_component_id=conn_tuple[1],
             device_id=device_id,
         )
 
-    def to_connection_tuple(self) -> tuple[ComponentID, ComponentID]:
+    def to_connection_tuple(self) -> tuple[int, int]:
         return (
-            self.from_component,
-            self.to_component,
+            self.from_component_id,
+            self.to_component_id,
         )
 
 
 class Hypothesis(Base):
     __tablename__ = "hypotheses"
 
-    id = mapped_column(String, primary_key=True)  # HypothesisID
+    id: Mapped[int] = mapped_column(primary_key=True)  # HypothesisID
     name: Mapped[str]
-    path: Mapped[list[ComponentID]] = mapped_column(JSON)
-    device_id = mapped_column(String, ForeignKey("devices.id"))
+    path: Mapped[list[int]] = mapped_column(JSON)
+    device_id = mapped_column(ForeignKey("devices.id"))
 
-    device = relationship("Device", back_populates="hypotheses")
-    annotations = relationship("Annotation", back_populates="hypothesis")
+    device: Mapped["Device"] = relationship(back_populates="hypotheses")
+    annotations: Mapped[list["Annotation"]] = relationship(back_populates="hypothesis")
 
     @classmethod
     def from_web_model(
             cls,
             model: HypothesisModel,
-            hypothesis_id: str,
             device_id: str,
             device_annotations: dict[AnnotationID, Annotation],
     ) -> Hypothesis:
-        # TODO: does this make sense?
         annotations = [device_annotations[annot_id] for annot_id in model.annotations]
         return cls(
-            id=hypothesis_id,
             name=model.name,
             path=model.path,
             device_id=device_id,
@@ -141,8 +125,8 @@ class Hypothesis(Base):
 
     def to_web_model(self) -> HypothesisModel:
         return HypothesisModel(
-            name=str(self.name),
-            path=self.path,
+            name=self.name,
+            path=[comp_id for comp_id in self.path],
             annotations=[annot.id for annot in self.annotations],
         )
 
@@ -150,43 +134,40 @@ class Hypothesis(Base):
 class Annotation(Base):
     __tablename__ = "annotations"
 
-    id = mapped_column(String, primary_key=True)  # AnnotationID
-    attack_surface: Mapped[ComponentID]
+    id: Mapped[int] = mapped_column(primary_key=True)  # AnnotationID
+    attack_surface_id: Mapped[int] = mapped_column(ForeignKey("components.id"))
     effect: Mapped[str]
     attack_model: Mapped[str | None]
     device_id = mapped_column(String, ForeignKey("devices.id"))
     hypothesis_id = mapped_column(String, ForeignKey("hypotheses.id"))
 
-    device = relationship("Device", back_populates="annotations")
-    hypothesis = relationship("Hypothesis", back_populates="annotations")
+    attack_surface: Mapped[Component] = relationship()
+    device: Mapped["Device"] = relationship(back_populates="annotations")
+    hypothesis: Mapped[Hypothesis] = relationship(back_populates="annotations")
 
     @classmethod
     def from_web_model(
-        cls, model: AnnotationModel, annotation_id: str, device_id: str
+        cls, model: AnnotationModel, device_id: str
     ) -> Annotation:
         return cls(
-            id=annotation_id,
-            attack_surface=model.attack_surface,
+            attack_surface_id=model.attack_surface,
             effect=model.effect,
             attack_model=model.attack_model,
             device_id=device_id,
         )
 
     def to_web_model(self) -> AnnotationModel:
-        attack_model_val = self.attack_model
-
         return AnnotationModel(
-            attack_surface=self.attack_surface,
-            effect=str(self.effect),
-            attack_model=str(attack_model_val)
-            if attack_model_val is not None
-            else None,
+            attack_surface=self.attack_surface_id,
+            effect=self.effect,
+            attack_model=self.attack_model,
         )
 
 
 class Device(Base):
     __tablename__ = "devices"
 
+    # TODO: don't have this be the primary key.
     id: Mapped[BlueprintID] = mapped_column(String, primary_key=True)
     name: Mapped[str]
 
@@ -202,40 +183,6 @@ class Device(Base):
     annotations = relationship(
         "Annotation", back_populates="device", cascade="all, delete-orphan"
     )
-
-    @classmethod
-    def from_web_model(cls, model: DeviceModel, device_id: str | None = None) -> Device:
-        if device_id is None:
-            device_id = str(uuid.uuid4())
-
-        device = cls(id=device_id, name=model.name)
-
-        # Add components
-        for comp_id, comp_model in model.components.items():
-            device.components.append(
-                Component.from_web_model(comp_model, comp_id, device_id)
-            )
-
-        # Add connections
-        for conn_tuple in model.connections:
-            device.connections.append(
-                Connection.from_connection_tuple(conn_tuple, device_id)
-            )
-
-        # Add annotations
-        annot_mapping: dict[AnnotationID, Annotation] = {}
-        for annot_id, annot_model in model.annotations.items():
-            annot = Annotation.from_web_model(annot_model, annot_id, device_id)
-            annot_mapping[annot_id] = annot
-            device.annotations.append(annot)
-
-        # Add hypotheses
-        for hyp_id, hyp_model in model.hypotheses.items():
-            device.hypotheses.append(
-                Hypothesis.from_web_model(hyp_model, hyp_id, device_id, annot_mapping)
-            )
-
-        return device
 
     def to_web_model(self) -> DeviceModel:
         # Convert components
