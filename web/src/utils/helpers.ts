@@ -23,7 +23,7 @@ export function groupAnnotationsByComponentId(annotations: {[id: AnnotationId]: 
     }
     
     // Add the annotation to its attack surface group
-    groupedAnnotations[attack_surface][id] = {
+    groupedAnnotations[attack_surface][parseInt(id)] = {
       effect,
       attack_model
     };

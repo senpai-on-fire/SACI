@@ -7,17 +7,20 @@ from pathlib import Path
 import os
 
 import httpx
+from sqlalchemy import select
+from sqlalchemy.orm import raiseload, selectinload
 
 from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
+from pydantic import ValidationError
 
 import saci.webui.data as data
 import saci.webui.db as db
 from saci.modeling.state.global_state import GlobalState
-from saci.webui.excavate_import import Blueprint
+from saci.webui.excavate_import import System
 from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVModel, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel
 from saci_db.cpvs import CPVS
 
@@ -26,6 +29,7 @@ from ..identifier import IdentifierCPV
 from ..deserializer import ingest
 
 l = logging.getLogger(__name__)
+l.setLevel(logging.DEBUG)
 
 db.init_db()
 app = FastAPI()
@@ -45,54 +49,56 @@ async def serve_frontend_root():
 @app.get('/api/blueprints')
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
-    # TODO: store the hypotheses per-blueprint
-    data_devices = {bp_id: DeviceModel.from_device(bp, data.hypotheses[bp_id], data.annotations[bp_id]) for bp_id, bp in data.blueprints.items()}
     with db.get_session() as session:
         db_devices = session.query(db.Device).all()
-        return {device.name: device.to_web_model() for device in db_devices} | data_devices
+        return {device.id: device.to_web_model() for device in db_devices}
 
 
 @app.post("/api/blueprints/{bp_id}")
 def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response):
-    if not bp_id.isidentifier():
-        err = "Blueprint ID is not a valid Python identifier (this restriction will be removed in the future"
-        raise HTTPException(status_code=400, detail=err)
+    try:
+        blueprint = System(**serialized)
+    except ValidationError:
+        raise HTTPException(status_code=400, detail="Malformed blueprint")
 
-    web_model = Blueprint(**serialized).to_saci_device()
-    with db.get_session() as session:
-        session.add(db.Device.from_web_model(web_model, device_id=bp_id))
-        session.commit()
-        response.status_code = status.HTTP_201_CREATED
+    with db.get_session() as session, session.begin():
+        session.add(blueprint.to_db_device(bp_id))
 
+    response.status_code = status.HTTP_201_CREATED
     return {}
 
 
 @app.post("/api/blueprints/{bp_id}/annotation")
-def create_annotation(bp_id: str, annot_model: AnnotationModel) -> AnnotationID:
-    # this AnnotationID selection is a stupid mock for until we get the database code in here :)
-    if bp_id not in data.blueprints:
-        raise HTTPException(status_code=404, detail="Blueprint not found")
+def create_annotation(bp_id: str, annot_model: AnnotationModel, response: Response) -> AnnotationID:
+    with db.get_session() as session, session.begin():
+        annot_db = db.Annotation.from_web_model(annot_model, bp_id)
+        annot_db.validate()
+        session.add(annot_db)
 
-    annot_id = str(uuid.uuid4())
-    while annot_id in data.annotations[bp_id]:
-        annot_id = str(uuid.uuid4())
-
-    data.annotations[bp_id][annot_id] = annot_model.to_annotation()
-
-    return annot_id
+    response.status_code = status.HTTP_201_CREATED
+    return annot_db.id
 
 
 @app.get("/api/blueprints/{bp_id}/cpvs")
 def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
-    if (blueprint := data.blueprints.get(bp_id)) is None:
-        raise HTTPException(status_code=404, detail="Blueprint not found")
+    with db.get_session() as session:
+        # TODO: what exception gets raised if we try to get one that doesn't exist?
+        db_device = session.execute(select(db.Device)\
+                                    .where(db.Device.id == bp_id)\
+                                    .options(selectinload(db.Device.components),
+                                             selectinload(db.Device.connections),
+                                             raiseload("*")))\
+                           .scalar()
+        if db_device is None:
+            raise HTTPException(status_code=404, detail="Blueprint not found")
+        cps = db_device.to_saci_device()
 
     # TODO: re-introduce the queueing model once this takes more time
-    initial_state = GlobalState(blueprint.components)
+    initial_state = GlobalState(cps.components)
     return [
         CPVResultModel.from_cpv_result(cpv, path)
         for cpv in CPVS
-        if (paths := identify(blueprint, initial_state, cpv_model=cpv)[1]) is not None
+        if (paths := identify(cps, initial_state, cpv_model=cpv)[1]) is not None
         for path in paths
     ]
 

@@ -140,7 +140,7 @@ function Analyses({bpId, analysisFilter, onAnalysisLaunch, onAnalysisHover, onAn
 }
 
 type ComponentPanelProps = {
-  componentId: string,
+  componentId: ComponentId,
   component: Component,
 } & AnalysesProps;
 function ComponentPanel({componentId, component, analysisFilter, ...analysesProps}: ComponentPanelProps) {
@@ -207,17 +207,17 @@ function App() {
   const hypothesis = device && hypId ? device.hypotheses?.[hypId] : null;
 
   const [hoveringAnalysis, setHoveringAnalysis] = useState<AnalysisInfo | null>(null);
-  const [hoveredComponents, setHoveredComponents] = useState<string[] | null>(null);
+  const [hoveredComponents, setHoveredComponents] = useState<ComponentId[] | null>(null);
 
-  const handleSimulationHover = (components: string[] | null) => {
+  const handleSimulationHover = (components: ComponentId[] | null) => {
     setHoveredComponents(components);
   };
 
-  const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
+  const [selectedComponent, setSelectedComponent] = useState<ComponentId | null>(null);
   
   const [showHypothesisCreatePanel, setShowHypothesisCreatePanel] = useState(false);
   const [showHypothesisTestPanel, setShowHypothesisTestPanel] = useState(false);
-  const [importedCPVData, setImportedCPVData] = useState<{name: string, path: string[]} | null>(null);
+  const [importedCPVData, setImportedCPVData] = useState<{name: string, path: ComponentId[]} | null>(null);
 
   // Update handlers to close activeCPV when panels are opened
   const handleCreatePanelOpen = (open: boolean) => {
@@ -247,7 +247,7 @@ function App() {
   const [hoveredComponent, setHoveredComponent] = useState<ComponentId | null>(null);
 
   // Handle importing CPV data
-  const handleImportCPV = (name: string, path: string[]) => {
+  const handleImportCPV = (name: string, path: ComponentId[]) => {
     setImportedCPVData({ name, path });
     setShowHypothesisCreatePanel(true);
   };

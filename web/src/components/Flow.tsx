@@ -20,12 +20,12 @@ const nodeTypes = {
 
 // Type definitions for Flow component
 type HighlightProps = {
-  entry?: string | null,
-  exit?: string | null,
-  involved?: string[] | null,
-  activePath?: string[],
+  entry?: ComponentId | null,
+  exit?: ComponentId | null,
+  involved?: ComponentId[] | null,
+  activePath?: ComponentId[],
   hoveredComponent?: ComponentId | null, // Component ID that's being hovered in another UI component
-  hypothesisPath?: string[] | null,
+  hypothesisPath?: ComponentId[] | null,
 };
 
 type FlowProps = {
@@ -43,17 +43,18 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
   
   type GraphLayoutState =
     {state: "laying"} |
-    {state: "laid", compLayout: {[compId: string]: {x: number, y: number}}, forDevice: Device} |
+    {state: "laid", compLayout: {[compId: ComponentId]: {x: number, y: number}}, forDevice: Device} |
     {state: "error"} |
     {state: "nodevice"};
   const [state, setState] = useState<GraphLayoutState>({state: "laying"});
   
   // State to track the active annotation node
-  const [activeAnnotationNode, setActiveAnnotationNode] = useState<string | null>(null);
+  const [activeAnnotationNode, setActiveAnnotationNode] = useState<ComponentId | null>(null);
   
   // Handler for annotation button clicks
   const handleAnnotationClick = useCallback((nodeId: string) => {
-    setActiveAnnotationNode(current => current === nodeId ? null : nodeId);
+    const compId = parseInt(nodeId);
+    setActiveAnnotationNode(current => current === compId ? null : compId);
   }, []);
   
   // Handler for closing annotation nodes
@@ -81,15 +82,15 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
       })),
       edges: device.connections.map(([source, target]) => ({
         id: `${source}-${target}`,
-        sources: [source],
-        targets: [target]
+        sources: [`${source}`],
+        targets: [`${target}`]
       }))
     };
     elk.layout(elkGraph)
        .then(layout => {
-         const compLayout: {[compId: string]: {x: number, y: number}} = {};
+         const compLayout: {[compId: ComponentId]: {x: number, y: number}} = {};
          for (const node of layout.children ?? []) {
-           compLayout[node.id] = {x: node.x ?? 0, y: node.y ?? 0};
+           compLayout[parseInt(node.id)] = {x: node.x ?? 0, y: node.y ?? 0};
          }
          setState({
            state: "laid",
@@ -122,8 +123,9 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
     const groupedAnnotations = groupAnnotationsByComponentId(device.annotations);
 
     // Create the regular nodes
-    nodes = Object.entries(device.components).map(([compId, comp]) => {
+    nodes = Object.entries(device.components).map(([compIdStr, comp]) => {
       let className = 'react-flow__node-default ';
+      const compId = parseInt(compIdStr);
       if (compId === highlights?.hoveredComponent) {
         className += "!border-purple-500 !border-2 !shadow-lg !shadow-purple-200 dark:!shadow-purple-900";
       } else if (highlights?.involved?.includes(compId)) {
@@ -138,7 +140,7 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
       const position = state.compLayout[compId];
       
       return {
-        id: compId,
+        id: compIdStr,
         data: { 
           label: comp.name,
           numberOfAnnotations: Object.keys(groupedAnnotations[compId] ?? {}).length ?? 0,
@@ -154,7 +156,7 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
     // Add annotation node if active
     const compId = activeAnnotationNode;
     if (compId && device.components[compId]) {
-      const sourceNode = nodes.find(node => node.id === compId);
+      const sourceNode = nodes.find(node => node.id === `${compId}`);
       if (sourceNode) {
         const annotationNodeId = `annotation-${compId}`;
         // Position to the right of the source node
@@ -205,8 +207,8 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
                           
           return {
             id: `${from}-${to}`,
-            source: from,
-            target: to,
+            source: `${from}`,
+            target: `${to}`,
             animated: isAnimated,
             style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
           };
@@ -226,8 +228,8 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
                           
           return {
             id: `${from}-${to}`,
-            source: from,
-            target: to,
+            source: `${from}`,
+            target: `${to}`,
             animated: isAnimated,
             style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
           };
@@ -248,8 +250,8 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
                         
         return {
           id: `${from}-${to}`,
-          source: from,
-          target: to,
+          source: `${from}`,
+          target: `${to}`,
           animated: isAnimated,
           style: isAnimated ? { stroke: '#6366f1', strokeWidth: 2 } : undefined,
         };
@@ -265,7 +267,7 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
     <ReactFlow
       onNodeClick={(_e, n) => {
         if (!n.id.startsWith('annotation-') && onComponentClick) {
-          onComponentClick(n.id as ComponentId);
+          onComponentClick(parseInt(n.id));
         }
       }}
       onPaneClick={() => {

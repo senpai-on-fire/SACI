@@ -1,6 +1,8 @@
 from __future__ import annotations
 import os
+from typing import TypeVar
 
+import networkx as nx
 from sqlalchemy import (
     Column,
     Engine,
@@ -21,6 +23,7 @@ from sqlalchemy.orm import (
 )
 import uuid
 
+from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent
 # Import web models for conversion methods
 from saci.webui.web_models import (
     BlueprintID,
@@ -31,6 +34,21 @@ from saci.webui.web_models import (
     ComponentID,
     AnnotationID,
 )
+
+
+# Get all component subclasses. We should have a less janky way of doing this.
+_T = TypeVar("_T")
+
+def _all_subclasses(c: type[_T]) -> list[type[_T]]:
+    return [c] + [
+        subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)
+    ]
+
+saci_type_mapping: dict[str, type[SaciComponent]] = {
+    comp_type.__qualname__: comp_type
+    for comp_type
+    in _all_subclasses(SaciComponent)
+}
 
 class Base(DeclarativeBase):
     type_annotation_map = {
@@ -48,6 +66,7 @@ class Component(Base):
     type_: Mapped[str]
     parameters: Mapped[dict[str, str]] = mapped_column(JSON)
     device_id = mapped_column(ForeignKey("devices.id"))
+    is_entry: Mapped[bool]
 
     device: Mapped["Device"] = relationship(back_populates="components")
 
@@ -64,6 +83,9 @@ class Component(Base):
     def to_web_model(self) -> ComponentModel:
         return ComponentModel(name=str(self.name), parameters=self.parameters)
 
+    def to_saci_component(self) -> SaciComponent:
+        cls = saci_type_mapping.get(self.type_, SaciComponent)
+        return cls(name=self.name, parameters=self.parameters)
 
 class Connection(Base):
     __tablename__ = "component_connections"
@@ -163,6 +185,10 @@ class Annotation(Base):
             attack_model=self.attack_model,
         )
 
+    def validate(self):
+        if self.attack_surface.device_id != self.device_id:
+            raise ValueError("Annotation's attack_surface should be a component of the annotation's device")
+
 
 class Device(Base):
     __tablename__ = "devices"
@@ -205,6 +231,52 @@ class Device(Base):
             connections=connections_list,
             hypotheses=hypotheses_dict,
             annotations=annotations_dict,
+        )
+
+    def to_saci_device(self) -> SaciDevice:
+        """Convert to a saci.modeling.Device.
+
+        Uses Device.name, Device.components, and Device.connections.
+        """
+        graph = nx.from_edgelist(
+            [conn.to_connection_tuple() for conn in self.connections],
+            create_using=nx.DiGraph,
+        )
+        for comp in self.components:
+            graph.nodes[comp.id]["is_entry"] = bool(comp.is_entry)
+        return SaciDevice(
+            name=self.name,
+            components={comp.id: comp.to_saci_component() for comp in self.components},
+            component_graph=graph,
+        )
+
+    @staticmethod
+    def janky_from_saci_device(device_id: str, device: SaciDevice) -> "Device":
+        """Please don't use this."""
+
+        components = {
+            comp_id: Component(
+                name=comp.name,
+                type_=type(comp).__qualname__,
+                parameters={pname: str(pvalue) for pname, pvalue in comp.parameters.items()},
+            )
+            for comp_id, comp
+            in device.components.items()
+        }
+        for comp_id, is_entry in device.component_graph.nodes(data='is_entry', default=False): # type: ignore
+            components[comp_id].is_entry = is_entry # type: ignore
+        connections = [
+            Connection(from_component=components[from_id], to_component=components[to_id])
+            for from_id, to_id
+            in device.component_graph.edges
+        ]
+        return Device(
+            id=device_id,
+            name=device.name,
+            components=list(components.values()),
+            connections=connections,
+            hypotheses=[],
+            annotations=[],
         )
 
 

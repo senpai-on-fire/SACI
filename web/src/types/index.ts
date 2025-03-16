@@ -27,7 +27,7 @@ export type Hypothesis = {
   annotations: AnnotationId[]
 };
 
-export type AnnotationId = string;
+export type AnnotationId = number;
 export type BlueprintId = string;
-export type ComponentId = string;
-export type HypothesisId = string;
+export type ComponentId = number;
+export type HypothesisId = number;
