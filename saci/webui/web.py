@@ -8,7 +8,7 @@ import os
 
 import httpx
 from sqlalchemy import select
-from sqlalchemy.orm import raiseload, selectinload
+from sqlalchemy.orm import Session, raiseload, selectinload
 
 from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +19,7 @@ from pydantic import ValidationError
 
 import saci.webui.data as data
 import saci.webui.db as db
+from saci.modeling.device import Device
 from saci.modeling.state.global_state import GlobalState
 from saci.webui.excavate_import import System
 from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVModel, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel
@@ -70,28 +71,36 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
 
 @app.post("/api/blueprints/{bp_id}/annotation")
 def create_annotation(bp_id: str, annot_model: AnnotationModel, response: Response) -> AnnotationID:
-    with db.get_session() as session, session.begin():
-        annot_db = db.Annotation.from_web_model(annot_model, bp_id)
-        annot_db.validate()
-        session.add(annot_db)
+    with db.get_session() as session:
+        with session.begin():
+            # Make sure the attack surface actually exists and is part of the specified device
+            attack_surface = session.get(db.Component, annot_model.attack_surface)
+            if attack_surface is None:
+                raise HTTPException(status_code=400, detail="Attack surface component does not exist")
+            if attack_surface.device_id != bp_id:
+                raise HTTPException(status_code=400, detail="Attack surface component is not part of the specified device")
+            annot_db = db.Annotation.from_web_model(annot_model, bp_id)
+            session.add(annot_db)
+        annot_id = annot_db.id
 
     response.status_code = status.HTTP_201_CREATED
-    return annot_db.id
+    return annot_id
 
+def fetch_saci_device(session: Session, bp_id: str) -> Device:
+    db_device = session.execute(select(db.Device)\
+                                .where(db.Device.id == bp_id)\
+                                .options(selectinload(db.Device.components),
+                                         selectinload(db.Device.connections),
+                                         raiseload("*")))\
+                       .scalar()
+    if db_device is None:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+    return db_device.to_saci_device()
 
 @app.get("/api/blueprints/{bp_id}/cpvs")
 def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
     with db.get_session() as session:
-        # TODO: what exception gets raised if we try to get one that doesn't exist?
-        db_device = session.execute(select(db.Device)\
-                                    .where(db.Device.id == bp_id)\
-                                    .options(selectinload(db.Device.components),
-                                             selectinload(db.Device.connections),
-                                             raiseload("*")))\
-                           .scalar()
-        if db_device is None:
-            raise HTTPException(status_code=404, detail="Blueprint not found")
-        cps = db_device.to_saci_device()
+        cps = fetch_saci_device(session, bp_id)
 
     # TODO: re-introduce the queueing model once this takes more time
     initial_state = GlobalState(cps.components)
@@ -103,27 +112,68 @@ def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
     ]
 
 @app.post("/api/blueprints/{bp_id}/hypotheses")
-def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel) -> HypothesisID:
+def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel, response: Response) -> HypothesisID:
     if bp_id not in data.blueprints:
         raise HTTPException(status_code=404, detail="Blueprint not found")
 
-    hypot_id = str(uuid.uuid4())
-    while hypot_id in data.hypotheses[bp_id]:
-        hypot_id = str(uuid.uuid4())
+    with db.get_session() as session:
+        with session.begin():
+            # Fetch the device to make sure it exists and to use in validation
+            device = session.execute(select(db.Device)\
+                                     .where(db.Device.id == bp_id)\
+                                     .options(selectinload(db.Device.components),
+                                              selectinload(db.Device.annotations),
+                                              raiseload("*")))\
+                            .scalar()
+            if device is None:
+                raise HTTPException(status_code=404, detail="Blueprint not found")
 
-    data.hypotheses[bp_id][hypot_id] = hypothesis_model
+            # Validate that the parts of the hypothesis specified exist in a valid state
+            if (bad_comps := set(hypothesis_model.path) - {comp.id for comp in device.components}) != set():
+                raise HTTPException(status_code=400, detail={
+                    "message": "Components specified are not part of device specified",
+                    "invalid_components": list(bad_comps),
+                })
+            hypothesis_annotations = set(hypothesis_model.annotations)
+            if (bad_annots := hypothesis_annotations - {annot.id for annot in device.components}) != set():
+                raise HTTPException(status_code=400, detail={
+                    "message": "Annotations specified are not part of device specified",
+                    "invalid_annotations": list(bad_annots),
+                })
+            if (bad_annots := {annot.id for annot in device.annotations if annot.hypothesis_id is not None}) != set():
+                raise HTTPException(status_code=400, detail={
+                    "message": "Annotations specified are not all unassigned to hypotheses",
+                    "invalid_annotations": list(bad_annots),
+                })
 
+            # Create the hypothesis in the DB
+            hypot_db = db.Hypothesis(
+                device_id=bp_id,
+                name=hypothesis_model.name,
+                path=hypothesis_model.path,
+                annotations=[annot for annot in device.annotations if annot.id in hypothesis_annotations],
+            )
+            session.add(hypot_db)
+
+        hypot_id = hypot_db.id
+
+    response.status_code = status.HTTP_201_CREATED
     return hypot_id
 
 @app.get("/api/blueprints/{bp_id}/hypotheses/{hypot_id}/cpvs")
-def hypothesis_cpvs(bp_id: str, hypot_id: str) -> list[CPVModel]:
-    if (device := data.blueprints.get(bp_id)) is None:
-        raise HTTPException(status_code=404, detail="Blueprint not found")
+def hypothesis_cpvs(bp_id: str, hypot_id: HypothesisID) -> list[CPVModel]:
+    with db.get_session() as session:
+        device = fetch_saci_device(session, bp_id)
+        db_hypot = session.execute(select(db.Hypothesis)\
+                                 .where(db.Hypothesis.id == hypot_id)\
+                                 .where(db.Hypothesis.device_id == bp_id)\
+                                 .options(selectinload(db.Hypothesis.annotations),
+                                          raiseload("*")))\
+                        .scalar()
+        if db_hypot is None:
+            raise HTTPException(status_code=404, detail="Hypothesis not found")
+        hypot = db_hypot.to_saci_hypothesis()
 
-    if (hypot_model := data.hypotheses[bp_id].get(hypot_id)) is None:
-        raise HTTPException(status_code=404, detail="Hypothesis not found")
-
-    hypot = hypot_model.to_hypothesis(data.annotations[bp_id])
     identifier = IdentifierCPV(device, GlobalState(device.components))
     matched_cpvs = [cpv for cpv in CPVS if identifier.check_hypothesis(cpv, hypot)]
 
@@ -145,29 +195,6 @@ def component_type_details(type_id: str) -> ComponentTypeModel:
         parameters={name: ParameterTypeModel(type_=type_.__name__, description="coming soon") for name, type_ in comp_type.parameter_types.items()},
         ports={},
     )
-
-@app.post("/api/ingest_blueprint")
-def ingest_blueprint_legacy(name: str, serialized: dict, force: bool = False):
-    if name in data.blueprints:
-        return {"error": "exists"}, 400
-    try:
-        # TODO: move this to another thread and return a promise?
-        ingest(serialized, data.INGESTION_DIR / name, force=force)
-    except FileExistsError as e:
-        return {"error": "exists"}, 400
-    except ValueError as e:
-        print(e)
-        return {"error": "couldn't deserialize blueprint"}, 400
-
-    importlib.invalidate_caches()
-    # TODO: probably don't need to reload *all* the ingested modules
-    importlib.reload(data.ingested)
-    # TODO: should probably just separate builtin and ingested blueprints...
-    blueprint_id = name
-    device = data.ingested.devices[blueprint_id]
-    data.blueprints[blueprint_id] = device
-
-    return {"id": blueprint_id, "name": device.name}
 
 ### Endpoints for launching analyses using app-controller
 

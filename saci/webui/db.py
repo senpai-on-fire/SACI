@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from typing import TypeVar
+from typing import TypeVar, cast
 
 import networkx as nx
 from sqlalchemy import (
@@ -23,7 +23,9 @@ from sqlalchemy.orm import (
 )
 import uuid
 
-from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent
+from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent, Annotation as SaciAnnotation
+from saci.hypothesis import Hypothesis as SaciHypothesis
+from saci.modeling.vulnerability.base_vuln import VulnerabilityEffect
 # Import web models for conversion methods
 from saci.webui.web_models import (
     BlueprintID,
@@ -152,6 +154,17 @@ class Hypothesis(Base):
             annotations=[annot.id for annot in self.annotations],
         )
 
+    def to_saci_hypothesis(self) -> SaciHypothesis[int]:
+        """Convert to a saci.hypothesis.Hypothesis for reasoning.
+
+        Depends on Hypothesis.annotations being loaded or loadable.
+        """
+        return SaciHypothesis(
+            description=self.name,
+            path=self.path,
+            annotations=[annot.to_saci_annotation() for annot in self.annotations],
+        )
+
 
 class Annotation(Base):
     __tablename__ = "annotations"
@@ -160,8 +173,8 @@ class Annotation(Base):
     attack_surface_id: Mapped[int] = mapped_column(ForeignKey("components.id"))
     effect: Mapped[str]
     attack_model: Mapped[str | None]
-    device_id = mapped_column(String, ForeignKey("devices.id"))
-    hypothesis_id = mapped_column(String, ForeignKey("hypotheses.id"))
+    device_id = mapped_column(ForeignKey("devices.id"))
+    hypothesis_id = mapped_column(ForeignKey("hypotheses.id"))
 
     attack_surface: Mapped[Component] = relationship()
     device: Mapped["Device"] = relationship(back_populates="annotations")
@@ -189,6 +202,14 @@ class Annotation(Base):
         if self.attack_surface.device_id != self.device_id:
             raise ValueError("Annotation's attack_surface should be a component of the annotation's device")
 
+    def to_saci_annotation(self) -> SaciAnnotation[int]:
+        return SaciAnnotation(
+            attack_surface=self.attack_surface_id,
+            effect=VulnerabilityEffect(reason=self.effect),
+            attack_model=self.attack_model,
+            underlying_vulnerability=None,
+        )
+        
 
 class Device(Base):
     __tablename__ = "devices"
@@ -238,10 +259,10 @@ class Device(Base):
 
         Uses Device.name, Device.components, and Device.connections.
         """
-        graph = nx.from_edgelist(
+        graph: nx.DiGraph = cast(nx.DiGraph, nx.from_edgelist(
             [conn.to_connection_tuple() for conn in self.connections],
             create_using=nx.DiGraph,
-        )
+        ))
         for comp in self.components:
             graph.nodes[comp.id]["is_entry"] = bool(comp.is_entry)
         return SaciDevice(

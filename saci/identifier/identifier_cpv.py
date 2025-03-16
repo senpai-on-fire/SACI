@@ -1,5 +1,6 @@
+from collections.abc import Hashable
 from dataclasses import dataclass
-from typing import Sequence, TypeVar
+from typing import Generic, Sequence, TypeVar
 from copy import deepcopy
 
 from saci.hypothesis import Hypothesis
@@ -9,22 +10,23 @@ from saci.modeling.state import GlobalState
 from saci.modeling.vulnerability import BaseVulnerability
 
 
+CID = TypeVar('CID', bound=Hashable)
 
-def get_next_components(component_id: ComponentID, device: Device) -> list[ComponentID]:
+def get_next_components(component_id: CID, device: Device[CID]) -> list[CID]:
     return list(device.component_graph.successors(component_id))
 
-class IdentifierCPV:
+class IdentifierCPV(Generic[CID]):
     def __init__(
             self,
-            device: Device,
-            initial_state: GlobalState,
+            device: Device[CID],
+            initial_state: GlobalState[CID],
             vulns: Sequence[BaseVulnerability] | None = None,
     ):
         self.device = device
         self.initial_state = initial_state
         self.vulns = vulns or []
 
-    def prepare_device(self) -> Device:
+    def prepare_device(self) -> Device[CID]:
         device = deepcopy(self.device)
         # Apply any effects of vulnerabilities the device has
         for vuln in self.vulns:
@@ -32,7 +34,7 @@ class IdentifierCPV:
                 vuln.apply_effects(device)
         return device
 
-    def check_hypothesis(self, cpv: CPV, hypothesis: Hypothesis) -> bool:
+    def check_hypothesis(self, cpv: CPV, hypothesis: Hypothesis[CID]) -> bool:
         device = self.prepare_device()
         hypothesis.apply_to(device)
 
@@ -46,16 +48,16 @@ class IdentifierCPV:
 
         return cpv.is_possible_path([device.components[comp_id] for comp_id in path])
 
-    def identify(self, cpv: CPV) -> list[list[IdentifiedComponent]]:
+    def identify(self, cpv: CPV) -> list[list[IdentifiedComponent[CID]]]:
         device = self.prepare_device()
 
         # Get the starting locations (components with external input)
-        starting_locations: list[ComponentID] = [
+        starting_locations: list[CID] = [
             c for c, is_entry in device.component_graph.nodes(data="is_entry", default=False) # type: ignore
             if is_entry
         ]
 
-        cpv_paths: list[list[ComponentID]] = []
+        cpv_paths: list[list[CID]] = []
 
         # CPV Path identification
         for start in starting_locations:

@@ -71,7 +71,7 @@ def test_create_annotation(client, bp_id):
 
     blueprint = client.get("/api/blueprints").json()[bp_id]
 
-    comp_id = next(iter(blueprint["components"]))
+    comp_id = int(next(iter(blueprint["components"])))
     effect = "foo"
     attack_model = "bar"
     annotation = {
@@ -88,6 +88,6 @@ def test_create_annotation(client, bp_id):
     # Check to make sure we get the new annotation back in the blueprint
     new_blueprint = client.get("/api/blueprints").json()[bp_id]
     new_annotations = new_blueprint["annotations"]
-    assert annot_id in new_annotations
-    received_annotation = new_annotations[annot_id]
+    assert str(annot_id) in new_annotations
+    received_annotation = new_annotations[str(annot_id)]
     assert received_annotation == annotation
