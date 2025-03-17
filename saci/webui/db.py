@@ -12,6 +12,7 @@ from sqlalchemy import (
     Table,
     create_engine,
     JSON,
+    select,
 )
 from sqlalchemy.orm import (
     relationship,
@@ -317,3 +318,11 @@ def init_db(engine: Engine | None = None):
     if engine is None:
         engine = get_engine()
     Base.metadata.create_all(bind=engine)
+
+    # Add the devices from saci-database to the database to start
+    from saci_db.devices import devices
+    with get_session(engine) as session, session.begin():
+        for device_id, device in devices.items():
+            if session.execute(select(Device).where(Device.id == device_id)).scalar() is None:
+                db_device = Device.janky_from_saci_device(device_id, device)
+                session.add(db_device)
