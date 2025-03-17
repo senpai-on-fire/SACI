@@ -265,12 +265,11 @@ class Device(Base):
 
         Uses Device.name, Device.components, and Device.connections.
         """
-        graph: nx.DiGraph = cast(nx.DiGraph, nx.from_edgelist(
-            [conn.to_connection_tuple() for conn in self.connections],
-            create_using=nx.DiGraph,
-        ))
+        graph = nx.DiGraph()
         for comp in self.components:
-            graph.nodes[comp.id]["is_entry"] = bool(comp.is_entry)
+            graph.add_node(comp.id, is_entry=bool(comp.is_entry))
+        for conn in self.connections:
+            graph.add_edge(conn.from_component_id, conn.to_component_id)
         return SaciDevice(
             name=self.name,
             components={comp.id: comp.to_saci_component() for comp in self.components},
