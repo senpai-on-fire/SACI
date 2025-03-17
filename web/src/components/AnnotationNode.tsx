@@ -41,7 +41,7 @@ export const AnnotationNode = ({ data }: AnnotationNodeProps) => {
       
       try {
         // Call the API to create a new annotation using postData utility
-        await postData(`/api/blueprints/${data.bpId}/annotation`, {
+        await postData(`/api/blueprints/${data.bpId}/annotations`, {
           attack_surface: data.compId,
           effect: newEffect.trim(),
           attack_model: newAttack.trim()
@@ -52,6 +52,8 @@ export const AnnotationNode = ({ data }: AnnotationNodeProps) => {
         
         // Mutate SWR cache to refresh blueprints data
         await mutate('/api/blueprints');
+        // TODO: better way of doing this?
+        await mutate(`/api/blueprints/${data.bpId}/cpvs`);
         
         // Reset input fields
         setNewEffect('');
@@ -71,6 +73,20 @@ export const AnnotationNode = ({ data }: AnnotationNodeProps) => {
       handleAddAnnotation(e);
     }
   };
+
+  const deleteAnnotation = async (annotationId: string) => {
+    // TODO: add UI indicator of the fact that it's being deleted
+
+    const res = await fetch(`/api/blueprints/${data.bpId}/annotations/${annotationId}`, {method: 'DELETE'});
+    if (res.ok) {
+      await mutate('/api/blueprints');
+      await mutate(`/api/blueprints/${data.bpId}/cpvs`);
+    } else {
+      const info = await res.json();
+      console.error(`${res.status} Error deleting annotation:`, info);
+    }
+  };
+  // const deleteAnnotation = (_annotationId: string) => { };
 
   return (
     <div 
@@ -112,7 +128,7 @@ export const AnnotationNode = ({ data }: AnnotationNodeProps) => {
               <td>
                 <button
                   className="absolute right-1 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-70 transition-opacity text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-full p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={() => deleteAnnotation(annotationId)}
                   aria-label="Remove annotation"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

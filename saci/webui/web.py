@@ -64,13 +64,17 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         raise HTTPException(status_code=400, detail="Malformed blueprint")
 
     with db.get_session() as session, session.begin():
+        # TODO: actually update
+        existing_device = session.get(db.Device, bp_id)
+        if existing_device is not None:
+            session.delete(existing_device)
         session.add(blueprint.to_db_device(bp_id))
 
     response.status_code = status.HTTP_201_CREATED
     return {}
 
 
-@app.post("/api/blueprints/{bp_id}/annotation")
+@app.post("/api/blueprints/{bp_id}/annotations")
 def create_annotation(bp_id: str, annot_model: AnnotationModel, response: Response) -> AnnotationID:
     with db.get_session() as session:
         with session.begin():
@@ -86,6 +90,17 @@ def create_annotation(bp_id: str, annot_model: AnnotationModel, response: Respon
 
     response.status_code = status.HTTP_201_CREATED
     return annot_id
+
+@app.delete("/api/blueprints/{bp_id}/annotations/{annot_id}")
+def delete_annotation(bp_id: str, annot_id: AnnotationID):
+    with db.get_session() as session, session.begin():
+        annot_db = session.get(db.Annotation, annot_id)
+        if annot_db is None:
+            raise HTTPException(status_code=404, detail="Annotation does not exist")
+        if annot_db.device_id != bp_id:
+            raise HTTPException(status_code=404, detail="Annotation is not part of given device")
+
+        session.delete(annot_db)
 
 def fetch_saci_db_device(
         session: Session,
