@@ -61,9 +61,15 @@ AnnotationID = IntJSONStr
 
 
 class HypothesisModel(BaseModel):
-    name: str
-    path: list[WebComponentID]
-    annotations: list[AnnotationID]
+    name: str = Field(description="The name of the hypothesis")
+    path: list[WebComponentID] = Field(description="A path of components in the CPV data flow")
+    annotations: list[AnnotationID] = Field(
+        description="Relevant annotations that contribute to this hypothesis",
+    )
+    extra_text: str | None = Field(
+        description="Extra text that can be used to describe the hypothesis",
+        default=None,
+    )
 
     def to_hypothesis(self, annotation_mapping: dict[AnnotationID, Annotation]) -> Hypothesis[WebComponentID]:
         return Hypothesis(
