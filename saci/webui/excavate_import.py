@@ -127,7 +127,10 @@ class System(BaseModel):
 
         # TODO: flesh out our notion of parameters
         parameters = {spec.name: str(spec.value) for spec in self.specifications}
-        system_to_component[id(self)] = db.Component(name=self.name, type_=self.saciType, parameters=parameters, is_entry=False)
+        # TODO: remove this hack! currently excavate sometimes adds quotes around the saciType. this jankily detects
+        # this behavior and strips them if present
+        saciType = self.saciType[1:-1] if self.saciType is not None and self.saciType.startswith('"') else self.saciType
+        system_to_component[id(self)] = db.Component(name=self.name, type_=saciType, parameters=parameters, is_entry=False)
 
         return system_to_component
 
