@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PlainSerializer
 
 from saci.hypothesis import Hypothesis
 from saci.modeling.annotation import Annotation
@@ -29,9 +29,11 @@ class ComponentModel(BaseModel):
             },
         )
 
+IntJSONStr = Annotated[int, PlainSerializer(str, return_type=str, when_used='json')]
+
 # TODO: NOT to be confused with the ComponentID used in devices. CERTAINLY need to rename one at some point. Or better
 # yet make Device generic over it.
-WebComponentID = int
+WebComponentID = IntJSONStr
 
 class AnnotationModel(BaseModel):
     attack_surface: WebComponentID
@@ -55,7 +57,7 @@ class AnnotationModel(BaseModel):
         )
 
 
-AnnotationID = int
+AnnotationID = IntJSONStr
 
 
 class HypothesisModel(BaseModel):
@@ -73,7 +75,7 @@ class HypothesisModel(BaseModel):
         )
 
 
-HypothesisID = int
+HypothesisID = IntJSONStr
 
 
 class DeviceModel(BaseModel):

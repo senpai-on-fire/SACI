@@ -1,6 +1,6 @@
 import { Panel, PanelPosition } from '@xyflow/react';
 import useSWR from 'swr';
-import { Device, BlueprintId, ComponentId } from '../types';
+import { Device, BlueprintId } from '../types';
 import { fetcher } from '../utils/api';
 
 // Types
@@ -8,7 +8,7 @@ import { fetcher } from '../utils/api';
 export type ActiveCPV = {
   bpId: BlueprintId;
   index: number;
-  path: ComponentId[];
+  path: string[];
 } | undefined;
 
 type CPVResult = {
@@ -16,7 +16,7 @@ type CPVResult = {
     name: string, 
     exploit_steps: string[]
   },
-  path: {path: ComponentId[]},
+  path: {path: string[]},
 };
 
 // Props type for the component
@@ -26,7 +26,7 @@ interface CPVsPanelProps {
   position: PanelPosition;
   activeCPV: ActiveCPV;
   onActiveCPVChange: (cpv: ActiveCPV) => void;
-  onImportCPV: (name: string, path: ComponentId[]) => void;
+  onImportCPV: (name: string, path: string[]) => void;
 }
 
 // Helper function to render CPVs list
@@ -35,7 +35,7 @@ function renderCPVs(
   cpvs: CPVResult[],
   activeCPV: ActiveCPV,
   onCPVClick: (cpv: ActiveCPV) => void,
-  onImportCPV: (name: string, path: ComponentId[]) => void
+  onImportCPV: (name: string, path: string[]) => void
 ) {
   const cpvItems = cpvs.map(({cpv: {name, exploit_steps}, path: {path}}, i) => {
     const isActive = activeCPV && 

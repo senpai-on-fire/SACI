@@ -1,5 +1,5 @@
 import { Panel, PanelPosition } from '@xyflow/react';
-import { BlueprintId, Device, ComponentId, AnnotationId, HypothesisId } from '../types';
+import { BlueprintId, Device, ComponentId, AnnotationId } from '../types';
 import { useState, useEffect } from 'react';
 import { X } from 'react-feather';
 import { adjacencyListOfComponentIds, groupAnnotationsByComponentId } from '../utils/helpers';
@@ -16,8 +16,8 @@ interface HypothesisCreatePanelProps {
   onClose: () => void;
   device: Device;
   onHoverComponent: (componentId: ComponentId | null) => void;
-  onHypothesisCreated: (hypothesisId: HypothesisId) => void;
-  importedData?: { name: string; path: ComponentId[] } | null;
+  onHypothesisCreated: (hypothesisId: string) => void;
+  importedData?: { name: string; path: string[] } | null;
 }
 
 // Type for annotation data with component info
@@ -41,10 +41,10 @@ const getRelevantAnnotations = (device: Device, components: ComponentId[]) => {
   components.forEach(compId => {
     if (groupedAnnotations[compId]) {
       Object.entries(groupedAnnotations[compId]).forEach(([annotId, annot]) => {
-        relevantAnnotations[parseInt(annotId)] = {
+        relevantAnnotations[annotId] = {
           ...annot,
           componentId: compId,
-          componentName: device.components[compId]?.name || "unknown"
+          componentName: device.components[compId]?.name || compId
         };
       });
     }
@@ -92,10 +92,10 @@ export function HypothesisCreatePanel({
   }));
   
   // Handle component selection in a dropdown
-  const handleComponentSelect = (index: number, compIdStr: string) => {  
-    const newSelectedComponents = compIdStr === "none" ? 
+  const handleComponentSelect = (index: number, compId: ComponentId) => {  
+    const newSelectedComponents = compId === "none" ? 
       selectedComponents.slice(0, index) :
-      [...selectedComponents.slice(0, index), parseInt(compIdStr)];
+      [...selectedComponents.slice(0, index), compId];
     setSelectedComponents(newSelectedComponents);
 
     // build new selected annotations
@@ -104,7 +104,7 @@ export function HypothesisCreatePanel({
     const newSelectedAnnotations = getRelevantAnnotations(device, newSelectedComponents);
     const newSelectedAnnotationsObject: {[id: AnnotationId]: boolean} = {};
     Object.keys(newSelectedAnnotations).forEach(annotId => {
-      newSelectedAnnotationsObject[parseInt(annotId)] = selectedAnnotations[parseInt(annotId)] || false;
+      newSelectedAnnotationsObject[annotId] = selectedAnnotations[annotId] || false;
     });
     setSelectedAnnotations(newSelectedAnnotationsObject);
     return;
@@ -146,7 +146,7 @@ export function HypothesisCreatePanel({
     
     try {
       // Make API call to create hypothesis using the helper function
-      const hypothesisId = await postData<typeof hypothesisData, HypothesisId>(
+      const hypothesisId = await postData<typeof hypothesisData, string>(
         `/api/blueprints/${bpId}/hypotheses`, 
         hypothesisData
       );
@@ -189,7 +189,7 @@ export function HypothesisCreatePanel({
     dropdowns.push(
       <div key="dropdown-0" className="mr-2 mb-2">
         <Select.Root
-          value={selectedComponents[0]?.toString() || "none"}
+          value={selectedComponents[0] || "none"}
           onValueChange={(value) => handleComponentSelect(0, value)}
         >
           <Select.Trigger 
@@ -224,7 +224,7 @@ export function HypothesisCreatePanel({
                     key={comp.id} 
                     value={comp.id}
                     className="py-2 pl-3 pr-9 text-sm outline-none data-[highlighted]:bg-indigo-100 dark:data-[highlighted]:bg-indigo-900 data-[state=checked]:font-medium cursor-default"
-                    onMouseEnter={() => handleComponentHover(parseInt(comp.id))}
+                    onMouseEnter={() => handleComponentHover(comp.id)}
                     onMouseLeave={() => handleComponentHover(null)}
                   >
                     <Select.ItemText>{comp.name}</Select.ItemText>
@@ -256,7 +256,7 @@ export function HypothesisCreatePanel({
         <div key={`dropdown-${i}`} className="mr-2 mb-2 flex items-center">
           <span className="text-gray-500 mr-2">→</span>
           <Select.Root
-            value={selectedComponents[i]?.toString() || "none"}
+            value={selectedComponents[i] || "none"}
             onValueChange={(value) => handleComponentSelect(i, value)}
           >
             <Select.Trigger 
@@ -289,7 +289,7 @@ export function HypothesisCreatePanel({
                   {adjacentComps.map((compId) => (
                     <Select.Item 
                       key={compId} 
-                      value={compId.toString()}
+                      value={compId}
                       className="py-2 pl-3 pr-9 text-sm outline-none data-[highlighted]:bg-indigo-100 dark:data-[highlighted]:bg-indigo-900 data-[state=checked]:font-medium cursor-default"
                       onMouseEnter={() => handleComponentHover(compId)}
                       onMouseLeave={() => handleComponentHover(null)}
@@ -352,7 +352,7 @@ export function HypothesisCreatePanel({
                     {adjacentComps.map((compId) => (
                       <Select.Item 
                         key={compId} 
-                        value={compId.toString()}
+                        value={compId}
                         className="py-2 pl-3 pr-9 text-sm outline-none data-[highlighted]:bg-indigo-100 dark:data-[highlighted]:bg-indigo-900 data-[state=checked]:font-medium cursor-default"
                         onMouseEnter={() => handleComponentHover(compId)}
                         onMouseLeave={() => handleComponentHover(null)}
@@ -455,8 +455,8 @@ export function HypothesisCreatePanel({
                         <td className="px-3 py-2 whitespace-nowrap">
                           <input
                             type="checkbox"
-                            checked={selectedAnnotations[parseInt(annotId)] || false}
-                            onChange={(e) => handleAnnotationSelect(parseInt(annotId), e.target.checked)}
+                            checked={selectedAnnotations[annotId] || false}
+                            onChange={(e) => handleAnnotationSelect(annotId, e.target.checked)}
                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
                           />
                         </td>

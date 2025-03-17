@@ -1,6 +1,6 @@
 import { Panel, PanelPosition } from '@xyflow/react';
 import { X, RotateCcw, Trash2, ChevronDown } from 'react-feather';
-import { Hypothesis, Device, ComponentId, BlueprintId } from '../types';
+import { Hypothesis, Device } from '../types';
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '../utils/api';
@@ -8,7 +8,7 @@ import * as Select from '@radix-ui/react-select';
 
 interface AnalysisInfo {
   name: string;
-  components_included: ComponentId[];
+  components_included: string[];
 }
 
 interface HypothesisTestPanelProps {
@@ -17,17 +17,17 @@ interface HypothesisTestPanelProps {
   onClose: () => void;
   hypothesis: Hypothesis | null;
   device: Device | null;
-  bpId: BlueprintId;
-  onSimulationHover?: (components: ComponentId[] | null) => void;
+  bpId: string;
+  onSimulationHover?: (components: string[] | null) => void;
 }
 
 interface Subsystem {
-  componentIds: ComponentId[];
+  componentIds: string[];
   simulation: string;
   code: string;
   isSelecting: boolean;
-  startComponent: ComponentId | null;
-  hoveredComponent: ComponentId | null;
+  startComponent: string | null;
+  hoveredComponent: string | null;
 }
 
 export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId, onSimulationHover }: HypothesisTestPanelProps) {
@@ -66,11 +66,11 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
 
   if (!isOpen || !hypothesis || !device) return null;
 
-  const getComponentName = (componentId: ComponentId) => {
+  const getComponentName = (componentId: string) => {
     return device.components[componentId]?.name || componentId;
   };
 
-  const handleComponentClick = (componentId: ComponentId, subsystemIndex: number) => {
+  const handleComponentClick = (componentId: string, subsystemIndex: number) => {
     const subsystem = subsystems[subsystemIndex];
     if (!subsystem.startComponent) {
       const newSubsystems = [...subsystems];
@@ -99,7 +99,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
     }
   };
 
-  const handleComponentHover = (componentId: ComponentId, subsystemIndex: number) => {
+  const handleComponentHover = (componentId: string, subsystemIndex: number) => {
     const subsystem = subsystems[subsystemIndex];
     if (subsystem.startComponent) {
       const newSubsystems = [...subsystems];
@@ -111,7 +111,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
     }
   };
 
-  const getComponentStyle = (componentId: ComponentId, subsystem: Subsystem) => {
+  const getComponentStyle = (componentId: string, subsystem: Subsystem) => {
     if (!subsystem.isSelecting) {
       const index = subsystem.componentIds.indexOf(componentId);
       if (subsystem.componentIds.length === 1) return 'rounded-full';
@@ -137,7 +137,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
     return '';
   };
 
-  const isComponentInRange = (componentId: ComponentId, subsystem: Subsystem) => {
+  const isComponentInRange = (componentId: string, subsystem: Subsystem) => {
     if (!subsystem.isSelecting || !subsystem.startComponent) return false;
     
     const startIdx = hypothesis.path.indexOf(subsystem.startComponent);
@@ -174,7 +174,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
     setSubsystems(prev => prev.filter((_, i) => i !== index));
   };
 
-  const isComponentUsedInOtherSubsystems = (componentId: ComponentId, currentIndex: number) => {
+  const isComponentUsedInOtherSubsystems = (componentId: string, currentIndex: number) => {
     return subsystems.some((subsystem, index) => 
       index !== currentIndex && subsystem.componentIds.includes(componentId)
     );
