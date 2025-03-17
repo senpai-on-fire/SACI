@@ -110,142 +110,146 @@ def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentID:
 
 rover = blueprints["ngcrover"]
 
-analyses: dict[AnalysisID, Analysis] = {
-    "taveren_model": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: Ta'veren Controller",
-            # TODO: hackyyyyy... should either use different controllers' different IDs (now that they have them!) or have some nice query mechanism
-            components_included=[
-                _find_comps(rover, WebServer)[0],
-                _find_comps(rover, Controller)[0],
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["taveren:latest"],
-    ),
-    "binsync_re": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: BinSync-enabled RE",
-            components_included=[_find_comps(rover, Controller)[0]],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
-    ),
-    "hybrid_automata": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: Hybrid Automata",
-            components_included=_find_comps(rover, Controller)
-            + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
-    ),
-    "gazebo_hybrid_automata": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Co-Simulation: Gazebo + Hybrid Automata",
-            components_included=_find_comps(rover, Controller)
-            + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=[
-            "ghcr.io/cpslab-asu/gzcm/px4/firmware:0.2.0",
-            "ghcr.io/cpslab-asu/gzcm/px4/gazebo:harmonic",
-        ],
-    ),
-    "gazebo_firmware": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Co-Simulation: Gazebo + Firmware",
-            components_included=_find_comps(rover, Controller)
-            + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["onex:latest"],
-    ),
-}
+analyses: dict[AnalysisID, Analysis] = {}
+hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict) 
+annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(dict) 
 
-hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(
-    dict,
-    {
-        "ngcrover": {
-            "webserver_stop": HypothesisModel(
-                name="From the webserver, stop the rover.",
-                path=[
-                    ComponentID("wifi"),
-                    ComponentID("webserver"),
-                    ComponentID("uno_r4"),
-                    ComponentID("uno_r3"),
-                    ComponentID("pwm_channel_esc"),
-                    ComponentID("esc"),
-                    ComponentID("motor"),
-                ],
-                annotations=["wifi_open", "hidden_stop"],
-            ),
-            "emi_compass": HypothesisModel(
-                name="Using EMI, influence the compass to affect the mission.",
-                path=[
-                    ComponentID("compass"),
-                    ComponentID("uno_r4"),
-                    ComponentID("uno_r3"),
-                    ComponentID("pwm_channel_servo"),
-                    ComponentID("steering"),
-                ],
-                annotations=[],
-            ),
-            "wifi_rollover": HypothesisModel(
-                name="Over WiFi, subvert the control system to roll the rover.",
-                path=[
-                    ComponentID("wifi"),
-                    ComponentID("webserver"),
-                    ComponentID("uno_r4"),
-                    ComponentID("uno_r3"),
-                    ComponentID("pwm_channel_esc"),
-                    ComponentID("esc"),
-                    ComponentID("motor"),
-                ],
-                annotations=["wifi_open"],
-            ),
-        },
-    },
-)
+# analyses: dict[AnalysisID, Analysis] = {
+#     "taveren_model": Analysis(
+#         user_info=AnalysisUserInfo(
+#             name="Model: Ta'veren Controller",
+#             # TODO: hackyyyyy... should either use different controllers' different IDs (now that they have them!) or have some nice query mechanism
+#             components_included=[
+#                 _find_comps(rover, WebServer)[0],
+#                 _find_comps(rover, Controller)[0],
+#             ],
+#         ),
+#         interaction_model=InteractionModel.X11,
+#         images=["taveren:latest"],
+#     ),
+#     "binsync_re": Analysis(
+#         user_info=AnalysisUserInfo(
+#             name="Model: BinSync-enabled RE",
+#             components_included=[_find_comps(rover, Controller)[0]],
+#         ),
+#         interaction_model=InteractionModel.X11,
+#         images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
+#     ),
+#     "hybrid_automata": Analysis(
+#         user_info=AnalysisUserInfo(
+#             name="Model: Hybrid Automata",
+#             components_included=_find_comps(rover, Controller)
+#             + [
+#                 _find_comp(rover, GPSReceiver),
+#                 _find_comp(rover, CompassSensor),
+#                 _find_comp(rover, Steering),
+#                 _find_comp(rover, ESC),
+#                 _find_comp(rover, Motor),
+#             ],
+#         ),
+#         interaction_model=InteractionModel.X11,
+#         images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
+#     ),
+#     "gazebo_hybrid_automata": Analysis(
+#         user_info=AnalysisUserInfo(
+#             name="Co-Simulation: Gazebo + Hybrid Automata",
+#             components_included=_find_comps(rover, Controller)
+#             + [
+#                 _find_comp(rover, GPSReceiver),
+#                 _find_comp(rover, CompassSensor),
+#                 _find_comp(rover, Steering),
+#                 _find_comp(rover, ESC),
+#                 _find_comp(rover, Motor),
+#             ],
+#         ),
+#         interaction_model=InteractionModel.X11,
+#         images=[
+#             "ghcr.io/cpslab-asu/gzcm/px4/firmware:0.2.0",
+#             "ghcr.io/cpslab-asu/gzcm/px4/gazebo:harmonic",
+#         ],
+#     ),
+#     "gazebo_firmware": Analysis(
+#         user_info=AnalysisUserInfo(
+#             name="Co-Simulation: Gazebo + Firmware",
+#             components_included=_find_comps(rover, Controller)
+#             + [
+#                 _find_comp(rover, GPSReceiver),
+#                 _find_comp(rover, CompassSensor),
+#                 _find_comp(rover, Steering),
+#                 _find_comp(rover, ESC),
+#                 _find_comp(rover, Motor),
+#             ],
+#         ),
+#         interaction_model=InteractionModel.X11,
+#         images=["onex:latest"],
+#     ),
+# }
 
-annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(
-    dict,
-    {
-        "ngcrover": {
-            "wifi_open": Annotation(
-                attack_surface=ComponentID("wifi"),
-                effect=MakeEntryEffect(
-                    reason="wifi is open", nodes=frozenset([ComponentID("wifi")])
-                ),
-                underlying_vulnerability=None,
-                attack_model="connect to the AP without creds",
-            ),
-            "hidden_stop": Annotation(
-                attack_surface=ComponentID("webserver"),
-                effect=VulnerabilityEffect(
-                    reason="hidden stop command in the webserver"
-                ),
-                underlying_vulnerability=None,
-                attack_model="hit the stop endpoint on the webserver",
-            ),
-        },
-    },
-)
+# hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(
+#     dict,
+#     {
+#         "ngcrover": {
+#             "webserver_stop": HypothesisModel(
+#                 name="From the webserver, stop the rover.",
+#                 path=[
+#                     ComponentID("wifi"),
+#                     ComponentID("webserver"),
+#                     ComponentID("uno_r4"),
+#                     ComponentID("uno_r3"),
+#                     ComponentID("pwm_channel_esc"),
+#                     ComponentID("esc"),
+#                     ComponentID("motor"),
+#                 ],
+#                 annotations=["wifi_open", "hidden_stop"],
+#             ),
+#             "emi_compass": HypothesisModel(
+#                 name="Using EMI, influence the compass to affect the mission.",
+#                 path=[
+#                     ComponentID("compass"),
+#                     ComponentID("uno_r4"),
+#                     ComponentID("uno_r3"),
+#                     ComponentID("pwm_channel_servo"),
+#                     ComponentID("steering"),
+#                 ],
+#                 annotations=[],
+#             ),
+#             "wifi_rollover": HypothesisModel(
+#                 name="Over WiFi, subvert the control system to roll the rover.",
+#                 path=[
+#                     ComponentID("wifi"),
+#                     ComponentID("webserver"),
+#                     ComponentID("uno_r4"),
+#                     ComponentID("uno_r3"),
+#                     ComponentID("pwm_channel_esc"),
+#                     ComponentID("esc"),
+#                     ComponentID("motor"),
+#                 ],
+#                 annotations=["wifi_open"],
+#             ),
+#         },
+#     },
+# )
+
+# annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(
+#     dict,
+#     {
+#         "ngcrover": {
+#             "wifi_open": Annotation(
+#                 attack_surface=ComponentID("wifi"),
+#                 effect=MakeEntryEffect(
+#                     reason="wifi is open", nodes=frozenset([ComponentID("wifi")])
+#                 ),
+#                 underlying_vulnerability=None,
+#                 attack_model="connect to the AP without creds",
+#             ),
+#             "hidden_stop": Annotation(
+#                 attack_surface=ComponentID("webserver"),
+#                 effect=VulnerabilityEffect(
+#                     reason="hidden stop command in the webserver"
+#                 ),
+#                 underlying_vulnerability=None,
+#                 attack_model="hit the stop endpoint on the webserver",
+#             ),
+#         },
+#     },
+# )

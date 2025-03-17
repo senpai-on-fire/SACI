@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PlainSerializer
 
 from saci.hypothesis import Hypothesis
 from saci.modeling.annotation import Annotation
 from saci.modeling.cpv import CPV
 from saci.modeling.cpvpath import CPVPath
 from saci.modeling.device.component.component_base import ComponentBase
-from saci.modeling.device.componentid import ComponentID
 from saci.modeling.device.device import Device
+from saci.modeling.device import ComponentID
 from saci.modeling.vulnerability.base_vuln import VulnerabilityEffect
 
 
@@ -29,21 +29,26 @@ class ComponentModel(BaseModel):
             },
         )
 
+IntJSONStr = Annotated[int, PlainSerializer(str, return_type=str, when_used='json')]
+
+# TODO: NOT to be confused with the ComponentID used in devices. CERTAINLY need to rename one at some point. Or better
+# yet make Device generic over it.
+WebComponentID = IntJSONStr
 
 class AnnotationModel(BaseModel):
-    attack_surface: ComponentID
+    attack_surface: WebComponentID
     effect: str  # TODO: add an EffectModel to capture the actual semantic data associated with a VulnerabilityEffect
     attack_model: str | None
 
     @staticmethod
-    def from_annotationn(annot: Annotation) -> AnnotationModel:
+    def from_annotationn(annot: Annotation[WebComponentID]) -> AnnotationModel:
         return AnnotationModel(
             attack_surface=annot.attack_surface,
             effect=annot.effect.reason,
             attack_model=annot.attack_model,
         )
 
-    def to_annotation(self) -> Annotation:
+    def to_annotation(self) -> Annotation[WebComponentID]:
         return Annotation(
             attack_surface=self.attack_surface,
             effect=VulnerabilityEffect(reason=self.effect),
@@ -52,15 +57,15 @@ class AnnotationModel(BaseModel):
         )
 
 
-AnnotationID = str
+AnnotationID = IntJSONStr
 
 
 class HypothesisModel(BaseModel):
     name: str
-    path: list[ComponentID]
+    path: list[WebComponentID]
     annotations: list[AnnotationID]
 
-    def to_hypothesis(self, annotation_mapping: dict[AnnotationID, Annotation]) -> Hypothesis:
+    def to_hypothesis(self, annotation_mapping: dict[AnnotationID, Annotation]) -> Hypothesis[WebComponentID]:
         return Hypothesis(
             description=self.name,
             path=self.path,
@@ -70,13 +75,13 @@ class HypothesisModel(BaseModel):
         )
 
 
-HypothesisID = str
+HypothesisID = IntJSONStr
 
 
 class DeviceModel(BaseModel):
     name: str
-    components: dict[ComponentID, ComponentModel]
-    connections: list[tuple[ComponentID, ComponentID]]
+    components: dict[WebComponentID, ComponentModel]
+    connections: list[tuple[WebComponentID, WebComponentID]]
     hypotheses: dict[HypothesisID, HypothesisModel]
     annotations: dict[AnnotationID, AnnotationModel]
 
@@ -84,7 +89,7 @@ class DeviceModel(BaseModel):
     def from_device(
         bp: Device,
         hypotheses: dict[HypothesisID, HypothesisModel],
-        annotations: dict[AnnotationID, Annotation],
+        annotations: dict[AnnotationID, Annotation[WebComponentID]],
     ) -> DeviceModel:
         return DeviceModel(
             name=bp.name,
@@ -92,7 +97,7 @@ class DeviceModel(BaseModel):
                 comp_id: ComponentModel.from_component(comp)
                 for comp_id, comp in bp.components.items()
             },
-            connections=[(from_, to_) for (from_, to_) in bp.component_graph.edges],
+            connections=list(bp.component_graph.edges),
             hypotheses=hypotheses,
             annotations={
                 annot_id: AnnotationModel.from_annotationn(annot)
@@ -119,7 +124,7 @@ class CPVModel(BaseModel):
 
 
 class CPVPathModel(BaseModel):
-    path: list[ComponentID]
+    path: list[WebComponentID]
 
     @staticmethod
     def from_cpv_path(path: CPVPath) -> CPVPathModel:
@@ -157,7 +162,7 @@ class AnalysisUserInfo(BaseModel):
     """User-level metadata associated with an analysis type the user can run."""
 
     name: str
-    components_included: list[ComponentID] = Field(default_factory=list)
+    components_included: list[WebComponentID] = Field(default_factory=list)
 
 
 AnalysisID = str
