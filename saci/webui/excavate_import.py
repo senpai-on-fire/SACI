@@ -127,7 +127,7 @@ class System(BaseModel):
 
         # TODO: flesh out our notion of parameters
         parameters = {spec.name: str(spec.value) for spec in self.specifications}
-        system_to_component[id(self)] = db.Component(name=self.name, type_=self.saciType, parameters=parameters)
+        system_to_component[id(self)] = db.Component(name=self.name, type_=self.saciType, parameters=parameters, is_entry=False)
 
         return system_to_component
 
