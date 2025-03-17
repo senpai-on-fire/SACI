@@ -16,7 +16,6 @@ CPVS = [
     SerialArduinoControlCPV(),
     WifiWebStopCPV(),
     SerialRedirectCPV(),
-    SerialToneCPV(),
     CompassTemporarySpoofingCPV(),
     SMBusBatteryShutdownCPV(),
     DebugESCFlashCPV(),
