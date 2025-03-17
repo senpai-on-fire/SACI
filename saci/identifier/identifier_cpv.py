@@ -48,7 +48,7 @@ class IdentifierCPV(Generic[CID]):
 
         return cpv.is_possible_path([device.components[comp_id] for comp_id in path])
 
-    def identify(self, cpv: CPV) -> list[list[IdentifiedComponent[CID]]]:
+    def identify(self, cpv: CPV) -> list[tuple[IdentifiedComponent[CID], ...]]:
         device = self.prepare_device()
 
         # Get the starting locations (components with external input)
@@ -78,4 +78,4 @@ class IdentifierCPV(Generic[CID]):
                 if cpv.is_possible_path([device.components[comp_id] for comp_id in path]):
                     cpv_paths.append(path)
 
-        return [[IdentifiedComponent.from_id(device, comp_id) for comp_id in path] for path in cpv_paths]
+        return [tuple(IdentifiedComponent.from_id(device, comp_id) for comp_id in path) for path in cpv_paths]

@@ -71,8 +71,7 @@ class IdentifierCPSV:
                 newCPV = CPV()
                 newCPV.NAME = 'NEWCPV'
                 behaviors = Behaviors(None)
-                cpvpath = CPVPath(path, behaviors)
-                cpvpath.cpv_inputs = inputs 
+                cpvpath = CPVPath(tuple(path), behaviors)
                 # TODO: in theory, a new CPV can return multiple possible paths. Here we only take the optimal one.
                 return [(newCPV, [cpvpath])]
             else:

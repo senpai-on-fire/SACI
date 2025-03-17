@@ -26,7 +26,7 @@ import uuid
 
 from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent, Annotation as SaciAnnotation
 from saci.hypothesis import Hypothesis as SaciHypothesis
-from saci.modeling.vulnerability.base_vuln import VulnerabilityEffect
+from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
 # Import web models for conversion methods
 from saci.webui.web_models import (
     BlueprintID,
@@ -204,9 +204,14 @@ class Annotation(Base):
             raise ValueError("Annotation's attack_surface should be a component of the annotation's device")
 
     def to_saci_annotation(self) -> SaciAnnotation[int]:
+        match self.effect:
+            case "entry":
+                effect = MakeEntryEffect("annotation", frozenset([self.attack_surface_id]))
+            case _:
+                effect = VulnerabilityEffect("annotation")
         return SaciAnnotation(
             attack_surface=self.attack_surface_id,
-            effect=VulnerabilityEffect(reason=self.effect),
+            effect=effect,
             attack_model=self.attack_model,
             underlying_vulnerability=None,
         )

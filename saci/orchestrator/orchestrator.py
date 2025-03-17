@@ -29,7 +29,7 @@ def identify(cps: Device, initial_state, cpv_model: CPV, vulns: Sequence[BaseVul
     identifier = IdentifierCPV(cps, initial_state, vulns=vulns)
     to_return = []
     for path in identifier.identify(cpv_model):
-        to_return.append(CPVPath(path, Behaviors([])))
+        to_return.append(CPVPath(path, Behaviors()))
     if to_return:
         return cpv_model, to_return
     else:

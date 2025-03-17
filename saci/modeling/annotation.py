@@ -22,8 +22,8 @@ class AnnotationVulnerability(BaseVulnerability, Generic[CID]):
 
     def exists(self, device: Device[CID]) -> bool:
         # TODO: how should we check this?
-        if device != self.associated_device:
-            raise ValueError("AnnotationVulnerabilities can only be applied to their corresponding device")
+        # if device != self.associated_device:
+        #     raise ValueError("AnnotationVulnerabilities can only be applied to their corresponding device")
         return True
 
     def effects(self, device: Device[CID]) -> list[VulnerabilityEffect]:

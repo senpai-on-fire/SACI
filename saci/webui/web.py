@@ -17,12 +17,13 @@ from websockets.asyncio.client import connect as ws_connect, ClientConnection as
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
 from pydantic import ValidationError
 
+from saci.modeling.annotation import Annotation
 import saci.webui.data as data
 import saci.webui.db as db
 from saci.modeling.device import Device
 from saci.modeling.state.global_state import GlobalState
 from saci.webui.excavate_import import System
-from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVModel, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel
+from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVModel, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel, WebComponentID
 from saci_db.cpvs import CPVS
 
 from ..orchestrator import identify
@@ -86,30 +87,64 @@ def create_annotation(bp_id: str, annot_model: AnnotationModel, response: Respon
     response.status_code = status.HTTP_201_CREATED
     return annot_id
 
-def fetch_saci_device(session: Session, bp_id: str) -> Device:
+def fetch_saci_db_device(
+        session: Session,
+        bp_id: str,
+        with_annotations: bool = False,
+        with_hypotheses: bool = False
+) -> db.Device:
+    options = [selectinload(db.Device.components), selectinload(db.Device.connections)]
+    if with_annotations:
+        options.append(selectinload(db.Device.annotations))
+    if with_hypotheses:
+        options.append(selectinload(db.Device.hypotheses))
+    options.append(raiseload("*"))
+
     db_device = session.execute(select(db.Device)\
                                 .where(db.Device.id == bp_id)\
-                                .options(selectinload(db.Device.components),
-                                         selectinload(db.Device.connections),
-                                         raiseload("*")))\
+                                .options(*options))\
                        .scalar()
     if db_device is None:
         raise HTTPException(status_code=404, detail="Blueprint not found")
-    return db_device.to_saci_device()
+    else:
+        return db_device
+
+def fetch_saci_device(session: Session, bp_id: str) -> Device[WebComponentID]:
+    return fetch_saci_db_device(session, bp_id).to_saci_device()
+
+def fetch_saci_device_and_annotations(session: Session, bp_id: str) -> tuple[Device[WebComponentID], list[Annotation[WebComponentID]]]:
+    db_device = fetch_saci_db_device(session, bp_id, with_annotations=True)
+    return db_device.to_saci_device(), [annot.to_saci_annotation() for annot in db_device.annotations]
 
 @app.get("/api/blueprints/{bp_id}/cpvs")
-def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
+def identify_cpvs(bp_id: str, only_special: bool = False) -> list[CPVResultModel]:
     with db.get_session() as session:
-        cps = fetch_saci_device(session, bp_id)
+        cps, annotations = fetch_saci_device_and_annotations(session, bp_id)
 
-    # TODO: re-introduce the queueing model once this takes more time
+    # TODO: re-introduce the queueing model to this routine once this takes more time
+
     initial_state = GlobalState(cps.components)
-    return [
-        CPVResultModel.from_cpv_result(cpv, path)
+
+    # TODO: the CPVPaths contain the actual ComponentBases and so hashability is fragile and dependent on being
+    # identified from the same device object. we should probably make them just have the component IDs.
+    annotation_vulns = [annot.into_vulnerability(cps) for annot in annotations]
+    identified_cpvs = {
+        (cpv, path)
         for cpv in CPVS
-        if (paths := identify(cps, initial_state, cpv_model=cpv)[1]) is not None
+        if (paths := identify(cps, initial_state, cpv_model=cpv, vulns=annotation_vulns)[1]) is not None
         for path in paths
-    ]
+    }
+
+    if only_special:
+        bare_cpvs = {
+            (cpv, path)
+            for cpv in CPVS
+            if (paths := identify(cps, initial_state, cpv_model=cpv)[1]) is not None
+            for path in paths
+        }
+        identified_cpvs -= bare_cpvs
+
+    return [CPVResultModel.from_cpv_result(cpv, path) for cpv, path in identified_cpvs]
 
 @app.post("/api/blueprints/{bp_id}/hypotheses")
 def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel, response: Response) -> HypothesisID:
