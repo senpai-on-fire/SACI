@@ -86,17 +86,28 @@ class CPV:
         return False
 
     def is_possible_path(self, path: list[ComponentBase]):
-        if len(path) == len(self.required_components):
+        # This code should accept any path that contains the required components in the correct order, with extra
+        # components in between, but not or the start or end.
 
-            for i in range(len(path)):
-                if type(path[i]) is type(self.required_components[i]):
-                    continue
-                else:
-                    return False
-        else: 
+        # i need to rewrite this. i wrote it in a hurry.
+
+        if len(self.required_components) == 0: # why would this happen
+            return True
+
+        if len(path) == 0:
             return False
+
+        if not isinstance(path[0], type(self.required_components[0])):
+            return False
+
+        req_i = 1
+        for comp in path:
+            if req_i >= len(self.required_components):
+                return False
+            if isinstance(comp, type(self.required_components[req_i])):
+                req_i += 1
         
-        return True
+        return req_i == len(self.required_components)
 
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
