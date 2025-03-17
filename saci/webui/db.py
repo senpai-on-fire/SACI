@@ -129,6 +129,7 @@ class Hypothesis(Base):
     name: Mapped[str]
     path: Mapped[list[int]] = mapped_column(JSON)
     device_id = mapped_column(ForeignKey("devices.id"))
+    extra_text: Mapped[str | None] = mapped_column(String, nullable=True)
 
     device: Mapped["Device"] = relationship(back_populates="hypotheses")
     annotations: Mapped[list["Annotation"]] = relationship(back_populates="hypothesis")
@@ -146,6 +147,7 @@ class Hypothesis(Base):
             path=model.path,
             device_id=device_id,
             annotations=annotations,
+            extra_text=model.extra_text,
         )
 
     def to_web_model(self) -> HypothesisModel:
@@ -153,6 +155,7 @@ class Hypothesis(Base):
             name=self.name,
             path=[comp_id for comp_id in self.path],
             annotations=[annot.id for annot in self.annotations],
+            extra_text=self.extra_text,
         )
 
     def to_saci_hypothesis(self) -> SaciHypothesis[int]:
