@@ -6,6 +6,8 @@ from enum import StrEnum
 from pathlib import Path
 from typing import TypeVar
 
+from pydantic import BaseModel
+
 from saci.modeling.device.interface.wifi import Wifi
 from saci.modeling.device.sensor.gps import GPSReceiver
 from saci_db.devices import devices, ingested
@@ -61,6 +63,20 @@ class InteractionModel(StrEnum):
     X11 = "X11"
 
 
+class ContainerConfig(BaseModel):
+    image: str
+    config: str
+
+
+class AppConfig(BaseModel):
+    name: str
+    interaction_model: InteractionModel
+    containers: list[ContainerConfig]
+    always_pull_images: bool
+    enable_docker: bool
+    autostart: bool
+
+
 @dataclass(frozen=True)
 class Analysis:
     """All the information associated with an analysis type, including what the system needs to know to launch it."""
@@ -110,7 +126,21 @@ def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentID:
 
 rover = blueprints["ngcrover"]
 
-analyses: dict[AnalysisID, Analysis] = {}
+analyses: dict[AnalysisID, Analysis] = {
+    "foo": Analysis(
+        user_info=AnalysisUserInfo(
+            name="SWAB",
+            components_included=[
+                4,
+                5,
+                # "compass",
+                # "uno_r4",
+            ]
+        ),
+        interaction_model=InteractionModel.X11,
+        images=[],
+    ),
+}
 hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict) 
 annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(dict) 
 

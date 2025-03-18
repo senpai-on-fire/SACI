@@ -15,9 +15,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from saci.modeling.annotation import Annotation
+from saci.orchestrator.tool import TOOLS
 import saci.webui.data as data
 import saci.webui.db as db
 from saci.modeling.device import Device
@@ -265,24 +266,58 @@ except httpx.ConnectError:
 
 @app.get("/api/blueprints/{bp_id}/analyses")
 def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
-    # for now ignore bp_id, but eventually analyses will be available per-device or something.
-    # return mapping of analysis ID to analysis info
-    return {id_: analysis.user_info for id_, analysis in data.analyses.items()}
+    with db.get_session() as session:
+        device = fetch_saci_device(session, bp_id)
 
-@app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
-async def launch_analysis(bp_id: str, analysis_id: str) -> int:
-    if analysis_id not in data.analyses:
-        raise HTTPException(status_code=400, detail="analysis not found")
-    analysis = data.analyses[analysis_id]
+    return {
+        tool_id: AnalysisUserInfo(
+            name=tool.name,
+            components_included=tool.compatible_components(device),
+        )
+        for tool_id, tool
+        in TOOLS.items()
+    }
+
+@app.post("/api/blueprints/{bp_id}/analyses/{tool_id}/launch")
+async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> int:
+    # TODO: use bp_id...
+    if (tool := TOOLS.get(tool_id)) is None:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    if len(raw_configs) != len(tool.containers):
+        raise HTTPException(status_code=400, detail="Wrong number of configurations")
+
+    container_configs = []
+    for i, (raw_config, container) in enumerate(zip(raw_configs, tool.containers)):
+        try:
+            config = container.config_type.model_validate_json(raw_config)
+            container_configs.append(data.ContainerConfig(
+                image=container.image_name,
+                config=config.model_dump_json()
+            ))
+        except ValidationError as e:
+            raise HTTPException(status_code=400, detail={
+                "message": f"Configuration #{i} did not validate",
+                "validation_error": str(e),
+            })
+
     async with httpx.AsyncClient() as client:
-        create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=analysis.as_appconfig())
+        app_config = data.AppConfig(
+            name=f"{tool.name}-{bp_id}",
+            interaction_model=data.InteractionModel.X11,
+            containers=container_configs,
+            always_pull_images=False,
+            enable_docker=False,
+            autostart=True,
+        )
+
+        create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=app_config.model_dump_json())
+
         if not create_resp.is_success:
             print(f"got error {create_resp.text} when trying to create analysis")
             raise HTTPException(status_code=500, detail="couldn't create analysis")
         app = create_resp.json()
-        start_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app/{app['id']}/start")
-        if not start_resp.is_success:
-            raise HTTPException(status_code=500, detail="couldn't start analysis")
+
         return app['id']
 
 async def ws_proxy_to(ws1: WebSocket, ws2: WsClientConnection):
