@@ -4,7 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import TypeVar
+from typing import Literal, TypeVar
 
 from pydantic import BaseModel
 
@@ -66,6 +66,7 @@ class InteractionModel(StrEnum):
 class ContainerConfig(BaseModel):
     image: str
     config: str
+    image_pull_policy: Literal["Always", "IfNotPresent", "Never"]
 
 
 class AppConfig(BaseModel):

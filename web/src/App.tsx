@@ -381,6 +381,7 @@ function App() {
             device={device}
             bpId={bpId || ''}
             onSimulationHover={handleSimulationHover}
+            onLaunched={(name, app) => setShowingAnalysis({name, app})}
           />
         </Flow>
       </div>

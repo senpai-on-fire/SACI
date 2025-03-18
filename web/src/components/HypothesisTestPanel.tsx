@@ -3,7 +3,7 @@ import { X, RotateCcw, Trash2, ChevronDown } from 'react-feather';
 import { Hypothesis, Device } from '../types';
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { fetcher } from '../utils/api';
+import { fetcher, postData } from '../utils/api';
 import * as Select from '@radix-ui/react-select';
 
 interface AnalysisInfo {
@@ -19,21 +19,22 @@ interface HypothesisTestPanelProps {
   device: Device | null;
   bpId: string;
   onSimulationHover?: (components: string[] | null) => void;
+  onLaunched: (analysisName: string, appId: number) => void;
 }
 
 interface Subsystem {
   componentIds: string[];
-  simulation: string;
+  simulation: string | null;
   code: string;
   isSelecting: boolean;
   startComponent: string | null;
   hoveredComponent: string | null;
 }
 
-export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId, onSimulationHover }: HypothesisTestPanelProps) {
+export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId, onSimulationHover, onLaunched }: HypothesisTestPanelProps) {
   const [subsystems, setSubsystems] = useState<Subsystem[]>([{
     componentIds: [],
-    simulation: '',
+    simulation: null,
     code: '',
     isSelecting: true,
     startComponent: null,
@@ -41,6 +42,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
   }]);
   const { data: analyses } = useSWR<Record<string, AnalysisInfo>>(`/api/blueprints/${bpId}/analyses`, fetcher);
   const [hoveredSimulation, setHoveredSimulation] = useState<AnalysisInfo | null>(null);
+  const [isLaunching, setIsLaunching] = useState<boolean>(false);
 
   // Clear all state when panel is closed
   useEffect(() => {
@@ -54,6 +56,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
         hoveredComponent: null
       }]);
       setHoveredSimulation(null);
+      setIsLaunching(false);
     }
   }, [isOpen]);
 
@@ -180,6 +183,25 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
     );
   };
 
+  const launch = async () => {
+    setIsLaunching(true);
+    try {
+      // TODO: change the UI to only allow selecting one simulation type for the whole system
+      const simulation = subsystems[0].simulation;
+      const analysisName = analyses![simulation!].name;
+      const appId = await postData<string[], number>(
+        `/api/blueprints/${bpId}/analyses/${simulation}/launch`,
+        subsystems.map(sub => sub.code)
+      );
+      onLaunched(analysisName, appId);
+    } catch (error) {
+      console.error('Error launching tool', error);
+      alert('Failed to launch hypothesis test. Please try again.');
+    } finally {
+      setIsLaunching(false);
+    }
+  };
+
   return (
     <Panel 
       className="bg-white dark:bg-neutral-900 border-2 border-indigo-600 rounded shadow-lg" 
@@ -266,10 +288,10 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
                   Simulation
                 </label>
                 <Select.Root
-                  value={subsystem.simulation}
+                  value={JSON.stringify(subsystem.simulation)}
                   onValueChange={(value) => {
                     const newSubsystems = [...subsystems];
-                    newSubsystems[index].simulation = value;
+                    newSubsystems[index].simulation = JSON.parse(value);
                     setSubsystems(newSubsystems);
                   }}
                 >
@@ -290,7 +312,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
                     >
                       <Select.Viewport>
                         <Select.Item 
-                          value="Select a simulation..."
+                          value="null"
                           className="py-1 pl-2 pr-8 text-sm outline-none data-[highlighted]:bg-indigo-100 dark:data-[highlighted]:bg-indigo-900 data-[state=checked]:font-medium cursor-default"
                         >
                           <Select.ItemText>Select a simulation...</Select.ItemText>
@@ -298,7 +320,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
                         {analyses && Object.entries(analyses).map(([id, analysis]) => (
                           <Select.Item
                             key={id}
-                            value={JSON.stringify(analysis)}
+                            value={JSON.stringify(id)}
                             className="py-1 pl-2 pr-8 text-sm outline-none data-[highlighted]:bg-indigo-100 dark:data-[highlighted]:bg-indigo-900 data-[state=checked]:font-medium cursor-default"
                             onMouseEnter={() => setHoveredSimulation(analysis)}
                             onMouseLeave={() => setHoveredSimulation(null)}
@@ -329,8 +351,15 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
             </div>
           </div>
         ))}
-        {subsystems.length < 2 && (
-          <div className="px-4 pb-4">
+        <div className="px-4 pb-4 flex justify-between flex-row-reverse">
+          <button
+            disabled={!subsystems[0].simulation || isLaunching}
+            onClick={launch}
+            className="px-4 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-md transition-colors disabled:bg-indigo-100 dark:disabled:bg-indigo-900 "
+          >
+            Launch Test
+          </button>
+          {subsystems.length < 2 && (
             <button
               onClick={addSubsystem}
               className="px-4 text-sm font-medium text-indigo-700 dark:text-indigo-300
@@ -339,8 +368,8 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
             >
               Add Another Subsystem
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </Panel>
   );

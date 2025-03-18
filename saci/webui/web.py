@@ -293,7 +293,8 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
             config = container.config_type.model_validate_json(raw_config)
             container_configs.append(data.ContainerConfig(
                 image=container.image_name,
-                config=config.model_dump_json()
+                config=config.model_dump_json(),
+                image_pull_policy="Never",
             ))
         except ValidationError as e:
             raise HTTPException(status_code=400, detail={
