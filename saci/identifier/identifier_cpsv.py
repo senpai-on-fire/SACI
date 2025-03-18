@@ -70,7 +70,7 @@ class IdentifierCPSV:
                 # extract the attack
                 newCPV = CPV()
                 newCPV.NAME = 'NEWCPV'
-                behaviors = Behaviors(None)
+                behaviors = Behaviors()
                 cpvpath = CPVPath(tuple(path), behaviors)
                 # TODO: in theory, a new CPV can return multiple possible paths. Here we only take the optimal one.
                 return [(newCPV, [cpvpath])]
