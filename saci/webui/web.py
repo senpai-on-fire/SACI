@@ -303,7 +303,7 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
 
     async with httpx.AsyncClient() as client:
         app_config = data.AppConfig(
-            name=f"{tool.name}-{bp_id}",
+            name=f"{tool.name}-{bp_id}".lower(),
             interaction_model=data.InteractionModel.X11,
             containers=container_configs,
             always_pull_images=False,
@@ -311,9 +311,10 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
             autostart=True,
         )
 
-        create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=app_config.model_dump_json())
+        create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=app_config.model_dump())
 
         if not create_resp.is_success:
+            print(f"app_config was {app_config.model_dump_json()}")
             print(f"got error {create_resp.text} when trying to create analysis")
             raise HTTPException(status_code=500, detail="couldn't create analysis")
         app = create_resp.json()
