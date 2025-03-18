@@ -81,7 +81,7 @@ def test_create_annotation(client, bp_id):
     }
 
     # Create a new annotation
-    response = client.post(f"/api/blueprints/{bp_id}/annotation", json=annotation)
+    response = client.post(f"/api/blueprints/{bp_id}/annotations", json=annotation)
     assert 200 <= response.status_code < 300
     annot_id = response.json()
 
