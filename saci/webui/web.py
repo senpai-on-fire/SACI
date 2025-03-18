@@ -163,9 +163,6 @@ def identify_cpvs(bp_id: str, only_special: bool = False) -> list[CPVResultModel
 
 @app.post("/api/blueprints/{bp_id}/hypotheses")
 def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel, response: Response) -> HypothesisID:
-    if bp_id not in data.blueprints:
-        raise HTTPException(status_code=404, detail="Blueprint not found")
-
     with db.get_session() as session:
         with session.begin():
             # Fetch the device to make sure it exists and to use in validation
@@ -185,7 +182,7 @@ def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel, response: R
                     "invalid_components": list(bad_comps),
                 })
             hypothesis_annotations = set(hypothesis_model.annotations)
-            if (bad_annots := hypothesis_annotations - {annot.id for annot in device.components}) != set():
+            if (bad_annots := hypothesis_annotations - {annot.id for annot in device.annotations}) != set():
                 raise HTTPException(status_code=400, detail={
                     "message": "Annotations specified are not part of device specified",
                     "invalid_annotations": list(bad_annots),
