@@ -31,6 +31,22 @@ interface Subsystem {
   hoveredComponent: string | null;
 }
 
+function Log({appId}: {appId: number}) {
+  let { data: logOutput } = useSWR<string>(`/api/logs?app_id=${appId}`, fetcher, {refreshInterval: 100});
+
+  if (logOutput && logOutput.startsWith('"InternalError')) {
+    logOutput = "";
+  }
+
+  return (
+    <div className="px-4 pb-4 flex h-60 text-sm overflow-scroll">
+      <pre>
+        {logOutput}
+      </pre>
+    </div>
+  );
+}
+
 export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId, onSimulationHover, onLaunched }: HypothesisTestPanelProps) {
   const [subsystems, setSubsystems] = useState<Subsystem[]>([{
     componentIds: [],
@@ -43,6 +59,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
   const { data: analyses } = useSWR<Record<string, AnalysisInfo>>(`/api/blueprints/${bpId}/analyses`, fetcher);
   const [hoveredSimulation, setHoveredSimulation] = useState<AnalysisInfo | null>(null);
   const [isLaunching, setIsLaunching] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState<number | null>(null);
 
   // Clear all state when panel is closed
   useEffect(() => {
@@ -57,6 +74,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
       }]);
       setHoveredSimulation(null);
       setIsLaunching(false);
+      setIsRunning(null);
     }
   }, [isOpen]);
 
@@ -188,12 +206,13 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
     try {
       // TODO: change the UI to only allow selecting one simulation type for the whole system
       const simulation = subsystems[0].simulation;
-      const analysisName = analyses![simulation!].name;
+      // const analysisName = analyses![simulation!].name;
       const appId = await postData<string[], number>(
         `/api/blueprints/${bpId}/analyses/${simulation}/launch`,
         subsystems.map(sub => sub.code)
       );
-      onLaunched(analysisName, appId);
+      // onLaunched(analysisName, appId);
+      setIsRunning(appId);
     } catch (error) {
       console.error('Error launching tool', error);
       alert('Failed to launch hypothesis test. Please try again.');
@@ -201,6 +220,10 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
       setIsLaunching(false);
     }
   };
+
+  if (0) {
+    onLaunched("foo", 1);
+  }
 
   return (
     <Panel 
@@ -370,6 +393,9 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
             </button>
           )}
         </div>
+        {isRunning !== null && (
+          <Log appId={isRunning} />
+        )}
       </div>
     </Panel>
   );

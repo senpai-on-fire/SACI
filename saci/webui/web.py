@@ -322,6 +322,13 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
 
         return app['id']
 
+@app.get("/api/logs")
+async def logs(app_id: int):
+    async with httpx.AsyncClient() as client:
+        logs_resp = await client.get(f"{APP_CONTROLLER_URL}/api/app/{app_id}/output/0")
+        print(logs_resp.text)
+        return logs_resp.text
+
 async def ws_proxy_to(ws1: WebSocket, ws2: WsClientConnection):
     while True:
         buf = await ws1.receive_bytes()
