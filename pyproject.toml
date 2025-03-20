@@ -32,7 +32,7 @@ file = "README.md"
 content-type = "text/markdown"
 
 [project.optional-dependencies]
-tests = ["pytest"]
+tests = ["pytest", "ruff"]
 typechecking = ["pyright[nodejs]"]
 
 [project.scripts]
@@ -54,3 +54,22 @@ saci_db = {path = "./saci-database"}
 [tool.pyright]
 extraPaths = ["saci-database/"]
 include = ["saci/"]
+
+[tool.ruff]
+line-length = 120 # this is too long. let's bring it down in the future
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    # "UP",
+    # flake8-bugbear
+    # "B",
+    # flake8-simplify
+    # "SIM",
+    # isort
+    # "I",
+]
