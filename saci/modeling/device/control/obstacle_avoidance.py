@@ -1,5 +1,12 @@
-from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from saci.modeling.device.component import (
+    CyberComponentHigh,
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentSourceCode,
+    CyberComponentBinary,
+)
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
+
 
 class ObstacleAvoidanceLogicHigh(CyberComponentHigh):
     __slots__ = CyberComponentHigh.__slots__ + ("avoidance_strategy", "detection_range")
@@ -19,7 +26,8 @@ class ObstacleAvoidanceLogicAlgorithmic(CyberComponentAlgorithmic):
 
     def __init__(self, avoidance_strategy=None, detection_range=5.0, algorithm_parameters=None, **kwargs):
         """
-        :param avoidance_strategy: Detailed description of the avoidance strategy (e.g., potential fields, velocity obstacles).
+        :param avoidance_strategy: Detailed description of the avoidance strategy (e.g., potential fields, velocity
+        obstacles).
         :param detection_range: The distance within which obstacles are detected.
         :param algorithm_parameters: Parameters for fine-tuning the avoidance algorithm.
         """
@@ -43,7 +51,7 @@ class ObstacleAvoidanceLogic(CyberComponentBase):
         :param algorithm_parameters: Fine-tuning parameters for the avoidance algorithm.
         """
         super().__init__(**kwargs)
-        
+
         self.avoidance_strategy = avoidance_strategy
         self.detection_range = detection_range
         self.algorithm_parameters = algorithm_parameters or {

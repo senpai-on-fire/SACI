@@ -1,4 +1,4 @@
-from .component import HardwarePackage, HardwareComponentBase, HardwareAbstractionLevel
+from .component import HardwarePackage
 
 
 ###### Parameters Examples ######
@@ -7,8 +7,9 @@ from .component import HardwarePackage, HardwareComponentBase, HardwareAbstracti
 # Example of Chip series: "Cortex"
 # Example of Chip name: "M4"
 
+
 class MicroController(HardwarePackage):
-    #TODO -- Consider adding more hardware features later
+    # TODO -- Consider adding more hardware features later
 
     parameter_types = {
         "chip_name": str,
@@ -23,13 +24,15 @@ class MicroController(HardwarePackage):
 ###### Parameters Meaning ######
 
 # Clock: Clock signals for synchronization -- should be identical to the Micro-controller clock signals.
-# Trigger: External bit trigger (should be from the Micro-controller) that servers as a trigger event for the voltage glitching.
-# Offset: Number of clock cycles to count once the trigger bit is asserted to actually start the voltage glitching fault.
+# Trigger: External bit trigger (should be from the Micro-controller) that servers as a trigger event for the voltage
+# glitching.
+# Offset: Number of clock cycles to count once the trigger bit is asserted to actually start the voltage glitching
+# fault.
 # Width: Number of clock cycles as the duration of the voltage glitching fault.
 
 
 class VoltageGlitcher(HardwarePackage):
-    #TODO -- Consider adding how the voltage glitcher circuit is connected to the micro-controller
+    # TODO -- Consider adding how the voltage glitcher circuit is connected to the micro-controller
 
     parameter_types = {
         "glitch_type": str,
@@ -39,4 +42,3 @@ class VoltageGlitcher(HardwarePackage):
         "offset": int,
         "width": int,
     }
-

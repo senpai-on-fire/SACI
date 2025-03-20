@@ -10,7 +10,6 @@ from saci.modeling.cpv import CPV
 from saci.modeling.cpvpath import CPVPath
 from saci.modeling.device.component.component_base import ComponentBase
 from saci.modeling.device.device import Device
-from saci.modeling.device import ComponentID
 from saci.modeling.vulnerability.base_vuln import VulnerabilityEffect
 
 
@@ -23,17 +22,16 @@ class ComponentModel(BaseModel):
         """Convert a ComponentBase instance to a ComponentModel."""
         return ComponentModel(
             name=comp.name,
-            parameters={
-                param_name: str(param_value)
-                for param_name, param_value in comp.parameters.items()
-            },
+            parameters={param_name: str(param_value) for param_name, param_value in comp.parameters.items()},
         )
 
-IntJSONStr = Annotated[int, PlainSerializer(str, return_type=str, when_used='json')]
+
+IntJSONStr = Annotated[int, PlainSerializer(str, return_type=str, when_used="json")]
 
 # TODO: NOT to be confused with the ComponentID used in devices. CERTAINLY need to rename one at some point. Or better
 # yet make Device generic over it.
 WebComponentID = IntJSONStr
+
 
 class AnnotationModel(BaseModel):
     attack_surface: WebComponentID
@@ -75,8 +73,8 @@ class HypothesisModel(BaseModel):
         return Hypothesis(
             description=self.name,
             path=self.path,
-            assumptions=[], # hopefully my idea for assumptions will come to pass... i think at some point they will
-                            # merge with annotations. but for now, empty
+            assumptions=[],  # hopefully my idea for assumptions will come to pass... i think at some point they will
+            # merge with annotations. but for now, empty
             annotations=[annotation_mapping[annot_id] for annot_id in self.annotations],
         )
 
@@ -99,16 +97,10 @@ class DeviceModel(BaseModel):
     ) -> DeviceModel:
         return DeviceModel(
             name=bp.name,
-            components={
-                comp_id: ComponentModel.from_component(comp)
-                for comp_id, comp in bp.components.items()
-            },
+            components={comp_id: ComponentModel.from_component(comp) for comp_id, comp in bp.components.items()},
             connections=list(bp.component_graph.edges),
             hypotheses=hypotheses,
-            annotations={
-                annot_id: AnnotationModel.from_annotationn(annot)
-                for annot_id, annot in annotations.items()
-            },
+            annotations={annot_id: AnnotationModel.from_annotationn(annot) for annot_id, annot in annotations.items()},
         )
 
 
@@ -121,12 +113,9 @@ class CPVModel(BaseModel):
 
     @staticmethod
     def from_cpv(cpv: CPV) -> CPVModel:
-        exploit_steps = cpv.exploit_steps if hasattr(cpv, 'exploit_steps') else []
+        exploit_steps = cpv.exploit_steps if hasattr(cpv, "exploit_steps") else []
 
-        return CPVModel(
-            name=cpv.NAME,
-            exploit_steps=exploit_steps
-        )
+        return CPVModel(name=cpv.NAME, exploit_steps=exploit_steps)
 
 
 class CPVPathModel(BaseModel):

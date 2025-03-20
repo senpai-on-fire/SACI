@@ -8,15 +8,18 @@ import claripy
 
 
 class HardwareTechnology(HardwareComponentBase):
-    __state_slots__ = HardwareComponentBase.__state_slots__ + ("reading", )
-    __slots__ = HardwareComponentBase.__slots__ + ("technology", "reading",)
+    __state_slots__ = HardwareComponentBase.__state_slots__ + ("reading",)
+    __slots__ = HardwareComponentBase.__slots__ + (
+        "technology",
+        "reading",
+    )
 
     def __init__(
         self,
         abstraction=HardwareAbstractionLevel.TECHNOLOGY,
         technology: Optional[str] = None,
         readings: Optional[dict[str, claripy.ast.bv.BV]] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)
         self.reading = readings or {}

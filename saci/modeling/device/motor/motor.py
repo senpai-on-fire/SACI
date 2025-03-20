@@ -6,7 +6,7 @@ from ..component import (
     CyberComponentAlgorithmic,
     CyberComponentSourceCode,
     CyberComponentBinary,
-    CyberAbstractionLevel
+    CyberAbstractionLevel,
 )
 from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
 
@@ -16,11 +16,9 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class MotorHigh(CyberComponentHigh):
 
-    __slots__ = CyberComponentHigh.__slots__ + (
-        "is_operational", "fault_detection_flag", "thermal_overload_flag"
-    )
+class MotorHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__ + ("is_operational", "fault_detection_flag", "thermal_overload_flag")
 
     def __init__(self, is_operational=True, fault_detection_flag=False, thermal_overload_flag=False, **kwargs):
         """
@@ -42,16 +40,24 @@ class MotorHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class MotorAlgorithmic(CyberComponentAlgorithmic):
 
+class MotorAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + (
-        "stall_torque", "power_efficiency", "torque_fluctuation_flag",
-        "thermal_dissipation_rate", "noise_sensitivity"
+        "stall_torque",
+        "power_efficiency",
+        "torque_fluctuation_flag",
+        "thermal_dissipation_rate",
+        "noise_sensitivity",
     )
 
     def __init__(
-        self, stall_torque=3.0, power_efficiency=0.85, torque_fluctuation_flag=False,
-        thermal_dissipation_rate=0.1, noise_sensitivity=0.05, **kwargs
+        self,
+        stall_torque=3.0,
+        power_efficiency=0.85,
+        torque_fluctuation_flag=False,
+        thermal_dissipation_rate=0.1,
+        noise_sensitivity=0.05,
+        **kwargs,
     ):
         """
         :param stall_torque: Maximum torque the motor can exert before stalling.
@@ -89,17 +95,21 @@ class MotorAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Hardware Abstraction (Physical Layer) ===================
 
-class MotorHardwareHigh(HardwareHigh):
 
+class MotorHardwareHigh(HardwareHigh):
     def __init__(self, **kwargs):
         super().__init__(modality="motor", **kwargs)
 
 
 class MotorHardwarePackage(HardwarePackage):
-
     KNOWN_MOTOR_CHIPS = [
-        "ESC32", "T-Motor Alpha", "Hobbywing XRotor", "Castle Creations Phoenix",
-        "APD F3", "ODrive Robotics", "Turnigy Multistar"
+        "ESC32",
+        "T-Motor Alpha",
+        "Hobbywing XRotor",
+        "Castle Creations Phoenix",
+        "APD F3",
+        "ODrive Robotics",
+        "Turnigy Multistar",
     ]
 
     def __init__(self, chip_name, chip_vendor, **kwargs):
@@ -113,7 +123,6 @@ class MotorHardwarePackage(HardwarePackage):
 
 
 class MotorHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["Brushless", "Brushed", "Stepper", "Induction", "Hybrid"]
 
     def __init__(self, technology, **kwargs):
@@ -127,8 +136,8 @@ class MotorHardwareTechnology(HardwareTechnology):
 
 # =================== Full Motor Component Abstraction (Cyber) ===================
 
-class Motor(CyberComponentBase):
 
+class Motor(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, **kwargs):
@@ -141,34 +150,3 @@ class Motor(CyberComponentBase):
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
-
-
-######################################################    OLD VERSION    ########################################################################
-
-# from ..component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
-
-# from claripy import BVS
-
-
-# class MotorHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-
-# class MotorAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-#         self.variables["rpm"] = BVS("rpm", 64)
-
-# class Motor(CyberComponentBase):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: MotorHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: MotorAlgorithmic(),
-#         }

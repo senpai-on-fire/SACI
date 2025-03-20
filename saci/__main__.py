@@ -2,6 +2,7 @@ import argparse
 
 import saci
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--run-component", type=str, help="Specify the component to run")
@@ -12,10 +13,12 @@ def main():
 
     if args.run_component == "orchestrator":
         from .orchestrator import main as orchestrator_main
+
         orchestrator_main()
     elif args.run_component == "web":
         import uvicorn
         from .webui.web import app
+
         uvicorn.run(app, host=args.address, port=args.port)
     else:
         raise RuntimeError("Unknown component to run")

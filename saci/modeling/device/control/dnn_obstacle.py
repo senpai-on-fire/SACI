@@ -3,7 +3,7 @@ from saci.modeling.device.component import (
     CyberComponentAlgorithmic,
     CyberComponentBase,
     CyberComponentSourceCode,
-    CyberComponentBinary
+    CyberComponentBinary,
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 import claripy
@@ -13,6 +13,7 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
+
 class ObjectAvoidanceDNNHigh(CyberComponentHigh):
     """
     High-level abstraction for an object avoidance DNN.
@@ -20,10 +21,23 @@ class ObjectAvoidanceDNNHigh(CyberComponentHigh):
     """
 
     __slots__ = CyberComponentHigh.__slots__ + (
-        "known_source", "known_weight", "is_trusted", "avoidance_accuracy", "false_negative_rate", "variables"
+        "known_source",
+        "known_weight",
+        "is_trusted",
+        "avoidance_accuracy",
+        "false_negative_rate",
+        "variables",
     )
 
-    def __init__(self, known_source=None, known_weight=None, is_trusted=True, avoidance_accuracy=0.98, false_negative_rate=0.03, **kwargs):
+    def __init__(
+        self,
+        known_source=None,
+        known_weight=None,
+        is_trusted=True,
+        avoidance_accuracy=0.98,
+        false_negative_rate=0.03,
+        **kwargs,
+    ):
         """
         :param known_source: Verified source of the DNN model.
         :param known_weight: Verified weights used in the DNN.
@@ -41,7 +55,9 @@ class ObjectAvoidanceDNNHigh(CyberComponentHigh):
         # Symbolic variables for AI security testing
         self.variables = {
             "dnn_model_integrity": claripy.BVS("dnn_model_integrity", 8),  # Model integrity status
-            "dnn_adversarial_attack_flag": claripy.BVS("dnn_adversarial_attack_flag", 8),  # Adversarial attack detection
+            "dnn_adversarial_attack_flag": claripy.BVS(
+                "dnn_adversarial_attack_flag", 8
+            ),  # Adversarial attack detection
             "dnn_bias_flag": claripy.BVS("dnn_bias_flag", 8),  # Bias detection in the model
         }
 
@@ -56,6 +72,7 @@ class ObjectAvoidanceDNNHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
+
 class ObjectAvoidanceDNNAlgorithmic(CyberComponentAlgorithmic):
     """
     Algorithmic-level abstraction for an object avoidance DNN.
@@ -63,11 +80,30 @@ class ObjectAvoidanceDNNAlgorithmic(CyberComponentAlgorithmic):
     """
 
     __slots__ = CyberComponentAlgorithmic.__slots__ + (
-        "known_source", "known_weight", "adversarial_defense", "avoidance_latency", "reaction_time", "safe_distance_threshold",
-        "adversarial_noise_sensitivity", "sensor_fusion_reliability", "backdoor_flag", "variables"
+        "known_source",
+        "known_weight",
+        "adversarial_defense",
+        "avoidance_latency",
+        "reaction_time",
+        "safe_distance_threshold",
+        "adversarial_noise_sensitivity",
+        "sensor_fusion_reliability",
+        "backdoor_flag",
+        "variables",
     )
 
-    def __init__(self, known_source=None, known_weight=None, adversarial_defense=True, avoidance_latency=40, reaction_time=100, safe_distance_threshold=2.0, adversarial_noise_sensitivity=0.1, sensor_fusion_reliability=0.95, **kwargs):
+    def __init__(
+        self,
+        known_source=None,
+        known_weight=None,
+        adversarial_defense=True,
+        avoidance_latency=40,
+        reaction_time=100,
+        safe_distance_threshold=2.0,
+        adversarial_noise_sensitivity=0.1,
+        sensor_fusion_reliability=0.95,
+        **kwargs,
+    ):
         """
         :param known_source: Verified source of the DNN model.
         :param known_weight: Verified weights used in the DNN.
@@ -93,7 +129,9 @@ class ObjectAvoidanceDNNAlgorithmic(CyberComponentAlgorithmic):
             "dnn_confidence_score": claripy.BVS("dnn_confidence_score", 32),  # Model confidence in object avoidance
             "dnn_training_data_integrity": claripy.BVS("dnn_training_data_integrity", 8),  # Data integrity flag
             "dnn_inference_latency": claripy.BVS("dnn_inference_latency", 32),  # Latency in inference
-            "dnn_adversarial_robustness": claripy.BVS("dnn_adversarial_robustness", 8),  # Robustness against adversarial attacks
+            "dnn_adversarial_robustness": claripy.BVS(
+                "dnn_adversarial_robustness", 8
+            ),  # Robustness against adversarial attacks
             "backdoor_flag": claripy.BVS("dnn_backdoor_flag", 8),  # Flags possible backdoor insertion in the model
         }
 
@@ -111,13 +149,21 @@ class ObjectAvoidanceDNNAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Full Object Avoidance DNN Model (Cyber) ===================
 
+
 class ObjectAvoidanceDNN(CyberComponentBase):
     """
     Core component for an object avoidance DNN system.
     Integrates different abstraction levels (High, Algorithmic, Source, and Binary).
     """
 
-    __slots__ = ("ABSTRACTIONS", "known_source", "known_weight", "adversarial_defense", "avoidance_latency", "variables")
+    __slots__ = (
+        "ABSTRACTIONS",
+        "known_source",
+        "known_weight",
+        "adversarial_defense",
+        "avoidance_latency",
+        "variables",
+    )
 
     def __init__(self, known_source=None, known_weight=None, adversarial_defense=True, avoidance_latency=40, **kwargs):
         """
@@ -138,7 +184,10 @@ class ObjectAvoidanceDNN(CyberComponentBase):
                 known_source=known_source, known_weight=known_weight, is_trusted=True
             ),
             CyberAbstractionLevel.ALGORITHMIC: ObjectAvoidanceDNNAlgorithmic(
-                known_source=known_source, known_weight=known_weight, adversarial_defense=adversarial_defense, avoidance_latency=avoidance_latency
+                known_source=known_source,
+                known_weight=known_weight,
+                adversarial_defense=adversarial_defense,
+                avoidance_latency=avoidance_latency,
             ),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),

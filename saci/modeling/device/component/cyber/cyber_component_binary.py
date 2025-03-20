@@ -7,7 +7,10 @@ from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAb
 
 class CyberComponentBinary(CyberComponentBase):
     __state_slots__ = CyberComponentBase.__state_slots__ + ("pc",)
-    __slots__ = CyberComponentBase.__slots__ + ("binary_path", "pc",)
+    __slots__ = CyberComponentBase.__slots__ + (
+        "binary_path",
+        "pc",
+    )
 
     def __init__(
         self,

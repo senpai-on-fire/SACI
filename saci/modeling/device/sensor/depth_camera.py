@@ -2,19 +2,16 @@ from claripy import BVS
 import logging
 
 from .sensor import SensorHigh, SensorAlgorithmic, Sensor
-from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
+from saci.modeling.device.component import HardwarePackage, HardwareTechnology
 from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class DepthCameraHigh(SensorHigh):
 
-    __slots__ = SensorHigh.__slots__ + (
-        "supports_stereo_vision",
-        "enabled"
-    )
+class DepthCameraHigh(SensorHigh):
+    __slots__ = SensorHigh.__slots__ + ("supports_stereo_vision", "enabled")
 
     def __init__(self, supports_stereo_vision=True, enabled=True, **kwargs):
         """
@@ -28,12 +25,9 @@ class DepthCameraHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class DepthCameraAlgorithmic(SensorAlgorithmic):
 
-    __slots__ = SensorAlgorithmic.__slots__ + (
-        "supports_stereo_vision",
-        "enabled"
-    )
+class DepthCameraAlgorithmic(SensorAlgorithmic):
+    __slots__ = SensorAlgorithmic.__slots__ + ("supports_stereo_vision", "enabled")
 
     def __init__(self, supports_stereo_vision=True, enabled=True, **kwargs):
         """
@@ -63,26 +57,15 @@ class DepthCameraAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class DepthCamera(Sensor):
 
+class DepthCamera(Sensor):
     __slots__ = ("supports_stereo_vision", "enabled", "ABSTRACTIONS")
 
-    def __init__(
-        self,
-        supports_stereo_vision: bool = True,
-        enabled: bool = True,
-        **kwargs
-    ):
+    def __init__(self, supports_stereo_vision: bool = True, enabled: bool = True, **kwargs):
         super().__init__(**kwargs)
 
-        high_abstraction = DepthCameraHigh(
-            supports_stereo_vision=supports_stereo_vision,
-            enabled=enabled
-        )
-        algo_abstraction = DepthCameraAlgorithmic(
-            supports_stereo_vision=supports_stereo_vision,
-            enabled=enabled
-        )
+        high_abstraction = DepthCameraHigh(supports_stereo_vision=supports_stereo_vision, enabled=enabled)
+        algo_abstraction = DepthCameraAlgorithmic(supports_stereo_vision=supports_stereo_vision, enabled=enabled)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: high_abstraction,
@@ -94,8 +77,8 @@ class DepthCamera(Sensor):
 
 # =================== Hardware Abstractions ===================
 
-class DepthCameraHardware(Sensor):
 
+class DepthCameraHardware(Sensor):
     __slots__ = Sensor.__slots__
 
     def __init__(self, usb_interface="USB3.0", i2c_address=None, **kwargs):
@@ -114,9 +97,13 @@ class DepthCameraHardware(Sensor):
 
 
 class DepthCameraHWPackage(HardwarePackage):
-
     KNOWN_CHIP_NAMES = [
-        "Intel_Realsense_D435", "Intel_Realsense_L515", "Orbbec_Astra", "Azure_Kinect", "ZED2", "ZED_Mini"
+        "Intel_Realsense_D435",
+        "Intel_Realsense_L515",
+        "Orbbec_Astra",
+        "Azure_Kinect",
+        "ZED2",
+        "ZED_Mini",
     ]
 
     def __init__(self, camera_name, camera_vendor, **kwargs):
@@ -130,7 +117,6 @@ class DepthCameraHWPackage(HardwarePackage):
 
 
 class DepthCameraHWTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["Structured Light", "Time of Flight (ToF)", "Stereo Vision", "Lidar-based"]
 
     def __init__(self, technology, **kwargs):

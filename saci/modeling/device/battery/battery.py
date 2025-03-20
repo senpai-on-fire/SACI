@@ -7,16 +7,22 @@ from saci.modeling.device.component import (
     HardwareHigh,
     HardwareCircuit,
     HardwareTechnology,
-    HardwarePackage
+    HardwarePackage,
 )
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class BatteryHigh(HardwareHigh):
 
-    __slots__ = HardwareHigh.__slots__ + ("charge_level", "voltage", "temperature", "health_status", "variables",)
+class BatteryHigh(HardwareHigh):
+    __slots__ = HardwareHigh.__slots__ + (
+        "charge_level",
+        "voltage",
+        "temperature",
+        "health_status",
+        "variables",
+    )
 
     def __init__(self, charge_level=100, voltage=12.0, temperature=25.0, health_status="Good", **kwargs):
         """
@@ -42,9 +48,14 @@ class BatteryHigh(HardwareHigh):
 
 # =================== Circuit-Level Abstraction ===================
 
-class BatteryCircuit(HardwareCircuit):
 
-    __slots__ = HardwareCircuit.__slots__ + ("internal_resistance", "efficiency", "self_discharge_rate", "variables",)
+class BatteryCircuit(HardwareCircuit):
+    __slots__ = HardwareCircuit.__slots__ + (
+        "internal_resistance",
+        "efficiency",
+        "self_discharge_rate",
+        "variables",
+    )
 
     def __init__(self, internal_resistance=0.05, efficiency=95, self_discharge_rate=0.01, **kwargs):
         """
@@ -67,8 +78,8 @@ class BatteryCircuit(HardwareCircuit):
 
 # =================== Full Battery Abstraction ===================
 
-class Battery(HardwareComponentBase):
 
+class Battery(HardwareComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, charge_level=100, voltage=12.0, internal_resistance=0.05, efficiency=95, **kwargs):
@@ -91,11 +102,9 @@ class Battery(HardwareComponentBase):
 
 # =================== Hardware Abstractions ===================
 
-class BatteryHardwarePackage(HardwarePackage):
 
-    KNOWN_BATTERY_TYPES = [
-        "Li-ion", "LiPo", "NiMH", "Lead-Acid", "Solid-State"
-    ]
+class BatteryHardwarePackage(HardwarePackage):
+    KNOWN_BATTERY_TYPES = ["Li-ion", "LiPo", "NiMH", "Lead-Acid", "Solid-State"]
 
     def __init__(self, battery_type, manufacturer, **kwargs):
         """
@@ -108,7 +117,6 @@ class BatteryHardwarePackage(HardwarePackage):
 
 
 class BatteryTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["Lithium-Ion", "Lithium-Polymer", "Nickel-Metal Hydride", "Lead-Acid", "Solid-State"]
 
     def __init__(self, technology, **kwargs):
@@ -118,29 +126,3 @@ class BatteryTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown battery technology: {technology}. Please add it to BatteryTechnology.")
-
-
-
-######################################################    OLD VERSION    ########################################################################
-
-# from saci.modeling.device.component import HardwareComponentBase, HardwareAbstractionLevel, HardwareHigh, HardwareCircuit
-
-# class BatteryHigh(HardwareHigh):
-#     __slots__ = HardwareHigh.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-# class BatteryCircuit(HardwareCircuit): 
-#     __slots__ = HardwareCircuit.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-# class Battery(HardwareComponentBase):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.ABSTRACTIONS = {
-#             HardwareAbstractionLevel.HIGH: BatteryHigh(),
-#             HardwareAbstractionLevel.CIRCUIT: BatteryCircuit(),
-#         }

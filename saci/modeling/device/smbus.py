@@ -1,6 +1,12 @@
-from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from .component import (
+    CyberComponentHigh,
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentSourceCode,
+    CyberComponentBinary,
+)
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from ..communication import BaseCommunication, UARTProtocol
+from ..communication import BaseCommunication
 
 
 class SMBusHigh(CyberComponentHigh):
@@ -11,9 +17,7 @@ class SMBusHigh(CyberComponentHigh):
         self.communication = communication
         self.protection = protection
 
-    parameter_types = {
-        "supported_protocols": list
-    }
+    parameter_types = {"supported_protocols": list}
 
 
 class SMBusAlgorithmic(CyberComponentAlgorithmic):
@@ -27,12 +31,10 @@ class SMBusAlgorithmic(CyberComponentAlgorithmic):
         else:
             return False
 
-    parameter_types = {
-        "supported_protocols": list
-    }
+    parameter_types = {"supported_protocols": list}
+
 
 class SMBus(CyberComponentBase):
-
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, **kwargs):
@@ -46,6 +48,4 @@ class SMBus(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
-    parameter_types = {
-        "supported_protocols": list
-    }
+    parameter_types = {"supported_protocols": list}

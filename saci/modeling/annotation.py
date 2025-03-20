@@ -3,14 +3,16 @@ from dataclasses import dataclass
 from typing_extensions import Generic, TypeVar
 
 from saci.modeling.communication.base_comm import BaseCommunication
-from saci.modeling.device import ComponentID, Device
+from saci.modeling.device import Device
 from saci.modeling.vulnerability import VulnerabilityEffect, BaseVulnerability
 
 
-CID = TypeVar('CID', bound=Hashable)
+CID = TypeVar("CID", bound=Hashable)
+
 
 class AnnotationVulnerability(BaseVulnerability, Generic[CID]):
     """The device-specific, user-specified component vulnerability derived from an Annotation."""
+
     def __init__(self, device: Device[CID], comp_id: CID, effect: VulnerabilityEffect):
         super().__init__(
             component=device.components[comp_id],
@@ -30,6 +32,7 @@ class AnnotationVulnerability(BaseVulnerability, Generic[CID]):
         _ = device
         return [self.effect]
 
+
 @dataclass(frozen=True)
 class Annotation(Generic[CID]):
     """A user-specified annotation on a device describing where a vulnerability lies and its impact.
@@ -42,6 +45,7 @@ class Annotation(Generic[CID]):
         attack_model: Optionally, a string describing how to actually exploit this vulnerability. Eventually this will
                       contain more semantic information than just a generic string, but not for now.
     """
+
     attack_surface: CID
     effect: VulnerabilityEffect
     underlying_vulnerability: BaseVulnerability | None

@@ -13,5 +13,5 @@ HARDWARE_ABSTRACTION_LEVELS = [
     HardwareAbstractionLevel.HIGH,
     HardwareAbstractionLevel.TECHNOLOGY,
     HardwareAbstractionLevel.PACKAGE,
-    HardwareAbstractionLevel.CIRCUIT
+    HardwareAbstractionLevel.CIRCUIT,
 ]

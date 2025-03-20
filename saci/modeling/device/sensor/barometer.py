@@ -9,8 +9,8 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class BarometerHigh(SensorHigh):
 
+class BarometerHigh(SensorHigh):
     __slots__ = SensorHigh.__slots__ + ("is_calibrated", "error_flag")
 
     def __init__(self, is_calibrated=False, error_flag=False, **kwargs):
@@ -25,8 +25,8 @@ class BarometerHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class BarometerAlgorithmic(SensorAlgorithmic):
 
+class BarometerAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + (
         "precision_bits",
         "bias_drift",
@@ -56,8 +56,8 @@ class BarometerAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class Barometer(Sensor):
 
+class Barometer(Sensor):
     __slots__ = ("precision_bits", "bias_drift", "quantization_noise", "ABSTRACTIONS")
 
     def __init__(self, precision_bits=16, bias_drift=0.05, quantization_noise=0.01, **kwargs):
@@ -86,17 +86,14 @@ class Barometer(Sensor):
 
 # =================== Hardware Abstractions ===================
 
-class BarometerHWHigh(HardwareHigh):
 
+class BarometerHWHigh(HardwareHigh):
     def __init__(self, **kwargs):
         super().__init__(modality="barometer", **kwargs)
 
 
 class BarometerHWPackage(HardwarePackage):
-
-    KNOWN_CHIP_NAMES = [
-        "BMP180", "BMP280", "BMP388", "MS5611", "LPS22HB", "LPS25HB", "DPS310"
-    ]
+    KNOWN_CHIP_NAMES = ["BMP180", "BMP280", "BMP388", "MS5611", "LPS22HB", "LPS25HB", "DPS310"]
 
     def __init__(self, baro_name, baro_vendor, **kwargs):
         """
@@ -109,7 +106,6 @@ class BarometerHWPackage(HardwarePackage):
 
 
 class BarometerHWTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["MEMS", "Silicon Piezoresistive", "Capacitive", "Optical"]
 
     def __init__(self, technology, **kwargs):

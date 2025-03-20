@@ -2,15 +2,15 @@ import logging
 import claripy
 
 from .sensor import SensorHigh, SensorAlgorithmic, Sensor
-from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
+from saci.modeling.device.component import HardwarePackage, HardwareTechnology
 from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class AccelerometerHigh(SensorHigh):
 
+class AccelerometerHigh(SensorHigh):
     __slots__ = SensorHigh.__slots__ + ("is_calibrated", "error_flag")
 
     def __init__(self, is_calibrated=False, error_flag=False, **kwargs):
@@ -29,8 +29,8 @@ class AccelerometerHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class AccelerometerAlgorithmic(SensorAlgorithmic):
 
+class AccelerometerAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + (
         "precision_bits",
         "bias_drift",
@@ -63,8 +63,8 @@ class AccelerometerAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class Accelerometer(Sensor):
 
+class Accelerometer(Sensor):
     __slots__ = ("precision_bits", "bias_drift", "quantization_noise", "ABSTRACTIONS")
 
     def __init__(self, precision_bits=14, bias_drift=0.05, quantization_noise=0.01, **kwargs):
@@ -74,7 +74,6 @@ class Accelerometer(Sensor):
         :param quantization_noise: Noise due to digital resolution limitations.
         """
         super().__init__(**kwargs)
-
 
         high_abstraction = AccelerometerHigh()
         algo_abstraction = AccelerometerAlgorithmic(
@@ -93,6 +92,7 @@ class Accelerometer(Sensor):
 
 # =================== Hardware Abstractions ===================
 
+
 class AccelerometerHardware(Sensor):
     """
     Hardware-level accelerometer model, capturing physical/mechanical/electrical attributes.
@@ -104,11 +104,11 @@ class AccelerometerHardware(Sensor):
         self,
         i2c_address=0x68,
         spi_channel=0,
-        resonant_frequency=None,     # in Hz or kHz
-        damping_ratio=None,          # or quality factor
-        acoustic_isolation=False,    # any mechanical shielding
-        max_acoustic_input=None,     # amplitude limit before saturation
-        **kwargs
+        resonant_frequency=None,  # in Hz or kHz
+        damping_ratio=None,  # or quality factor
+        acoustic_isolation=False,  # any mechanical shielding
+        max_acoustic_input=None,  # amplitude limit before saturation
+        **kwargs,
     ):
         """
         :param i2c_address: I2C address for communication.
@@ -132,15 +132,24 @@ class AccelerometerHardware(Sensor):
         self.variables = {}
 
         # Simulated hardware register values
-        self.variables["hardware_status"] = claripy.BVS("accel_hw_status", 8)   # 8-bit status register
-        self.variables["hardware_config"] = claripy.BVS("accel_hw_config", 16) # 16-bit config register
+        self.variables["hardware_status"] = claripy.BVS("accel_hw_status", 8)  # 8-bit status register
+        self.variables["hardware_config"] = claripy.BVS("accel_hw_config", 16)  # 16-bit config register
 
 
 class AccelerometerHWPackage(HardwarePackage):
- 
     KNOWN_CHIP_NAMES = [
-        "MPU6050", "MPU6500", "MPU9250", "ADXL345", "LIS3DH", "LSM9DS1", "ICM-20948",
-        "BMI055", "BMI160", "ICM-20690", "MPU6000", "LSM6DSL"
+        "MPU6050",
+        "MPU6500",
+        "MPU9250",
+        "ADXL345",
+        "LIS3DH",
+        "LSM9DS1",
+        "ICM-20948",
+        "BMI055",
+        "BMI160",
+        "ICM-20690",
+        "MPU6000",
+        "LSM6DSL",
     ]
 
     def __init__(self, accel_name, accel_vendor, **kwargs):
@@ -154,7 +163,6 @@ class AccelerometerHWPackage(HardwarePackage):
 
 
 class AccelerometerHWTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["MEMS", "Piezoelectric", "Capacitive", "Resonant"]
 
     def __init__(self, technology, **kwargs):

@@ -73,3 +73,8 @@ select = [
     # isort
     # "I",
 ]
+ignore = [
+    # I/O/l are considered "ambiguous" as variable names because some
+    # fonts don't distinguish them well
+    "E741",
+]

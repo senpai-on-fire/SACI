@@ -14,5 +14,5 @@ CYBER_ABSTRACTION_LEVELS = [
     CyberAbstractionLevel.HIGH,
     CyberAbstractionLevel.ALGORITHMIC,
     CyberAbstractionLevel.SOURCE,
-    CyberAbstractionLevel.BINARY
+    CyberAbstractionLevel.BINARY,
 ]

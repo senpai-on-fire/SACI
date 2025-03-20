@@ -1,26 +1,27 @@
 from collections.abc import Hashable
-from dataclasses import dataclass
 from typing import Generic, Sequence, TypeVar
 from copy import deepcopy
 
 from saci.hypothesis import Hypothesis
-from saci.modeling import Device, CPV, ComponentBase
-from saci.modeling.device.device import IdentifiedComponent, ComponentID
+from saci.modeling import Device, CPV
+from saci.modeling.device.device import IdentifiedComponent
 from saci.modeling.state import GlobalState
 from saci.modeling.vulnerability import BaseVulnerability
 
 
-CID = TypeVar('CID', bound=Hashable)
+CID = TypeVar("CID", bound=Hashable)
+
 
 def get_next_components(component_id: CID, device: Device[CID]) -> list[CID]:
     return list(device.component_graph.successors(component_id))
 
+
 class IdentifierCPV(Generic[CID]):
     def __init__(
-            self,
-            device: Device[CID],
-            initial_state: GlobalState[CID],
-            vulns: Sequence[BaseVulnerability] | None = None,
+        self,
+        device: Device[CID],
+        initial_state: GlobalState[CID],
+        vulns: Sequence[BaseVulnerability] | None = None,
     ):
         self.device = device
         self.initial_state = initial_state
@@ -53,7 +54,8 @@ class IdentifierCPV(Generic[CID]):
 
         # Get the starting locations (components with external input)
         starting_locations: list[CID] = [
-            c for c, is_entry in device.component_graph.nodes(data="is_entry", default=False) # type: ignore
+            c
+            for c, is_entry in device.component_graph.nodes(data="is_entry", default=False)  # type: ignore
             if is_entry
         ]
 
