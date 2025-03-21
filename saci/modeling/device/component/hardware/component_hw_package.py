@@ -5,9 +5,14 @@ from saci.modeling.device.component.hardware.hardware_abstraction_level import H
 
 import claripy
 
+
 class HardwarePackage(HardwareComponentBase):
-    __state_slots__ = HardwareComponentBase.__state_slots__ + ("pin_state", )
-    __slots__ = HardwareComponentBase.__slots__ + ("chip_name", "chip_vendor", "pin_state",)
+    __state_slots__ = HardwareComponentBase.__state_slots__ + ("pin_state",)
+    __slots__ = HardwareComponentBase.__slots__ + (
+        "chip_name",
+        "chip_vendor",
+        "pin_state",
+    )
 
     def __init__(
         self,

@@ -8,20 +8,11 @@ from typing import Literal, TypeVar
 
 from pydantic import BaseModel
 
-from saci.modeling.device.interface.wifi import Wifi
-from saci.modeling.device.sensor.gps import GPSReceiver
 from saci_db.devices import devices, ingested
 
 from saci.modeling.annotation import Annotation
 from saci.modeling.device import ComponentBase, ComponentID
-from saci.modeling.device.control.controller import Controller
 from saci.modeling.device.device import Device
-from saci.modeling.device.esc import ESC
-from saci.modeling.device.motor.motor import Motor
-from saci.modeling.device.motor.steering import Steering
-from saci.modeling.device.sensor.compass import CompassSensor
-from saci.modeling.device.webserver import WebServer
-from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
 from saci.webui.web_models import (
     AnalysisID,
     AnalysisUserInfo,
@@ -38,9 +29,7 @@ T = TypeVar("T")
 
 
 def _all_subclasses(c: type[T]) -> list[type[T]]:
-    return [c] + [
-        subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)
-    ]
+    return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
 
 
 def component_type_id(comp_type: type[ComponentBase]) -> str:
@@ -106,11 +95,7 @@ blueprints: dict[BlueprintID, Device] = devices | ingested.devices
 
 # TODO: this is hacky and an indication that we should have a better way of doing this...
 def _find_comps(device: Device, comp_type: type[ComponentBase]) -> list[ComponentID]:
-    return [
-        comp_id
-        for comp_id, comp in device.components.items()
-        if isinstance(comp, comp_type)
-    ]
+    return [comp_id for comp_id, comp in device.components.items() if isinstance(comp, comp_type)]
 
 
 def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentID:
@@ -118,9 +103,7 @@ def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentID:
     if len(comps) == 0:
         raise ValueError(f"device {device!r} has no component of type {comp_type}")
     elif len(comps) > 1:
-        raise ValueError(
-            f"device {device!r} has more than one component of type {comp_type}"
-        )
+        raise ValueError(f"device {device!r} has more than one component of type {comp_type}")
     else:
         return comps[0]
 
@@ -136,20 +119,21 @@ analyses: dict[AnalysisID, Analysis] = {
                 5,
                 # "compass",
                 # "uno_r4",
-            ]
+            ],
         ),
         interaction_model=InteractionModel.X11,
         images=[],
     ),
 }
-hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict) 
-annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(dict) 
+hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict)
+annotations: dict[BlueprintID, dict[AnnotationID, Annotation]] = defaultdict(dict)
 
 # analyses: dict[AnalysisID, Analysis] = {
 #     "taveren_model": Analysis(
 #         user_info=AnalysisUserInfo(
 #             name="Model: Ta'veren Controller",
-#             # TODO: hackyyyyy... should either use different controllers' different IDs (now that they have them!) or have some nice query mechanism
+#             # TODO: hackyyyyy... should either use different controllers' different IDs (now that they have them!)
+#             # or have some nice query mechanism
 #             components_included=[
 #                 _find_comps(rover, WebServer)[0],
 #                 _find_comps(rover, Controller)[0],

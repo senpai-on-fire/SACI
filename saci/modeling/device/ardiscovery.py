@@ -1,7 +1,6 @@
-
 from typing import Optional
 
-from saci.modeling.device.component.component_base import Ports, union_ports
+from saci.modeling.device.component.component_base import Ports
 from ..communication.auth_comm import AuthenticatedCommunication
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from .component.cyber import CyberComponentSourceCode, CyberComponentBinary
@@ -13,7 +12,7 @@ class ARDiscovery(Telemetry):
     Describes the ARDiscovery component.
     """
 
-    def __init__(self, ports: Optional[Ports]=None, **kwargs):
+    def __init__(self, ports: Optional[Ports] = None, **kwargs):
         super().__init__(**kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(

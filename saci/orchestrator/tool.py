@@ -12,7 +12,9 @@ class Container:
     image_name: str
     config_type: type[BaseModel]
 
-CID = TypeVar('CID', bound=Hashable)
+
+CID = TypeVar("CID", bound=Hashable)
+
 
 @dataclass(frozen=True)
 class Tool:
@@ -23,12 +25,13 @@ class Tool:
     def compatible_components(self, device: Device[CID]) -> list[CID]:
         return [
             comp_id
-            for comp_id, comp
-            in device.components.items()
+            for comp_id, comp in device.components.items()
             if any(isinstance(comp, comp_type) for comp_type in self.compatible_comptypes)
         ]
 
+
 SwabFidelityLevel = Literal["High", "Medium", "Low"]
+
 
 class SwabConfig(BaseModel):
     UI: Literal["server", "gui"]
@@ -37,20 +40,25 @@ class SwabConfig(BaseModel):
     servo: SwabFidelityLevel | None = None
     motor: SwabFidelityLevel | None = None
 
+
 swab_tool = Tool(
     name="SWAB",
-    containers=(Container(
-        "localswab",
-        SwabConfig,
-    ),),
-    compatible_comptypes=frozenset([
-        Controller,
-        CompassSensor,
-        Servo,
-        ESC,
-        PWMChannel,
-        Motor,
-    ]),
+    containers=(
+        Container(
+            "localswab",
+            SwabConfig,
+        ),
+    ),
+    compatible_comptypes=frozenset(
+        [
+            Controller,
+            CompassSensor,
+            Servo,
+            ESC,
+            PWMChannel,
+            Motor,
+        ]
+    ),
 )
 
 TOOLS: dict[str, Tool] = {

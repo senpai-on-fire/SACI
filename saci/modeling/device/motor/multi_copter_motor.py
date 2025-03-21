@@ -2,11 +2,9 @@ from claripy import BVS
 
 from ..component import (
     CyberComponentBase,
-    CyberComponentHigh,
-    CyberComponentAlgorithmic,
     CyberComponentSourceCode,
     CyberComponentBinary,
-    CyberAbstractionLevel
+    CyberAbstractionLevel,
 )
 from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
 from .multi_motor import MultiMotorHigh, MultiMotorAlgorithmic
@@ -17,13 +15,23 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class MultiCopterMotorHigh(MultiMotorHigh):
 
+class MultiCopterMotorHigh(MultiMotorHigh):
     __slots__ = MultiMotorHigh.__slots__ + (
-        "is_operational", "fault_detection_flag", "torque_instability_flag", "load_imbalance_flag"
+        "is_operational",
+        "fault_detection_flag",
+        "torque_instability_flag",
+        "load_imbalance_flag",
     )
 
-    def __init__(self, is_operational=True, fault_detection_flag=False, torque_instability_flag=False, load_imbalance_flag=False, **kwargs):
+    def __init__(
+        self,
+        is_operational=True,
+        fault_detection_flag=False,
+        torque_instability_flag=False,
+        load_imbalance_flag=False,
+        **kwargs,
+    ):
         """
         :param is_operational: Indicates if the multicopter motor system is functioning.
         :param fault_detection_flag: Detects any motor failure conditions.
@@ -46,11 +54,9 @@ class MultiCopterMotorHigh(MultiMotorHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class MultiCopterMotorAlgorithmic(MultiMotorAlgorithmic):
 
-    __slots__ = MultiMotorAlgorithmic.__slots__ + (
-        "thrust_efficiency", "power_distribution_ratio", "stability_margin"
-    )
+class MultiCopterMotorAlgorithmic(MultiMotorAlgorithmic):
+    __slots__ = MultiMotorAlgorithmic.__slots__ + ("thrust_efficiency", "power_distribution_ratio", "stability_margin")
 
     def __init__(self, thrust_efficiency=0.85, power_distribution_ratio=1.0, stability_margin=0.9, **kwargs):
         """
@@ -82,17 +88,21 @@ class MultiCopterMotorAlgorithmic(MultiMotorAlgorithmic):
 
 # =================== Hardware Abstraction (Physical Layer) ===================
 
-class MultiCopterMotorHardwareHigh(HardwareHigh):
 
+class MultiCopterMotorHardwareHigh(HardwareHigh):
     def __init__(self, **kwargs):
         super().__init__(modality="multi-rotor motor", **kwargs)
 
 
 class MultiCopterMotorHardwarePackage(HardwarePackage):
-
     KNOWN_MOTOR_CHIPS = [
-        "T-Motor U7", "KDE 7208XF", "SunnySky V4006", "EMAX MT2213",
-        "Turnigy Multistar", "DJI 2312", "XING-E Pro 2207"
+        "T-Motor U7",
+        "KDE 7208XF",
+        "SunnySky V4006",
+        "EMAX MT2213",
+        "Turnigy Multistar",
+        "DJI 2312",
+        "XING-E Pro 2207",
     ]
 
     def __init__(self, chip_name, chip_vendor, **kwargs):
@@ -106,7 +116,6 @@ class MultiCopterMotorHardwarePackage(HardwarePackage):
 
 
 class MultiCopterMotorHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["Brushless", "Brushed", "Hybrid", "Direct Drive", "Coaxial"]
 
     def __init__(self, technology, **kwargs):
@@ -120,8 +129,8 @@ class MultiCopterMotorHardwareTechnology(HardwareTechnology):
 
 # =================== Full MultiCopter Motor Component Abstraction (Cyber) ===================
 
-class MultiCopterMotor(CyberComponentBase):
 
+class MultiCopterMotor(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "variables")
 
     def __init__(self, **kwargs):
@@ -134,38 +143,3 @@ class MultiCopterMotor(CyberComponentBase):
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from claripy import BVS
-
-# from ..component import CyberComponentBase, CyberAbstractionLevel
-# from .multi_motor import MultiMotorHigh, MultiMotorAlgo
-
-
-# class MultiCopterMotorHigh(MultiMotorHigh):
-#     __slots__ = MultiMotorHigh.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-
-# class MultiCopterMotorAlgo(MultiMotorAlgo):
-#     __slots__ = MultiMotorAlgo.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-#         self.v["lift"] = BVS("lift", 64)
-#         self.v["yaw"] = BVS("yaw", 64)
-#         self.v["pitch"] = BVS("pitch", 64)
-
-
-# class MultiCopterMotor(CyberComponentBase):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: MultiCopterMotorHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: MultiCopterMotorAlgo(),
-#         }

@@ -1,8 +1,6 @@
 import asyncio
 import logging
-import uuid
 
-import importlib
 from pathlib import Path
 import os
 
@@ -15,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
 from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from saci.modeling.annotation import Annotation
 from saci.orchestrator.tool import TOOLS
@@ -24,12 +22,26 @@ import saci.webui.db as db
 from saci.modeling.device import Device
 from saci.modeling.state.global_state import GlobalState
 from saci.webui.excavate_import import System
-from saci.webui.web_models import AnalysisID, AnalysisUserInfo, AnnotationID, AnnotationModel, BlueprintID, CPVModel, CPVResultModel, ComponentTypeID, ComponentTypeModel, DeviceModel, HypothesisID, HypothesisModel, ParameterTypeModel, WebComponentID
+from saci.webui.web_models import (
+    AnalysisID,
+    AnalysisUserInfo,
+    AnnotationID,
+    AnnotationModel,
+    BlueprintID,
+    CPVModel,
+    CPVResultModel,
+    ComponentTypeID,
+    ComponentTypeModel,
+    DeviceModel,
+    HypothesisID,
+    HypothesisModel,
+    ParameterTypeModel,
+    WebComponentID,
+)
 from saci_db.cpvs import CPVS
 
 from ..orchestrator import identify
 from ..identifier import IdentifierCPV
-from ..deserializer import ingest
 
 l = logging.getLogger(__name__)
 l.setLevel(logging.DEBUG)
@@ -41,15 +53,18 @@ SACI_ROOT = Path(__file__).resolve().parent.parent.parent
 
 ### Endpoints for the frontend UI
 
-app.mount("/assets", StaticFiles(directory=str(SACI_ROOT/"web"/"dist"/"assets")), name="assets")
+app.mount("/assets", StaticFiles(directory=str(SACI_ROOT / "web" / "dist" / "assets")), name="assets")
+
 
 @app.get("/")
 async def serve_frontend_root():
-    return FileResponse(str(SACI_ROOT/"web"/"dist"/"index.html"))
+    return FileResponse(str(SACI_ROOT / "web" / "dist" / "index.html"))
+
 
 ### Endpoints for blueprint management
 
-@app.get('/api/blueprints')
+
+@app.get("/api/blueprints")
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
     with db.get_session() as session:
@@ -84,13 +99,16 @@ def create_annotation(bp_id: str, annot_model: AnnotationModel, response: Respon
             if attack_surface is None:
                 raise HTTPException(status_code=400, detail="Attack surface component does not exist")
             if attack_surface.device_id != bp_id:
-                raise HTTPException(status_code=400, detail="Attack surface component is not part of the specified device")
+                raise HTTPException(
+                    status_code=400, detail="Attack surface component is not part of the specified device"
+                )
             annot_db = db.Annotation.from_web_model(annot_model, bp_id)
             session.add(annot_db)
         annot_id = annot_db.id
 
     response.status_code = status.HTTP_201_CREATED
     return annot_id
+
 
 @app.delete("/api/blueprints/{bp_id}/annotations/{annot_id}")
 def delete_annotation(bp_id: str, annot_id: AnnotationID):
@@ -103,11 +121,9 @@ def delete_annotation(bp_id: str, annot_id: AnnotationID):
 
         session.delete(annot_db)
 
+
 def fetch_saci_db_device(
-        session: Session,
-        bp_id: str,
-        with_annotations: bool = False,
-        with_hypotheses: bool = False
+    session: Session, bp_id: str, with_annotations: bool = False, with_hypotheses: bool = False
 ) -> db.Device:
     options = [selectinload(db.Device.components), selectinload(db.Device.connections)]
     if with_annotations:
@@ -116,21 +132,23 @@ def fetch_saci_db_device(
         options.append(selectinload(db.Device.hypotheses))
     options.append(raiseload("*"))
 
-    db_device = session.execute(select(db.Device)\
-                                .where(db.Device.id == bp_id)\
-                                .options(*options))\
-                       .scalar()
+    db_device = session.execute(select(db.Device).where(db.Device.id == bp_id).options(*options)).scalar()
     if db_device is None:
         raise HTTPException(status_code=404, detail="Blueprint not found")
     else:
         return db_device
 
+
 def fetch_saci_device(session: Session, bp_id: str) -> Device[WebComponentID]:
     return fetch_saci_db_device(session, bp_id).to_saci_device()
 
-def fetch_saci_device_and_annotations(session: Session, bp_id: str) -> tuple[Device[WebComponentID], list[Annotation[WebComponentID]]]:
+
+def fetch_saci_device_and_annotations(
+    session: Session, bp_id: str
+) -> tuple[Device[WebComponentID], list[Annotation[WebComponentID]]]:
     db_device = fetch_saci_db_device(session, bp_id, with_annotations=True)
     return db_device.to_saci_device(), [annot.to_saci_annotation() for annot in db_device.annotations]
+
 
 @app.get("/api/blueprints/{bp_id}/cpvs")
 def identify_cpvs(bp_id: str, only_special: bool = False) -> list[CPVResultModel]:
@@ -162,37 +180,46 @@ def identify_cpvs(bp_id: str, only_special: bool = False) -> list[CPVResultModel
 
     return [CPVResultModel.from_cpv_result(cpv, path) for cpv, path in identified_cpvs]
 
+
 @app.post("/api/blueprints/{bp_id}/hypotheses")
 def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel, response: Response) -> HypothesisID:
     with db.get_session() as session:
         with session.begin():
             # Fetch the device to make sure it exists and to use in validation
-            device = session.execute(select(db.Device)\
-                                     .where(db.Device.id == bp_id)\
-                                     .options(selectinload(db.Device.components),
-                                              selectinload(db.Device.annotations),
-                                              raiseload("*")))\
-                            .scalar()
+            device = session.execute(
+                select(db.Device)
+                .where(db.Device.id == bp_id)
+                .options(selectinload(db.Device.components), selectinload(db.Device.annotations), raiseload("*"))
+            ).scalar()
             if device is None:
                 raise HTTPException(status_code=404, detail="Blueprint not found")
 
             # Validate that the parts of the hypothesis specified exist in a valid state
             if (bad_comps := set(hypothesis_model.path) - {comp.id for comp in device.components}) != set():
-                raise HTTPException(status_code=400, detail={
-                    "message": "Components specified are not part of device specified",
-                    "invalid_components": list(bad_comps),
-                })
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "message": "Components specified are not part of device specified",
+                        "invalid_components": list(bad_comps),
+                    },
+                )
             hypothesis_annotations = set(hypothesis_model.annotations)
             if (bad_annots := hypothesis_annotations - {annot.id for annot in device.annotations}) != set():
-                raise HTTPException(status_code=400, detail={
-                    "message": "Annotations specified are not part of device specified",
-                    "invalid_annotations": list(bad_annots),
-                })
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "message": "Annotations specified are not part of device specified",
+                        "invalid_annotations": list(bad_annots),
+                    },
+                )
             if (bad_annots := {annot.id for annot in device.annotations if annot.hypothesis_id is not None}) != set():
-                raise HTTPException(status_code=400, detail={
-                    "message": "Annotations specified are not all unassigned to hypotheses",
-                    "invalid_annotations": list(bad_annots),
-                })
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "message": "Annotations specified are not all unassigned to hypotheses",
+                        "invalid_annotations": list(bad_annots),
+                    },
+                )
 
             # Create the hypothesis in the DB
             hypot_db = db.Hypothesis(
@@ -208,16 +235,17 @@ def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel, response: R
     response.status_code = status.HTTP_201_CREATED
     return hypot_id
 
+
 @app.get("/api/blueprints/{bp_id}/hypotheses/{hypot_id}/cpvs")
 def hypothesis_cpvs(bp_id: str, hypot_id: HypothesisID) -> list[CPVModel]:
     with db.get_session() as session:
         device = fetch_saci_device(session, bp_id)
-        db_hypot = session.execute(select(db.Hypothesis)\
-                                 .where(db.Hypothesis.id == hypot_id)\
-                                 .where(db.Hypothesis.device_id == bp_id)\
-                                 .options(selectinload(db.Hypothesis.annotations),
-                                          raiseload("*")))\
-                        .scalar()
+        db_hypot = session.execute(
+            select(db.Hypothesis)
+            .where(db.Hypothesis.id == hypot_id)
+            .where(db.Hypothesis.device_id == bp_id)
+            .options(selectinload(db.Hypothesis.annotations), raiseload("*"))
+        ).scalar()
         if db_hypot is None:
             raise HTTPException(status_code=404, detail="Hypothesis not found")
         hypot = db_hypot.to_saci_hypothesis()
@@ -226,6 +254,7 @@ def hypothesis_cpvs(bp_id: str, hypot_id: HypothesisID) -> list[CPVModel]:
     matched_cpvs = [cpv for cpv in CPVS if identifier.check_hypothesis(cpv, hypot)]
 
     return [CPVModel.from_cpv(cpv) for cpv in matched_cpvs]
+
 
 @app.get("/api/components/")
 def list_component_types() -> list[ComponentTypeID]:
@@ -240,28 +269,33 @@ def component_type_details(type_id: str) -> ComponentTypeModel:
         # TODO: have component types have better human-readable names
         name=comp_type.__name__,
         # TODO: have parameters have more metadata associated with them
-        parameters={name: ParameterTypeModel(type_=type_.__name__, description="coming soon") for name, type_ in comp_type.parameter_types.items()},
+        parameters={
+            name: ParameterTypeModel(type_=type_.__name__, description="coming soon")
+            for name, type_ in comp_type.parameter_types.items()
+        },
         ports={},
     )
+
 
 ### Endpoints for launching analyses using app-controller
 
 APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
 
+
 def kill_all_apps():
     apps_resp = httpx.get(f"{APP_CONTROLLER_URL}/api/app")
     for app_json in apps_resp.json():
-        app_id = app_json['id']
+        app_id = app_json["id"]
         l.info(f"killing app {app_id}")
         httpx.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
         httpx.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
+
 
 # kill all existing apps when we start. we should probably not have this behavior permanently
 try:
     kill_all_apps()
 except httpx.ConnectError:
     l.warning("can't connect to app-controller, is it up and the URL configured correctly?")
-
 
 
 @app.get("/api/blueprints/{bp_id}/analyses")
@@ -274,9 +308,9 @@ def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
             name=tool.name,
             components_included=tool.compatible_components(device),
         )
-        for tool_id, tool
-        in TOOLS.items()
+        for tool_id, tool in TOOLS.items()
     }
+
 
 @app.post("/api/blueprints/{bp_id}/analyses/{tool_id}/launch")
 async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> int:
@@ -291,16 +325,21 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
     for i, (raw_config, container) in enumerate(zip(raw_configs, tool.containers)):
         try:
             config = container.config_type.model_validate_json(raw_config)
-            container_configs.append(data.ContainerConfig(
-                image=container.image_name,
-                config=config.model_dump_json(),
-                image_pull_policy="Never",
-            ))
+            container_configs.append(
+                data.ContainerConfig(
+                    image=container.image_name,
+                    config=config.model_dump_json(),
+                    image_pull_policy="Never",
+                )
+            )
         except ValidationError as e:
-            raise HTTPException(status_code=400, detail={
-                "message": f"Configuration #{i} did not validate",
-                "validation_error": str(e),
-            })
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": f"Configuration #{i} did not validate",
+                    "validation_error": str(e),
+                },
+            )
 
     async with httpx.AsyncClient() as client:
         app_config = data.AppConfig(
@@ -320,7 +359,8 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
             raise HTTPException(status_code=500, detail="couldn't create analysis")
         app = create_resp.json()
 
-        return app['id']
+        return app["id"]
+
 
 @app.get("/api/logs")
 async def logs(app_id: int):
@@ -329,16 +369,19 @@ async def logs(app_id: int):
         print(logs_resp.text)
         return logs_resp.text
 
+
 async def ws_proxy_to(ws1: WebSocket, ws2: WsClientConnection):
     while True:
         buf = await ws1.receive_bytes()
         await ws2.send(buf)
+
 
 async def ws_proxy_from(ws1: WebSocket, ws2: WsClientConnection):
     async for buf in ws2:
         if not isinstance(buf, bytes):
             raise ValueError("should only get bytes in this websocket proxy")
         await ws1.send_bytes(buf)
+
 
 # when deployed we should have nginx handle this proxying, but in development it's convenient to have just this one
 # server handling everything. this is certainly not very performant but hopefully it's good enough for a dev proxy.

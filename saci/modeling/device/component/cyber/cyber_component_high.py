@@ -10,4 +10,3 @@ class CyberComponentHigh(CyberComponentBase):
         super().__init__(abstraction=abstraction, **kwargs)
 
         self.powered = powered
-

@@ -7,7 +7,10 @@ from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAb
 
 class CyberComponentSourceCode(CyberComponentBase):
     __state_slots__ = CyberComponentBase.__state_slots__ + ("current_line",)
-    __slots__ = CyberComponentBase.__slots__ + ("source_root", "current_line",)
+    __slots__ = CyberComponentBase.__slots__ + (
+        "source_root",
+        "current_line",
+    )
 
     def __init__(
         self,

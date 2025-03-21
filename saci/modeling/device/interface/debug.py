@@ -9,7 +9,7 @@ from saci.modeling.device.component import (
     HardwareHigh,
     HardwareCircuit,
     HardwareTechnology,
-    HardwarePackage
+    HardwarePackage,
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from saci.modeling.communication import BaseCommunication, UARTProtocol, JTAGProtocol, SWDProtocol
@@ -20,11 +20,19 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
+
 class DebugHigh(CyberComponentHigh):
+    __slots__ = (
+        "supported_protocols",
+        "communication",
+        "protection",
+        "access_restriction",
+        "variables",
+    )
 
-    __slots__ = ("supported_protocols", "communication", "protection", "access_restriction", "variables",)
-
-    def __init__(self, supported_protocols=None, communication=None, protection=None, access_restriction="Enabled", **kwargs):
+    def __init__(
+        self, supported_protocols=None, communication=None, protection=None, access_restriction="Enabled", **kwargs
+    ):
         """
         :param supported_protocols: List of debug protocols supported (e.g., UART, JTAG, SWD).
         :param communication: Active communication instance.
@@ -47,9 +55,13 @@ class DebugHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class DebugAlgorithmic(CyberComponentAlgorithmic):
 
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols", "vulnerability_status", "variables",)
+class DebugAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__ + (
+        "supported_protocols",
+        "vulnerability_status",
+        "variables",
+    )
 
     def __init__(self, supported_protocols=None, vulnerability_status="Low", **kwargs):
         """
@@ -76,8 +88,8 @@ class DebugAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Full Debug Interface Abstraction (Cyber) ===================
 
-class Debug(CyberComponentBase):
 
+class Debug(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "supported_protocols")
 
     def __init__(self, supported_protocols=None, protection=None, access_restriction="Enabled", **kwargs):
@@ -95,8 +107,8 @@ class Debug(CyberComponentBase):
 
 # =================== High-Level Abstraction (Hardware) ===================
 
-class DebugHardwareHigh(HardwareHigh):
 
+class DebugHardwareHigh(HardwareHigh):
     __slots__ = HardwareHigh.__slots__ + ("interface_type", "protection_enabled", "pin_configuration")
 
     def __init__(self, interface_type="JTAG", protection_enabled=True, pin_configuration="Standard", **kwargs):
@@ -113,8 +125,8 @@ class DebugHardwareHigh(HardwareHigh):
 
 # =================== Circuit-Level Abstraction (Hardware) ===================
 
-class DebugHardwareCircuit(HardwareCircuit):
 
+class DebugHardwareCircuit(HardwareCircuit):
     __slots__ = HardwareCircuit.__slots__ + ("signal_impedance", "crosstalk_level", "security_fuse")
 
     def __init__(self, signal_impedance=50, crosstalk_level=5, security_fuse=True, **kwargs):
@@ -131,8 +143,8 @@ class DebugHardwareCircuit(HardwareCircuit):
 
 # =================== Full Debug Interface Abstraction (Hardware) ===================
 
-class DebugHardware(HardwareComponentBase):
 
+class DebugHardware(HardwareComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, interface_type="JTAG", protection_enabled=True, pin_configuration="Standard", **kwargs):
@@ -151,11 +163,9 @@ class DebugHardware(HardwareComponentBase):
 
 # =================== Hardware Package Abstraction ===================
 
-class DebugHardwarePackage(HardwarePackage):
 
-    KNOWN_DEBUG_CHIPSETS = [
-        "ARM_Cortex_JTAG", "STM32_SWD", "ESP32_UART_Debug", "Atmel_ICE"
-    ]
+class DebugHardwarePackage(HardwarePackage):
+    KNOWN_DEBUG_CHIPSETS = ["ARM_Cortex_JTAG", "STM32_SWD", "ESP32_UART_Debug", "Atmel_ICE"]
 
     def __init__(self, chipset_name, manufacturer, **kwargs):
         """
@@ -168,7 +178,6 @@ class DebugHardwarePackage(HardwarePackage):
 
 
 class DebugHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["JTAG", "SWD", "UART_Debug"]
 
     def __init__(self, technology, **kwargs):

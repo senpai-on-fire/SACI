@@ -1,8 +1,14 @@
-from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from saci.modeling.device.component import (
+    CyberComponentHigh,
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentSourceCode,
+    CyberComponentBinary,
+)
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
-class EmergencyStopLogicHigh(CyberComponentHigh):
 
+class EmergencyStopLogicHigh(CyberComponentHigh):
     __slots__ = ("trigger_source", "status")
 
     def __init__(self, trigger_source=None, status="IDLE", **kwargs):
@@ -16,7 +22,6 @@ class EmergencyStopLogicHigh(CyberComponentHigh):
 
 
 class EmergencyStopLogicAlgorithmic(CyberComponentAlgorithmic):
-
     __slots__ = ("trigger_source", "status", "failsafe_conditions")
 
     def __init__(self, trigger_source=None, status="IDLE", failsafe_conditions=None, **kwargs):
@@ -66,7 +71,6 @@ class EmergencyStopLogicAlgorithmic(CyberComponentAlgorithmic):
 
 
 class EmergencyStopLogic(CyberComponentBase):
-
     __slots__ = ("ABSTRACTIONS", "trigger_source", "status", "failsafe_conditions")
 
     def __init__(self, trigger_source=None, status="IDLE", failsafe_conditions=None, **kwargs):

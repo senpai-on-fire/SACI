@@ -12,13 +12,16 @@ class WebServerHigh(CyberComponentHigh):
 
 
 class WebServer(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports]=None, **kwargs):
+    def __init__(self, ports: Optional[Ports] = None, **kwargs):
         super().__init__(
-            ports=union_ports({
-                "Socket": Port(direction=PortDirection.INOUT),
-                # and then in the additional ports that get unioned in are device-specific control inputs/outputs
-            }, ports),
-            **kwargs
+            ports=union_ports(
+                {
+                    "Socket": Port(direction=PortDirection.INOUT),
+                    # and then in the additional ports that get unioned in are device-specific control inputs/outputs
+                },
+                ports,
+            ),
+            **kwargs,
         )
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: WebServerHigh(**kwargs),

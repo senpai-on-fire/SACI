@@ -9,7 +9,7 @@ from saci.modeling.device.component import (
     HardwareHigh,
     HardwareCircuit,
     HardwareTechnology,
-    HardwarePackage
+    HardwarePackage,
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from saci.modeling.communication import BaseCommunication, I2CProtocol, SMBusProtocol
@@ -20,9 +20,15 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class SMBusHigh(CyberComponentHigh):
 
-    __slots__ = ("supported_protocols", "communication", "protection", "bus_speed", "variables",)
+class SMBusHigh(CyberComponentHigh):
+    __slots__ = (
+        "supported_protocols",
+        "communication",
+        "protection",
+        "bus_speed",
+        "variables",
+    )
 
     def __init__(self, supported_protocols=None, communication=None, protection=None, bus_speed=100, **kwargs):
         """
@@ -47,9 +53,13 @@ class SMBusHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class SMBusAlgorithmic(CyberComponentAlgorithmic):
 
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols", "bus_reliability", "variables",)
+class SMBusAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__ + (
+        "supported_protocols",
+        "bus_reliability",
+        "variables",
+    )
 
     def __init__(self, supported_protocols=None, bus_reliability=99.9, **kwargs):
         """
@@ -76,8 +86,8 @@ class SMBusAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Full SMBus Abstraction (Cyber) ===================
 
-class SMBus(CyberComponentBase):
 
+class SMBus(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "supported_protocols")
 
     def __init__(self, supported_protocols=None, protection=None, bus_speed=100, **kwargs):
@@ -95,8 +105,8 @@ class SMBus(CyberComponentBase):
 
 # =================== High-Level Abstraction (Hardware) ===================
 
-class SMBusHardwareHigh(HardwareHigh):
 
+class SMBusHardwareHigh(HardwareHigh):
     __slots__ = HardwareHigh.__slots__ + ("clock_speed", "pull_up_resistors", "voltage_level")
 
     def __init__(self, clock_speed=100, pull_up_resistors=True, voltage_level=3.3, **kwargs):
@@ -113,8 +123,8 @@ class SMBusHardwareHigh(HardwareHigh):
 
 # =================== Circuit-Level Abstraction (Hardware) ===================
 
-class SMBusHardwareCircuit(HardwareCircuit):
 
+class SMBusHardwareCircuit(HardwareCircuit):
     __slots__ = HardwareCircuit.__slots__ + ("signal_impedance", "noise_filtering", "parasitic_capacitance")
 
     def __init__(self, signal_impedance=50, noise_filtering=True, parasitic_capacitance=5, **kwargs):
@@ -131,8 +141,8 @@ class SMBusHardwareCircuit(HardwareCircuit):
 
 # =================== Full SMBus Abstraction (Hardware) ===================
 
-class SMBusHardware(HardwareComponentBase):
 
+class SMBusHardware(HardwareComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, clock_speed=100, pull_up_resistors=True, voltage_level=3.3, **kwargs):
@@ -151,11 +161,9 @@ class SMBusHardware(HardwareComponentBase):
 
 # =================== Hardware Package Abstraction ===================
 
-class SMBusHardwarePackage(HardwarePackage):
 
-    KNOWN_SMBUS_CHIPSETS = [
-        "INA219", "LTC4151", "BQ76952", "ADM1066", "LM75"
-    ]
+class SMBusHardwarePackage(HardwarePackage):
+    KNOWN_SMBUS_CHIPSETS = ["INA219", "LTC4151", "BQ76952", "ADM1066", "LM75"]
 
     def __init__(self, chipset_name, manufacturer, **kwargs):
         """
@@ -168,7 +176,6 @@ class SMBusHardwarePackage(HardwarePackage):
 
 
 class SMBusHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["SMBus", "I2C", "PMBus"]
 
     def __init__(self, technology, **kwargs):
@@ -178,55 +185,3 @@ class SMBusHardwareTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown SMBus technology: {technology}. Please add it to SMBusHardwareTechnology.")
-
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-# from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-# from saci.modeling.communication import BaseCommunication, UARTProtocol
-
-
-# class SMBusHigh(CyberComponentHigh):
-#     __slots__ = ("supported_protocols", "communication", "protection")
-
-#     def __init__(self, supported_protocols=None, communication=None, protection=None, **kwargs):
-#         super().__init__(has_external_input=True, **kwargs)
-#         self.supported_protocols = supported_protocols
-#         self.communication = communication
-#         self.protection = protection
-
-
-# class SMBusAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
-
-#     def __init__(self, supported_protocols=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.supported_protocols = supported_protocols
-
-#     def accepts_communication(self, communication: BaseCommunication) -> bool:
-#         # TODO: depends on the protocol
-#         if any(isinstance(communication, protocol) for protocol in self.supported_protocols):
-#             return True
-#         # TODO: depends on the protocol
-#         else:
-#             return False
-
-
-# class SMBus(CyberComponentBase):
-
-#     __slots__ = ("ABSTRACTIONS", "has_external_input", "supported_protocols")
-
-#     def __init__(self, has_external_input=True, supported_protocols=None, **kwargs):
-#         super().__init__(**kwargs)
-        
-#         self.has_external_input = has_external_input
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: SMBusHigh(supported_protocols=supported_protocols),
-#             CyberAbstractionLevel.ALGORITHMIC: SMBusAlgorithmic(supported_protocols=supported_protocols),
-#             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
-#             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-#         }

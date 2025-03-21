@@ -9,29 +9,35 @@ from .attack.base_attack_vector import BaseAttackVector
 from .attack.base_attack_impact import BaseAttackImpact
 
 _camel_re = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+
+
 def _camel_to_snake_case(name):
-    return _camel_re.sub('_', name).lower()
+    return _camel_re.sub("_", name).lower()
+
 
 def _comp_type_to_asp(comp):
     # TODO: remove High/Algorithmic/etc if it's there
     return _camel_to_snake_case(type(comp).__name__)
 
+
 def _vuln_type_to_asp(comp):
     return _camel_to_snake_case(type(comp).__name__)
 
+
 def _asp_escape_char(c):
     match c:
-        case '\\':
-            return '\\\\'
-        case '\n':
-            return '\\n'
+        case "\\":
+            return "\\\\"
+        case "\n":
+            return "\\n"
         case '"':
             return '\\"'
         case _:
             return c
 
+
 def _asp_string(s):
-    return '"' + ''.join(_asp_escape_char(c) for c in s) + '"'
+    return '"' + "".join(_asp_escape_char(c) for c in s) + '"'
 
 
 class CPV:
@@ -54,8 +60,8 @@ class CPV:
         vulnerabilities: Optional[list[BaseVulnerability]] = None,
         initial_conditions: Optional[dict[str, Any]] = None,
         # final_conditions: Optional[list[str]] = None,
-        attack_vectors: Optional[list[BaseAttackVector]] = None,  
-        attack_requirements: Optional[list[str]] = None, 
+        attack_vectors: Optional[list[BaseAttackVector]] = None,
+        attack_requirements: Optional[list[str]] = None,
         exploit_steps: Optional[list[str]] = None,
         attack_impacts: Optional[list[BaseAttackImpact]] = None,
         associated_files: Optional[list[str]] = None,
@@ -91,7 +97,7 @@ class CPV:
 
         # i need to rewrite this. i wrote it in a hurry.
 
-        if len(self.required_components) == 0: # why would this happen
+        if len(self.required_components) == 0:  # why would this happen
             return True
 
         if len(path) == 0:
@@ -106,7 +112,7 @@ class CPV:
                 return False
             if isinstance(comp, type(self.required_components[req_i])):
                 req_i += 1
-        
+
         return req_i == len(self.required_components)
 
     def __repr__(self):
@@ -151,9 +157,15 @@ class CPV:
             if vector.signal.data is not None:
                 print(f"attack_signal({signal_id}, data, {_asp_string(vector.signal.data)}).", file=f)
             print(f"attack_vector({vector_id}, signal, {signal_id}).", file=f)
-            print(f"attack_vector({vector_id}, required_access_level, {_asp_string(vector.required_access_level)}).", file=f)
+            print(
+                f"attack_vector({vector_id}, required_access_level, {_asp_string(vector.required_access_level)}).",
+                file=f,
+            )
             for conf_key, conf_value in vector.configuration.items():
-                print(f"attack_vector({vector_id}, configuration({_asp_string(conf_key)}), {_asp_string(conf_value)}).", file=f)
+                print(
+                    f"attack_vector({vector_id}, configuration({_asp_string(conf_key)}), {_asp_string(conf_value)}).",
+                    file=f,
+                )
             print(f"attack_vector({vector_id}, name, {_asp_string(vector.name)}).", file=f)
             print(f"cpv({ident}, attack_vector, {vector_id}).", file=f)
         for i, impact in enumerate(self.attack_impacts):

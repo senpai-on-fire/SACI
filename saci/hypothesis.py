@@ -9,11 +9,13 @@ from .modeling.device import Device
 from .modeling.annotation import Annotation
 
 
-CID = TypeVar('CID', bound=Hashable, default=ComponentID)
+CID = TypeVar("CID", bound=Hashable, default=ComponentID)
+
 
 @dataclass(frozen=True)
 class Assumption(Generic[CID]):
     """An element of a CPV hypothesis that makes a CPS more analyzable."""
+
     description: str
 
     def apply_to(self, device: Device[CID]):
@@ -24,9 +26,11 @@ class Assumption(Generic[CID]):
         self.apply_to(new_device)
         return new_device
 
+
 @dataclass(frozen=True)
 class ParameterAssumption(Assumption[CID]):
     """Assumption that a parameter of a component has a certain value."""
+
     component_id: CID
     parameter_name: str
     parameter_value: object
@@ -34,9 +38,11 @@ class ParameterAssumption(Assumption[CID]):
     def apply_to(self, device: Device[CID]):
         device.components[self.component_id].parameters[self.parameter_name] = self.parameter_value
 
+
 @dataclass(frozen=True)
 class RemoveComponentsAssumption(Assumption[CID]):
     """Assumption that certain components are not relevant to the hypothesis."""
+
     component_ids: frozenset[CID]
 
     def apply_to(self, device: Device[CID]):
@@ -44,9 +50,11 @@ class RemoveComponentsAssumption(Assumption[CID]):
             del device.components[comp_id]
             device.component_graph.remove_node(comp_id)
 
+
 @dataclass(frozen=True)
 class AddComponentAssumption(Assumption[CID]):
     """Assumption that a component not yet identified is present."""
+
     component_id: CID
     component: ComponentBase
 
@@ -54,9 +62,11 @@ class AddComponentAssumption(Assumption[CID]):
         device.components[self.component_id] = self.component
         device.component_graph.add_node(self.component_id)
 
+
 @dataclass(frozen=True)
 class Hypothesis(Generic[CID]):
     """A guess at where a CPV may lie and at how to expose it."""
+
     description: str
     path: list[CID]
     assumptions: list[Assumption[CID]] = field(default_factory=list)

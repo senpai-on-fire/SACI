@@ -130,11 +130,15 @@ class System(BaseModel):
         # TODO: remove this hack! currently excavate sometimes adds quotes around the saciType. this jankily detects
         # this behavior and strips them if present
         saciType = self.saciType[1:-1] if self.saciType is not None and self.saciType.startswith('"') else self.saciType
-        system_to_component[id(self)] = db.Component(name=self.name, type_=saciType, parameters=parameters, is_entry=False)
+        system_to_component[id(self)] = db.Component(
+            name=self.name, type_=saciType, parameters=parameters, is_entry=False
+        )
 
         return system_to_component
 
-    def collect_db_connections(self, port_to_system: dict[str, int], system_to_component: dict[int, db.Component]) -> list[db.Connection]:
+    def collect_db_connections(
+        self, port_to_system: dict[str, int], system_to_component: dict[int, db.Component]
+    ) -> list[db.Connection]:
         """Collect a list of connections between components, based on all the systems' interfaces.
 
         Assumes port_to_system and system_to_component have been generated according to System.collect_ports and
@@ -147,20 +151,22 @@ class System(BaseModel):
             connections += sub.collect_db_connections(port_to_system, system_to_component)
 
         for interface in self.interfaces:
-            connections.append(db.Connection(
-                from_component=system_to_component[port_to_system[interface.src_port.unique_instance_id]],
-                to_component=system_to_component[port_to_system[interface.dest_port.unique_instance_id]],
-            ))
+            connections.append(
+                db.Connection(
+                    from_component=system_to_component[port_to_system[interface.src_port.unique_instance_id]],
+                    to_component=system_to_component[port_to_system[interface.dest_port.unique_instance_id]],
+                )
+            )
 
         return connections
 
     def to_db_device(self, device_id: str) -> db.Device:
-        """Turn this top-level system into a db.Device, collecting all of the subsystems and connections between them."""
+        """Turn this top-level system into a db.Device, collecting all of the subsystems and connections between."""
 
         # I think these three steps could be done all in one pass, assuming a blueprint's interfaces are well-scoped,
         # but I think it's clearer this way and blueprints will be small (< 1000 subsystems), so I wrote it like this
         # instead.
-        
+
         # First collect port-to-system mapping
         port_to_system = self.collect_ports()
 
@@ -197,7 +203,7 @@ if __name__ == "__main__":
     device = blueprint.to_db_device(device_id)
 
     # Add example of converting and saving to database
-    from saci.webui.db import get_session, init_db, get_engine, Device
+    from saci.webui.db import get_session, init_db, get_engine
 
     # Initialize DB if needed
     engine = get_engine()

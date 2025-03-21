@@ -1,15 +1,12 @@
 from __future__ import annotations
 import os
-from typing import TypeVar, cast
+from typing import TypeVar
 
 import networkx as nx
 from sqlalchemy import (
-    Column,
     Engine,
     String,
-    Integer,
     ForeignKey,
-    Table,
     create_engine,
     JSON,
     select,
@@ -22,11 +19,11 @@ from sqlalchemy.orm import (
     mapped_column,
     Mapped,
 )
-import uuid
 
 from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent, Annotation as SaciAnnotation
 from saci.hypothesis import Hypothesis as SaciHypothesis
 from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
+
 # Import web models for conversion methods
 from saci.webui.web_models import (
     BlueprintID,
@@ -34,7 +31,6 @@ from saci.webui.web_models import (
     HypothesisModel,
     AnnotationModel,
     DeviceModel,
-    ComponentID,
     AnnotationID,
 )
 
@@ -42,21 +38,19 @@ from saci.webui.web_models import (
 # Get all component subclasses. We should have a less janky way of doing this.
 _T = TypeVar("_T")
 
+
 def _all_subclasses(c: type[_T]) -> list[type[_T]]:
-    return [c] + [
-        subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)
-    ]
+    return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
+
 
 saci_type_mapping: dict[str, type[SaciComponent]] = {
-    comp_type.__qualname__: comp_type
-    for comp_type
-    in _all_subclasses(SaciComponent)
+    comp_type.__qualname__: comp_type for comp_type in _all_subclasses(SaciComponent)
 }
 
+
 class Base(DeclarativeBase):
-    type_annotation_map = {
-        ComponentID: String,
-    }
+    pass
+
 
 # SQLAlchemy models matching the Pydantic models
 
@@ -74,9 +68,7 @@ class Component(Base):
     device: Mapped["Device"] = relationship(back_populates="components")
 
     @classmethod
-    def from_web_model(
-        cls, model: ComponentModel, device_id: str
-    ) -> Component:
+    def from_web_model(cls, model: ComponentModel, device_id: str) -> Component:
         return cls(
             name=model.name,
             parameters=model.parameters,
@@ -89,6 +81,7 @@ class Component(Base):
     def to_saci_component(self) -> SaciComponent:
         cls = saci_type_mapping.get(self.type_, SaciComponent)
         return cls(name=self.name, parameters=self.parameters)
+
 
 class Connection(Base):
     __tablename__ = "component_connections"
@@ -106,9 +99,7 @@ class Connection(Base):
     # (in this case we might not need device ourselves here? but keeping it for now)
 
     @classmethod
-    def from_connection_tuple(
-        cls, conn_tuple: tuple[int, int], device_id: str
-    ) -> Connection:
+    def from_connection_tuple(cls, conn_tuple: tuple[int, int], device_id: str) -> Connection:
         return cls(
             from_component_id=conn_tuple[0],
             to_component_id=conn_tuple[1],
@@ -136,10 +127,10 @@ class Hypothesis(Base):
 
     @classmethod
     def from_web_model(
-            cls,
-            model: HypothesisModel,
-            device_id: str,
-            device_annotations: dict[AnnotationID, Annotation],
+        cls,
+        model: HypothesisModel,
+        device_id: str,
+        device_annotations: dict[AnnotationID, Annotation],
     ) -> Hypothesis:
         annotations = [device_annotations[annot_id] for annot_id in model.annotations]
         return cls(
@@ -185,9 +176,7 @@ class Annotation(Base):
     hypothesis: Mapped[Hypothesis] = relationship(back_populates="annotations")
 
     @classmethod
-    def from_web_model(
-        cls, model: AnnotationModel, device_id: str
-    ) -> Annotation:
+    def from_web_model(cls, model: AnnotationModel, device_id: str) -> Annotation:
         return cls(
             attack_surface_id=model.attack_surface,
             effect=model.effect,
@@ -218,7 +207,7 @@ class Annotation(Base):
             attack_model=self.attack_model,
             underlying_vulnerability=None,
         )
-        
+
 
 class Device(Base):
     __tablename__ = "devices"
@@ -227,18 +216,10 @@ class Device(Base):
     id: Mapped[BlueprintID] = mapped_column(String, primary_key=True)
     name: Mapped[str]
 
-    components = relationship(
-        "Component", back_populates="device", cascade="all, delete-orphan"
-    )
-    connections = relationship(
-        "Connection", back_populates="device", cascade="all, delete-orphan"
-    )
-    hypotheses = relationship(
-        "Hypothesis", back_populates="device", cascade="all, delete-orphan"
-    )
-    annotations = relationship(
-        "Annotation", back_populates="device", cascade="all, delete-orphan"
-    )
+    components = relationship("Component", back_populates="device", cascade="all, delete-orphan")
+    connections = relationship("Connection", back_populates="device", cascade="all, delete-orphan")
+    hypotheses = relationship("Hypothesis", back_populates="device", cascade="all, delete-orphan")
+    annotations = relationship("Annotation", back_populates="device", cascade="all, delete-orphan")
 
     def to_web_model(self) -> DeviceModel:
         # Convert components
@@ -251,9 +232,7 @@ class Device(Base):
         hypotheses_dict = {hyp.id: hyp.to_web_model() for hyp in self.hypotheses}
 
         # Convert annotations
-        annotations_dict = {
-            annot.id: annot.to_web_model() for annot in self.annotations
-        }
+        annotations_dict = {annot.id: annot.to_web_model() for annot in self.annotations}
 
         return DeviceModel(
             name=str(self.name),
@@ -289,15 +268,13 @@ class Device(Base):
                 type_=type(comp).__qualname__,
                 parameters={pname: str(pvalue) for pname, pvalue in comp.parameters.items()},
             )
-            for comp_id, comp
-            in device.components.items()
+            for comp_id, comp in device.components.items()
         }
-        for comp_id, is_entry in device.component_graph.nodes(data='is_entry', default=False): # type: ignore
-            components[comp_id].is_entry = is_entry # type: ignore
+        for comp_id, is_entry in device.component_graph.nodes(data="is_entry", default=False):  # type: ignore
+            components[comp_id].is_entry = is_entry  # type: ignore
         connections = [
             Connection(from_component=components[from_id], to_component=components[to_id])
-            for from_id, to_id
-            in device.component_graph.edges
+            for from_id, to_id in device.component_graph.edges
         ]
         return Device(
             id=device_id,
@@ -328,6 +305,7 @@ def init_db(engine: Engine | None = None):
 
     # Add the devices from saci-database to the database to start
     from saci_db.devices import devices
+
     with get_session(engine) as session, session.begin():
         for device_id, device in devices.items():
             if session.execute(select(Device).where(Device.id == device_id)).scalar() is None:

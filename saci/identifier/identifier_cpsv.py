@@ -1,6 +1,5 @@
-from saci.modeling import Device, CPV, ComponentBase, CPSV
+from saci.modeling import Device, CPV
 from saci.modeling.state import GlobalState
-from saci.modeling.device.component import CyberComponentHigh
 from saci.modeling.behavior import Behaviors
 from saci.modeling.cpvpath import CPVPath
 
@@ -8,6 +7,9 @@ from clorm import FactBase
 from clorm.clingo import ClormControl as Control
 
 import logging
+
+from saci.modeling.vulnerability.base_vuln import BaseVulnerability
+
 l = logging.getLogger(__name__)
 
 # # TODO: This should go in another package or something
@@ -37,25 +39,26 @@ def create_CPV_class(name, **attributes):
     # Create a new class with the given name, base classes, and attributes
     return type(name, (CPV,), attributes)
 
+
 class IdentifierCPSV:
     def __init__(self, device: Device, initial_state: GlobalState):
         self.device = device
         self.initial_state = initial_state
 
-    def identify(self, cpsvs : list[CPSV]) -> list[tuple[CPV, list[CPVPath]]]:
+    def identify(self, cpsvs: list[BaseVulnerability]) -> list[tuple[CPV, list[CPVPath]]]:
         # For each cpsv, put their description together
         ctrl = Control(unifier=[self.device.crash_atom] + [x.attack_ASP for x in cpsvs])
         for cpsv in cpsvs:
-            if hasattr(cpsv, 'rulefile') and cpsv.rulefile:
-                l.info(f'loading {cpsv.rulefile}')
+            if hasattr(cpsv, "rulefile") and cpsv.rulefile:
+                l.info(f"loading {cpsv.rulefile}")
                 ctrl.load(cpsv.rulefile)
-        
+
         # TODO: the description should be those that are on the same level of the CPSVs and relavent to the CPSVs only
         ctrl.load(self.device.description)
 
         ctrl.ground([("base", [])])
-        
-        with ctrl.solve(yield_=True) as handle: # type: ignore
+
+        with ctrl.solve(yield_=True) as handle:  # type: ignore
             solutions = [FactBase(model.facts(atoms=True)) for model in handle]
             # Find the solutions that makes the CPS crash earliest.
             optimal_solution = self.optimize_crash(solutions)
@@ -66,10 +69,10 @@ class IdentifierCPSV:
                     if optimal_solution.query(cpsv.attack_ASP).count() > 0:
                         path.append(cpsv.component)
                         time = optimal_solution.query(cpsv.attack_ASP).first().time
-                        inputs.append({cpsv.component.name: f'{cpsv.input} at Time {time}'})
+                        inputs.append({cpsv.component.name: f"{cpsv.input} at Time {time}"})
                 # extract the attack
                 newCPV = CPV()
-                newCPV.NAME = 'NEWCPV'
+                newCPV.NAME = "NEWCPV"
                 behaviors = Behaviors()
                 cpvpath = CPVPath(tuple(path), behaviors)
                 # TODO: in theory, a new CPV can return multiple possible paths. Here we only take the optimal one.

@@ -28,6 +28,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install .[tests,typechecking] ./saci-database
 
+      - name: Ruff linter
+        run: |
+          ruff check --output-format=github saci/
+
+      - name: Ruff formatting checker
+        run: |
+          ruff format --diff saci/
+
       - name: Pyright
         run: |
           pyright -p .

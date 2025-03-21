@@ -1,4 +1,3 @@
-
 from ..communication.auth_comm import AuthenticatedCommunication
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from .component.cyber import CyberComponentSourceCode, CyberComponentBinary
