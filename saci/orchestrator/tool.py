@@ -10,6 +10,7 @@ from saci.modeling.device import ComponentBase, Device, Controller, CompassSenso
 
 l = logging.getLogger(__name__)
 
+
 @dataclass(frozen=True)
 class Container:
     image_name: str
@@ -38,6 +39,7 @@ def _tool_image_override(image_id: str, image_repo_name: str) -> str:
         l.info("Overriding tool image %s to be %s", image_id, override)
         return override
     return image_repo_name
+
 
 SwabFidelityLevel = Literal["High", "Medium", "Low"]
 
