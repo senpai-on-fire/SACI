@@ -167,7 +167,7 @@ type AnalysisPanelProps = {
 };
 function AnalysisPanel({name, app, onClose}: AnalysisPanelProps) {
   // TODO: fix this hacky width/height calc somehow?
-  return <Panel className="flex flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
+  return <Panel className="flex !z-10 flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
     <div className="flex-none text-xl"><button onClick={onClose}>✕</button>{name}</div>
     <VncScreen className="flex-1" url={`/api/vnc?app_id=${app}`} scaleViewport />
   </Panel>;
@@ -381,7 +381,7 @@ function App() {
             device={device}
             bpId={bpId || ''}
             onSimulationHover={handleSimulationHover}
-            onLaunched={(name, app) => setShowingAnalysis({name, app})}
+            onViewSimulation={setShowingAnalysis}
           />
         </Flow>
       </div>

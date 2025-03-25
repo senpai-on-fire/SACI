@@ -11,6 +11,8 @@ interface AnalysisInfo {
   components_included: string[];
 }
 
+type RunningAnalysis = {name: string, app: number};
+
 interface HypothesisTestPanelProps {
   position: PanelPosition;
   isOpen: boolean;
@@ -19,7 +21,7 @@ interface HypothesisTestPanelProps {
   device: Device | null;
   bpId: string;
   onSimulationHover?: (components: string[] | null) => void;
-  onLaunched: (analysisName: string, appId: number) => void;
+  onViewSimulation: (analysis: RunningAnalysis) => void;
 }
 
 interface Subsystem {
@@ -47,7 +49,7 @@ function Log({appId}: {appId: number}) {
   );
 }
 
-export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId, onSimulationHover, onLaunched }: HypothesisTestPanelProps) {
+export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId, onSimulationHover, onViewSimulation }: HypothesisTestPanelProps) {
   const [subsystems, setSubsystems] = useState<Subsystem[]>([{
     componentIds: [],
     simulation: null,
@@ -59,7 +61,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
   const { data: analyses } = useSWR<Record<string, AnalysisInfo>>(`/api/blueprints/${bpId}/analyses`, fetcher);
   const [hoveredSimulation, setHoveredSimulation] = useState<AnalysisInfo | null>(null);
   const [isLaunching, setIsLaunching] = useState<boolean>(false);
-  const [isRunning, setIsRunning] = useState<number | null>(null);
+  const [isRunning, setIsRunning] = useState<RunningAnalysis | null>(null);
 
   // Clear all state when panel is closed
   useEffect(() => {
@@ -206,13 +208,12 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
     try {
       // TODO: change the UI to only allow selecting one simulation type for the whole system
       const simulation = subsystems[0].simulation;
-      // const analysisName = analyses![simulation!].name;
+      const analysisName = analyses![simulation!].name;
       const appId = await postData<string[], number>(
         `/api/blueprints/${bpId}/analyses/${simulation}/launch`,
         subsystems.map(sub => sub.code)
       );
-      // onLaunched(analysisName, appId);
-      setIsRunning(appId);
+      setIsRunning({name: analysisName, app: appId});
     } catch (error) {
       console.error('Error launching tool', error);
       alert('Failed to launch hypothesis test. Please try again.');
@@ -220,10 +221,6 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
       setIsLaunching(false);
     }
   };
-
-  if (0) {
-    onLaunched("foo", 1);
-  }
 
   return (
     <Panel 
@@ -375,13 +372,26 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
           </div>
         ))}
         <div className="px-4 pb-4 flex justify-between flex-row-reverse">
-          <button
-            disabled={!subsystems[0].simulation || isLaunching}
-            onClick={launch}
-            className="px-4 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-md transition-colors disabled:bg-indigo-100 dark:disabled:bg-indigo-900 "
-          >
-            Launch Test
-          </button>
+          <div>
+            {isRunning !== null && (
+              <button
+                onClick={() => onViewSimulation(isRunning)}
+                className="px-4 text-sm font-medium text-indigo-700 dark:text-indigo-300
+                  bg-indigo-100 dark:bg-indigo-900 hover:bg-indigo-200 dark:hover:bg-indigo-800
+                  border border-indigo-200 dark:border-indigo-700 rounded-md transition-colors
+                  mr-4"
+              >
+                View Simulation
+              </button>
+            )}
+            <button
+              disabled={!subsystems[0].simulation || isLaunching}
+              onClick={launch}
+              className="px-4 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-md transition-colors disabled:bg-indigo-100 dark:disabled:bg-indigo-900 "
+            >
+              Launch {isRunning !== null && "New "}Test
+            </button>
+          </div>
           {subsystems.length < 2 && (
             <button
               onClick={addSubsystem}
