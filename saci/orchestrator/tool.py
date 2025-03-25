@@ -1,3 +1,5 @@
+import logging
+import os
 from collections.abc import Hashable
 from dataclasses import dataclass
 from typing import Literal, TypeVar
@@ -6,6 +8,7 @@ from pydantic import BaseModel
 
 from saci.modeling.device import ComponentBase, Device, Controller, CompassSensor, Servo, ESC, PWMChannel, Motor
 
+l = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Container:
@@ -30,6 +33,12 @@ class Tool:
         ]
 
 
+def _tool_image_override(image_id: str, image_repo_name: str) -> str:
+    if (override := os.environ.get(f"SACI_TOOL_OVERRIDE_{image_id}")) is not None:
+        l.info("Overriding tool image %s to be %s", image_id, override)
+        return override
+    return image_repo_name
+
 SwabFidelityLevel = Literal["High", "Medium", "Low"]
 
 
@@ -45,7 +54,7 @@ swab_tool = Tool(
     name="SWAB",
     containers=(
         Container(
-            "localswab",
+            _tool_image_override("SWAB", "ghcr.io/senpai-on-fire/swab/swab:demo"),
             SwabConfig,
         ),
     ),
