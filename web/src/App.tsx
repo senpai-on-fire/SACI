@@ -167,9 +167,17 @@ type AnalysisPanelProps = {
 };
 function AnalysisPanel({name, app, onClose}: AnalysisPanelProps) {
   // TODO: fix this hacky width/height calc somehow?
-  return <Panel className="flex !z-10 flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
-    <div className="flex-none text-xl"><button onClick={onClose}>✕</button>{name}</div>
-    <VncScreen className="flex-1" url={`/api/vnc?app_id=${app}`} scaleViewport />
+  // 
+  // TODO: See issue saci#56 for why this "analysis-panel" class and
+  // its corresponding CSS in index.html is here. The style attributes
+  // on the VncScreen are also for this hacky solution. The hack is
+  // super fragile and will probably break once react-vnc is
+  // fixed. Please revert to the previous solution of `flex-1` on the
+  // VncScreen (and no analysis-panel class on the Panel) once
+  // react-vnc is fixed.
+  return <Panel className="analysis-panel flex !z-10 flex-col border-2 border-indigo-600 rounded bg-white dark:bg-neutral-900" style={{width: "calc(100vw - 30px)", height: "calc(100vh - 30px)"}} position="top-left">
+    <div className="!flex-none text-xl"><button onClick={onClose}>✕</button>{name}</div>
+    <VncScreen style={{"min-height": "0", flex: "1 1 0"}} url={`/api/vnc?app_id=${app}`} scaleViewport />
   </Panel>;
 }
 

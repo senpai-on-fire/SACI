@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SACI</title>
+    <style>
+      /* set a default so that the VncScreen element in the AnalysisPanel
+         Panel takes up most of the space. See saci#56 for why this is
+         necessary. */
+      .analysis-panel div:not(:first-child) { flex: 1 1 0%; display: flex; flex-direction: column; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
