@@ -404,7 +404,7 @@ export function HypothesisTestPanel({ isOpen, onClose, hypothesis, device, bpId,
           )}
         </div>
         {isRunning !== null && (
-          <Log appId={isRunning} />
+          <Log appId={isRunning.app} />
         )}
       </div>
     </Panel>
