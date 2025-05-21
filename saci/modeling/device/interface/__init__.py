@@ -46,3 +46,14 @@ from .pwm_channel import (
     PWMChannelHardwareCircuit as PWMChannelHardwareCircuit,
     PWMChannelHardwareHigh as PWMChannelHardwareHigh,
 )
+
+from .canbus import (
+    CANBus as CANBus,
+    CANBusAlgorithmic as CANBusAlgorithmic,
+    CANBusHardware as CANBusHardware,
+    CANBusHardwareCircuit as CANBusHardwareCircuit,
+    CANBusHardwareHigh as CANBusHardwareHigh,
+    CANBusHardwarePackage as CANBusHardwarePackage,
+    CANBusHardwareTechnology as CANBusHardwareTechnology,
+    CANBusHigh as CANBusHigh,
+)

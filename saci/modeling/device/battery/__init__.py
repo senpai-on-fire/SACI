@@ -15,3 +15,11 @@ from .bms import (
     BMSHardwarePackage as BMSHardwarePackage,
     BMSHardwareTechnology as BMSHardwareTechnology,
 )
+
+from .powercable import (
+    PowerCableHigh as PowerCableHigh,
+    PowerCableCircuit as PowerCableCircuit,
+    PowerCable as PowerCable,
+    PowerCableHardwarePackage as PowerCableHardwarePackage,
+    PowerCableTechnology as PowerCableTechnology,
+)

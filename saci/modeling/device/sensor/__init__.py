@@ -83,3 +83,11 @@ from .optical_flow import (
     OpticalFlowSensorHardware as OpticalFlowSensorHardware,
     OpticalFlowSensorHigh as OpticalFlowSensorHigh,
 )
+
+from .airspeed import (
+    AirspeedSensor as AirspeedSensor,
+    AirspeedAlgorithmic as AirspeedAlgorithmic,
+    AirspeedHigh as AirspeedHigh,
+    AirspeedHWPackage as AirspeedHWPackage,
+    AirspeedHWTechnology as AirspeedHWTechnology,
+)

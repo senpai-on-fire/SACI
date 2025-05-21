@@ -26,4 +26,5 @@ from .protocol import (
     WifiBProtocol as WifiBProtocol,
     WifiGProtocol as WifiGProtocol,
     WifiNProtocol as WifiNProtocol,
+    CANProtocol as CANProtocol,
 )
