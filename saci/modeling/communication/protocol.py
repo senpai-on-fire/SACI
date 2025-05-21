@@ -116,6 +116,7 @@ class WifiNProtocol(UnauthenticatedCommunication):
     # 802.11n
     pass
 
+
 class CANProtocol(UnauthenticatedCommunication):
     def __init__(self, src=None, dst=None, data=None):
         super().__init__(src=src, dst=dst, data=data)

@@ -253,3 +253,9 @@ from .control.speed_control import (
     SpeedControlLogicAlgorithmic as SpeedControlLogicAlgorithmic,
     SpeedControlLogicHigh as SpeedControlLogicHigh,
 )
+
+from .expresslrs_backpack import (
+    ExpressLRSBackpack as ExpressLRSBackpack,
+    ExpressLRSBackpackAlgorithmic as ExpressLRSBackpackAlgorithmic,
+    ExpressLRSBackpackHigh as ExpressLRSBackpackHigh,
+)
