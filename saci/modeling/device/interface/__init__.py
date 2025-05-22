@@ -47,7 +47,7 @@ from .pwm_channel import (
     PWMChannelHardwareHigh as PWMChannelHardwareHigh,
 )
 
-from .canbus import (
+from .can_bus import (
     CANBus as CANBus,
     CANBusAlgorithmic as CANBusAlgorithmic,
     CANBusHardware as CANBusHardware,
@@ -56,4 +56,20 @@ from .canbus import (
     CANBusHardwarePackage as CANBusHardwarePackage,
     CANBusHardwareTechnology as CANBusHardwareTechnology,
     CANBusHigh as CANBusHigh,
+)
+
+from .can_shield import (
+    CANShield as CANShield,
+    CANShieldCircuit as CANShieldCircuit,
+    CANShieldPackage as CANShieldPackage,
+    CANShieldTechnology as CANShieldTechnology,
+    CANShieldHigh as CANShieldHigh
+)
+
+from .can_transceiver import (
+    CANTransceiver as CANTransceiver,
+    CANTransceiverCircuit as CANTransceiverCircuit,
+    CANTransceiverPackage as CANTransceiverPackage,
+    CANTransceiverTechnology as CANTransceiverTechnology,
+    CANTransceiverHigh as CANTransceiverHigh
 )

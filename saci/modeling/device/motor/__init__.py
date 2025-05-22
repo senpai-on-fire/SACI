@@ -42,3 +42,11 @@ from .dc_motor import (
     DCMotorHardwareTechnology as DCMotorHardwareTechnology,
     DCMotorHigh as DCMotorHigh,
 )
+
+from .fixed_wing_motor import (
+    FixedWingMotor as FixedWingMotor,
+    FixedWingMotorAlgorithmic as FixedWingMotorAlgorithmic,
+    FixedWingMotorHardwareHigh as FixedWingMotorHardwareHigh,
+    FixedWingMotorHardwarePackage as FixedWingMotorHardwarePackage,
+    FixedWingMotorHigh as FixedWingMotorHigh,
+)
