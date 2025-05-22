@@ -63,9 +63,7 @@ class AirspeedAlgorithmic(SensorAlgorithmic):
         self.error_flag = claripy.BVS("airspeed_error_flag", 1)
 
         # Symbolic variables representing internal states
-        self.variables["airspeed_reading"] = claripy.BVS(
-            "airspeed_value", precision_bits
-        )
+        self.variables["airspeed_reading"] = claripy.BVS("airspeed_value", precision_bits)
         self.variables["bias_offset"] = claripy.BVS("airspeed_bias", 32)
         self.variables["noise_stddev"] = claripy.BVS("airspeed_noise", 32)
 
@@ -129,14 +127,9 @@ class AirspeedHWPackage(HardwarePackage):
         :param airspeed_name: The chip name of the airspeed sensor.
         :param airspeed_vendor: Manufacturer name.
         """
-        super().__init__(
-            chip_name=airspeed_name, chip_vendor=airspeed_vendor, **kwargs
-        )
+        super().__init__(chip_name=airspeed_name, chip_vendor=airspeed_vendor, **kwargs)
         if airspeed_name not in self.KNOWN_CHIP_NAMES:
-            _l.warning(
-                f"Unknown airspeed chip name: {airspeed_name}. "
-                "Please add it to AirspeedHWPackage."
-            )
+            _l.warning(f"Unknown airspeed chip name: {airspeed_name}. Please add it to AirspeedHWPackage.")
 
 
 class AirspeedHWTechnology(HardwareTechnology):
@@ -154,7 +147,4 @@ class AirspeedHWTechnology(HardwareTechnology):
         """
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
-            _l.warning(
-                f"Unknown airspeed technology: {technology}. "
-                "Please add it to AirspeedHWTechnology."
-            )
+            _l.warning(f"Unknown airspeed technology: {technology}. Please add it to AirspeedHWTechnology.")

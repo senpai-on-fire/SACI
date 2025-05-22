@@ -63,7 +63,7 @@ from .can_shield import (
     CANShieldCircuit as CANShieldCircuit,
     CANShieldPackage as CANShieldPackage,
     CANShieldTechnology as CANShieldTechnology,
-    CANShieldHigh as CANShieldHigh
+    CANShieldHigh as CANShieldHigh,
 )
 
 from .can_transceiver import (
@@ -71,5 +71,5 @@ from .can_transceiver import (
     CANTransceiverCircuit as CANTransceiverCircuit,
     CANTransceiverPackage as CANTransceiverPackage,
     CANTransceiverTechnology as CANTransceiverTechnology,
-    CANTransceiverHigh as CANTransceiverHigh
+    CANTransceiverHigh as CANTransceiverHigh,
 )

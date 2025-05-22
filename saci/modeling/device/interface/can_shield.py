@@ -130,8 +130,7 @@ class CANShieldPackage(HardwarePackage):
         super().__init__(chip_name=shield_model, chip_vendor=manufacturer, **kwargs)
         if shield_model not in self.KNOWN_SHIELD_MODELS:
             _l.warning(
-                f"Unknown CAN shield model: {shield_model}. "
-                "Please add it to CANShieldPackage.KNOWN_SHIELD_MODELS.",
+                f"Unknown CAN shield model: {shield_model}. Please add it to CANShieldPackage.KNOWN_SHIELD_MODELS.",
             )
 
 

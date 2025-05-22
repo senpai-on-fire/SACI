@@ -64,15 +64,11 @@ class BarometerAlgorithmic(SensorAlgorithmic):
         self.error_flag = claripy.BVS("baro_error_flag", 1)  # Tracks anomalies
 
         # Store atmospheric pressure as a symbolic bit-vector
-        self.variables["pressure_reading"] = claripy.BVS(
-            "baro_pressure", precision_bits
-        )
+        self.variables["pressure_reading"] = claripy.BVS("baro_pressure", precision_bits)
 
         # Track drift and noise influence
         self.variables["bias_drift"] = claripy.BVS("baro_bias_drift", 32)
-        self.variables["quantization_noise"] = claripy.BVS(
-            "baro_quantization_noise", 32
-        )
+        self.variables["quantization_noise"] = claripy.BVS("baro_quantization_noise", 32)
 
 
 # =================== Full Sensor Abstraction ===================
@@ -139,10 +135,7 @@ class BarometerHWPackage(HardwarePackage):
         """
         super().__init__(chip_name=baro_name, chip_vendor=baro_vendor, **kwargs)
         if baro_name not in self.KNOWN_CHIP_NAMES:
-            _l.warning(
-                f"Unknown barometer chip name: {baro_name}. "
-                "Please add it to BarometerHWPackage."
-            )
+            _l.warning(f"Unknown barometer chip name: {baro_name}. Please add it to BarometerHWPackage.")
 
 
 class BarometerHWTechnology(HardwareTechnology):
@@ -160,7 +153,4 @@ class BarometerHWTechnology(HardwareTechnology):
         """
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
-            _l.warning(
-                f"Unknown barometer technology: {technology}. "
-                "Please add it to BarometerHWTechnology."
-            )
+            _l.warning(f"Unknown barometer technology: {technology}. Please add it to BarometerHWTechnology.")

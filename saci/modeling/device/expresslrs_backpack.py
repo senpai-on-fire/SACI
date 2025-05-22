@@ -24,12 +24,8 @@ class ExpressLRSBackpack(CyberComponentBase):
         self.mode = mode
 
         self.ABSTRACTIONS = {
-            CyberAbstractionLevel.HIGH: ExpressLRSBackpackHigh(
-                protocol=self.protocol, mode=self.mode
-            ),
-            CyberAbstractionLevel.ALGORITHMIC: ExpressLRSBackpackAlgorithmic(
-                protocol=self.protocol, mode=self.mode
-            ),
+            CyberAbstractionLevel.HIGH: ExpressLRSBackpackHigh(protocol=self.protocol, mode=self.mode),
+            CyberAbstractionLevel.ALGORITHMIC: ExpressLRSBackpackAlgorithmic(protocol=self.protocol, mode=self.mode),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }

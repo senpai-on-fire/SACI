@@ -22,6 +22,7 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
+
 class CANBusHigh(CyberComponentHigh):
     __slots__ = (
         "communication",
@@ -47,7 +48,9 @@ class CANBusHigh(CyberComponentHigh):
             "can_arbitration_loss": claripy.BVS("can_arbitration_loss", 1),
         }
 
+
 # =================== Algorithmic Abstraction (Cyber) ===================
+
 
 class CANBusAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + (
@@ -71,7 +74,9 @@ class CANBusAlgorithmic(CyberComponentAlgorithmic):
     def accepts_communication(self, communication: BaseCommunication) -> bool:
         return isinstance(communication, CANProtocol)
 
+
 # =================== Full CANBus Abstraction (Cyber) ===================
+
 
 class CANBus(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS",)
@@ -89,7 +94,9 @@ class CANBus(CyberComponentBase):
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
 
+
 # =================== High-Level Abstraction (Hardware) ===================
+
 
 class CANBusHardwareHigh(HardwareHigh):
     __slots__ = HardwareHigh.__slots__ + ("clock_speed", "termination_resistor", "voltage_level")
@@ -105,7 +112,9 @@ class CANBusHardwareHigh(HardwareHigh):
         self.termination_resistor = termination_resistor
         self.voltage_level = voltage_level
 
+
 # =================== Circuit-Level Abstraction (Hardware) ===================
+
 
 class CANBusHardwareCircuit(HardwareCircuit):
     __slots__ = HardwareCircuit.__slots__ + ("differential_signaling", "impedance", "noise_filtering")
@@ -121,7 +130,9 @@ class CANBusHardwareCircuit(HardwareCircuit):
         self.impedance = impedance
         self.noise_filtering = noise_filtering
 
+
 # =================== Full CANBus Abstraction (Hardware) ===================
+
 
 class CANBusHardware(HardwareComponentBase):
     __slots__ = ("ABSTRACTIONS",)
@@ -141,7 +152,9 @@ class CANBusHardware(HardwareComponentBase):
             HardwareAbstractionLevel.CIRCUIT: circuit_abstraction,
         }
 
+
 # =================== Hardware Package Abstraction ===================
+
 
 class CANBusHardwarePackage(HardwarePackage):
     KNOWN_CAN_CHIPSETS = ["MCP2515", "TJA1050", "SN65HVD230", "PCA82C250", "TCAN1042"]
@@ -154,6 +167,7 @@ class CANBusHardwarePackage(HardwarePackage):
         super().__init__(chip_name=chipset_name, chip_vendor=manufacturer, **kwargs)
         if chipset_name not in self.KNOWN_CAN_CHIPSETS:
             _l.warning(f"Unknown CAN chipset: {chipset_name}. Please add it to CANBusHardwarePackage.")
+
 
 class CANBusHardwareTechnology(HardwareTechnology):
     KNOWN_TECHNOLOGIES = ["CAN", "CAN-FD", "ISO-TP"]
