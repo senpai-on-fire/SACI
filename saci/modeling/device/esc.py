@@ -5,7 +5,7 @@ from saci.modeling.device.component import (
     CyberComponentAlgorithmic,
     CyberComponentSourceCode,
     CyberComponentBinary,
-    CyberAbstractionLevel
+    CyberAbstractionLevel,
 )
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
 from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
@@ -17,11 +17,9 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class ESCHigh(CyberComponentHigh):
 
-    __slots__ = CyberComponentHigh.__slots__ + (
-        "is_operational", "fault_detection_flag", "overheat_protection_flag"
-    )
+class ESCHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__ + ("is_operational", "fault_detection_flag", "overheat_protection_flag")
 
     def __init__(self, is_operational=True, fault_detection_flag=False, overheat_protection_flag=False, **kwargs):
         """
@@ -43,16 +41,17 @@ class ESCHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class ESCAlgorithmic(CyberComponentAlgorithmic):
 
+class ESCAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + (
-        "efficiency_rating", "response_time", "power_consumption",
-        "PWM_signal_anomaly_flag"
+        "efficiency_rating",
+        "response_time",
+        "power_consumption",
+        "PWM_signal_anomaly_flag",
     )
 
     def __init__(
-        self, efficiency_rating=0.90, response_time=5, power_consumption=10,
-        PWM_signal_anomaly_flag=False, **kwargs
+        self, efficiency_rating=0.90, response_time=5, power_consumption=10, PWM_signal_anomaly_flag=False, **kwargs
     ):
         """
         :param efficiency_rating: Efficiency in converting input power into motor control.
@@ -87,16 +86,20 @@ class ESCAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Hardware Abstraction (Physical Layer) ===================
 
-class ESCHardwareHigh(HardwareHigh):
 
+class ESCHardwareHigh(HardwareHigh):
     def __init__(self, **kwargs):
         super().__init__(modality="ESC", **kwargs)
 
 
 class ESCHardwarePackage(HardwarePackage):
-
     KNOWN_ESC_CHIPS = [
-        "BLHeli_32", "T-Motor F55A", "KISS 32A", "Hobbywing XRotor", "APD 80F3", "Castle Creations Talon"
+        "BLHeli_32",
+        "T-Motor F55A",
+        "KISS 32A",
+        "Hobbywing XRotor",
+        "APD 80F3",
+        "Castle Creations Talon",
     ]
 
     def __init__(self, chip_name, chip_vendor, **kwargs):
@@ -110,7 +113,6 @@ class ESCHardwarePackage(HardwarePackage):
 
 
 class ESCHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["Brushed ESC", "Brushless ESC", "Sensorless ESC", "FOC ESC"]
 
     def __init__(self, technology, **kwargs):
@@ -124,14 +126,18 @@ class ESCHardwareTechnology(HardwareTechnology):
 
 # =================== Full ESC Component Abstraction (Cyber) ===================
 
+
 class ESC(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports]=None, **kwargs):
+    def __init__(self, ports: Optional[Ports] = None, **kwargs):
         super().__init__(
-            ports=union_ports({
-                "Speed Value": Port(direction=PortDirection.IN),
-                "Motor Control": Port(direction=PortDirection.OUT),
-            }, ports),
-            **kwargs
+            ports=union_ports(
+                {
+                    "Speed Value": Port(direction=PortDirection.IN),
+                    "Motor Control": Port(direction=PortDirection.OUT),
+                },
+                ports,
+            ),
+            **kwargs,
         )
 
         self.ABSTRACTIONS = {

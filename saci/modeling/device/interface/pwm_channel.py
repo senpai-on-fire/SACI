@@ -1,8 +1,8 @@
-from typing import Optional
 import claripy
 import logging
 
 from saci.modeling.device.component import (
+    CyberAbstractionLevel,
     CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentBase,
@@ -12,19 +12,19 @@ from saci.modeling.device.component import (
     HardwareAbstractionLevel,
     HardwareHigh,
     HardwareCircuit,
-    HardwareTechnology,
-    HardwarePackage
 )
-from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class PWMChannelCyberHigh(CyberComponentHigh):
 
-    __slots__ = CyberComponentBase.__slots__ + ("protection", "integrity_check", "variables",)
+class PWMChannelCyberHigh(CyberComponentHigh):
+    __slots__ = CyberComponentBase.__slots__ + (
+        "protection",
+        "integrity_check",
+        "variables",
+    )
 
     def __init__(self, protection=None, integrity_check=True, **kwargs):
         """
@@ -50,9 +50,13 @@ class PWMChannelCyberHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class PWMChannelAlgorithmic(CyberComponentAlgorithmic):
 
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("modulation_type", "timing_accuracy", "variables",)
+class PWMChannelAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__ + (
+        "modulation_type",
+        "timing_accuracy",
+        "variables",
+    )
 
     def __init__(self, modulation_type="PWM", timing_accuracy=99.9, **kwargs):
         """
@@ -78,8 +82,8 @@ class PWMChannelAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== High-Level Abstraction (Hardware) ===================
 
-class PWMChannelHardwareHigh(HardwareHigh):
 
+class PWMChannelHardwareHigh(HardwareHigh):
     __state_slots__ = HardwareHigh.__state_slots__ + ("voltage_level", "duty_cycle", "frequency")
     __slots__ = HardwareHigh.__slots__ + ("voltage_level", "duty_cycle", "frequency")
 
@@ -103,8 +107,8 @@ class PWMChannelHardwareHigh(HardwareHigh):
 
 # =================== Circuit-Level Abstraction (Hardware) ===================
 
-class PWMChannelHardwareCircuit(HardwareCircuit):
 
+class PWMChannelHardwareCircuit(HardwareCircuit):
     __slots__ = HardwareCircuit.__slots__ + ("signal_impedance", "signal_noise", "harmonic_distortion")
 
     def __init__(self, signal_impedance=50, signal_noise=5, harmonic_distortion=2, **kwargs):
@@ -127,8 +131,8 @@ class PWMChannelHardwareCircuit(HardwareCircuit):
 
 # =================== Full PWM Channel Abstraction (Hardware) ===================
 
-class PWMChannelHardware(HardwareComponentBase):
 
+class PWMChannelHardware(HardwareComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, voltage_level=5.0, duty_cycle=50.0, frequency=50.0, **kwargs):
@@ -147,8 +151,8 @@ class PWMChannelHardware(HardwareComponentBase):
 
 # =================== Full PWM Channel Model ===================
 
-class PWMChannel(CyberComponentBase):
 
+class PWMChannel(CyberComponentBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -173,85 +177,3 @@ class PWMChannel(CyberComponentBase):
         "signal_noise": float,
         "harmonic_distortion": float,
     }
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from typing import Optional
-
-# #from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
-# from saci.modeling.device.component import CyberComponentHigh, CyberComponentBase, HardwareHigh, CyberComponentHigh
-# from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-# from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
-
-
-# class PWMChannelCyberHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentBase.__slots__ + ("protection",)
-
-#     def __init__(self, protection=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.protection = protection
-
-#     @property
-#     def parameter_types(self):
-#         pass
-
-
-# class PWMChannelHardwareHigh(HardwareHigh):
-#     __state_slots__ = HardwareHigh.__state_slots__ + ("voltage_level", "duty_cycle", "frequency")
-#     __slots__ = HardwareHigh.__slots__ + ("voltage_level", "duty_cycle", "frequency")
-
-#     def __init__(self, voltage_level=None, duty_cycle=None, frequency=None, **kwargs):
-#         """
-#         :param voltage_level:
-#         :param duty_cycle:
-#         :param frequency:
-#         :param kwargs:
-#         """
-#         super().__init__(**kwargs)
-#         # TODO: replace these once we have some concept of state variable
-#         self.voltage_level = voltage_level
-#         self.duty_cycle = duty_cycle
-#         self.frequency = frequency
-
-#     @property
-#     def parameter_types(self):
-#         return {
-#             # TODO: How do we know if the controller has integrity check?
-#             "voltage_level": float,
-#             "duty_cycle": float,
-#             "frequency": float,
-#         }
-
-# class PWMChannel(CyberComponentBase):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: PWMChannelCyberHigh(**kwargs),
-#             HardwareAbstractionLevel.HIGH: PWMChannelHardwareHigh(**kwargs),
-#         }
-
-#     @property
-#     def parameter_types(self):
-#         pass
-
-# class PWMChannel(CyberComponentBase):
-#     def __init__(self, ports: Optional[Ports]=None, **kwargs):
-#         super().__init__(
-#             ports=union_ports({
-#                 "Pins": Port(direction=PortDirection.INOUT),
-#                 "Communication": Port(direction=PortDirection.INOUT),
-#             }, ports),
-#             **kwargs
-#         )
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: PWMChannelCyberHigh(**kwargs),
-#             HardwareAbstractionLevel.HIGH: PWMChannelHardwareHigh(**kwargs),
-#         }
-
-#     @property
-#     def parameter_types(self):
-#         pass
