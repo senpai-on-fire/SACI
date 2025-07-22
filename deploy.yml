@@ -19,7 +19,7 @@ metadata:
   namespace: saci
 rules:
   - apiGroups: [""]
-    resources: ["services", "configmaps"]
+    resources: ["services", "configmaps", "pods"]
     verbs: ["*"]
   - apiGroups: ["apps"]
     resources: ["deployments"]
