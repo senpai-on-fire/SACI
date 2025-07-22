@@ -329,7 +329,7 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
                 data.ContainerConfig(
                     image=container.image_name,
                     config=config.model_dump_json(),
-                    image_pull_policy="Never",
+                    image_pull_policy="IfNotPresent",
                 )
             )
         except ValidationError as e:
