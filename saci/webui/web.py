@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 
 from pathlib import Path
@@ -8,7 +9,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session, raiseload, selectinload
 
-from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect, status
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
@@ -46,8 +47,50 @@ from ..identifier import IdentifierCPV
 l = logging.getLogger(__name__)
 l.setLevel(logging.DEBUG)
 
+APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
+
+async def kill_apps(app_ids: list[int], client: httpx.AsyncClient | None = None):
+    cm: contextlib.nullcontext[httpx.AsyncClient] | httpx.AsyncClient
+    if client is None:
+        cm = httpx.AsyncClient()
+    else:
+        cm = contextlib.nullcontext(client)
+
+    async with cm as c:
+        for app_id in app_ids:
+            l.info(f"killing app {app_id}")
+            await c.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
+            await c.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
+
+async def get_running_app_ids(client: httpx.AsyncClient) -> list[int]:
+    apps_resp = await client.get(f"{APP_CONTROLLER_URL}/api/app")
+    return [app_json["id"] for app_json in apps_resp.json()]
+
+async def kill_all_apps():
+    async with httpx.AsyncClient() as client:
+        await kill_apps(await get_running_app_ids(client), client=client)
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    # kill all existing apps when we start. we should probably not have this behavior permanently
+    num_retries = 20
+    delay_time = 0.1
+    for i in range(num_retries):
+        try:
+            await kill_all_apps()
+            break
+        except httpx.ConnectError:
+            if i == 0:
+                l.info("don't see app-controller up yet at %r, will try %d more times with %fs between them",
+                       APP_CONTROLLER_URL, num_retries, delay_time)
+            await asyncio.sleep(delay_time)
+    else:
+        l.warning("don't see app-controller up at %r after %d retries, ignoring", APP_CONTROLLER_URL, num_retries)
+
+    yield
+
 db.init_db()
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 SACI_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -279,24 +322,6 @@ def component_type_details(type_id: str) -> ComponentTypeModel:
 
 ### Endpoints for launching analyses using app-controller
 
-APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
-
-
-def kill_all_apps():
-    apps_resp = httpx.get(f"{APP_CONTROLLER_URL}/api/app")
-    for app_json in apps_resp.json():
-        app_id = app_json["id"]
-        l.info(f"killing app {app_id}")
-        httpx.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
-        httpx.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
-
-
-# kill all existing apps when we start. we should probably not have this behavior permanently
-try:
-    kill_all_apps()
-except httpx.ConnectError:
-    l.warning("can't connect to app-controller, is it up and the URL configured correctly?")
-
 
 @app.get("/api/blueprints/{bp_id}/analyses")
 def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
@@ -313,7 +338,7 @@ def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
 
 
 @app.post("/api/blueprints/{bp_id}/analyses/{tool_id}/launch")
-async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> int:
+async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str], background_tasks: BackgroundTasks) -> int:
     # TODO: use bp_id...
     if (tool := TOOLS.get(tool_id)) is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
@@ -342,6 +367,13 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str]) -> i
             )
 
     async with httpx.AsyncClient() as client:
+        # SACI won't be used long term to launch analyses (in our current thinking). In order to not overwhelm the server
+        # with long-running analyses, we'll only support running a single analysis at once, so kill all the existing
+        # analyses first.
+        running_apps = await get_running_app_ids(client)
+        l.debug("killing apps (in background) with IDs %r before starting new analysis", running_apps)
+        background_tasks.add_task(kill_apps, running_apps)
+
         app_config = data.AppConfig(
             name=f"{tool.name}-{bp_id}".lower(),
             interaction_model=data.InteractionModel.X11,
