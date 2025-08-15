@@ -259,3 +259,8 @@ from .expresslrs_backpack import (
     ExpressLRSBackpackAlgorithmic as ExpressLRSBackpackAlgorithmic,
     ExpressLRSBackpackHigh as ExpressLRSBackpackHigh,
 )
+
+from .bluetooth import (
+    BluetoothAlgorithmic as BluetoothAlgorithmic,
+    BluetoothHigh as BluetoothHigh,
+)
