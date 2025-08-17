@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { BlueprintId, Device } from '../types';
 import * as Select from '@radix-ui/react-select';
 import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
+import { useSWRConfig } from 'swr';
+import { postData } from '../utils/api';
 
 // Component props
 export interface DeviceSelectorProps {
@@ -20,6 +22,10 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
   onSelection,
   onDeviceChange
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { mutate } = useSWRConfig();
+  const [isUploading, setIsUploading] = useState(false);
+  
   // Prepare options for the select element
   const isLoading = !devices;
   const selectValue = `${devices ? selected : 0}`;
@@ -31,8 +37,55 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const fileContent = await file.text();
+      const blueprintData = JSON.parse(fileContent);
+      
+      if (!blueprintData.id) {
+        alert('Invalid blueprint file: missing "id" field');
+        return;
+      }
+
+      // Upload the blueprint using the API
+      await postData(`/api/blueprints/${blueprintData.id}`, blueprintData);
+      
+      // Refresh the blueprints list
+      await mutate('/api/blueprints');
+      
+      // Select the newly uploaded blueprint
+      onSelection(blueprintData.id);
+      if (onDeviceChange) {
+        onDeviceChange();
+      }
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+    } catch (error) {
+      console.error('Error uploading blueprint:', error);
+      if (error instanceof SyntaxError) {
+        alert('Invalid JSON file. Please check the file format.');
+      } else {
+        alert('Failed to upload blueprint. Please try again.');
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
-    <div className="mb-2">
+    <div className="mb-2 flex items-center space-x-3">
       <label className="flex items-center space-x-2">
         <span className="font-medium text-sm">Device:</span>
         <Select.Root
@@ -64,7 +117,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                   <Select.Item value="0" className="py-1 pl-2 pr-8 text-sm outline-none cursor-default">
                     <Select.ItemText>loading...</Select.ItemText>
                   </Select.Item>
-                ) : (
+                ) : devices ? (
                   Object.entries(devices).map(([bpId, d]) => (
                     <Select.Item 
                       key={bpId} 
@@ -74,6 +127,10 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                       <Select.ItemText>{d.name}</Select.ItemText>
                     </Select.Item>
                   ))
+                ) : (
+                  <Select.Item value="0" className="py-1 pl-2 pr-8 text-sm outline-none cursor-default">
+                    <Select.ItemText>No devices available</Select.ItemText>
+                  </Select.Item>
                 )}
               </Select.Viewport>
               
@@ -84,6 +141,25 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
           </Select.Portal>
         </Select.Root>
       </label>
+      
+      {/* Upload Blueprint Button */}
+      <button
+        onClick={handleUploadClick}
+        className="px-3 py-1 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded disabled:bg-indigo-400 transition-colors"
+        disabled={isLoading || isUploading}
+        title="Upload Blueprint JSON file"
+      >
+        {isUploading ? 'Uploading...' : 'Upload Blueprint'}
+      </button>
+      
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
     </div>
   );
 }; 
