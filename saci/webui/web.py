@@ -122,6 +122,9 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
     except ValidationError:
         raise HTTPException(status_code=400, detail="Malformed blueprint")
 
+    if not bp_id:
+        bp_id = blueprint.id or blueprint.name
+
     with db.get_session() as session, session.begin():
         # TODO: actually update
         existing_device = session.get(db.Device, bp_id)
@@ -367,9 +370,10 @@ async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str], back
             )
 
     async with httpx.AsyncClient() as client:
-        # SACI won't be used long term to launch analyses (in our current thinking). In order to not overwhelm the server
-        # with long-running analyses, we'll only support running a single analysis at once, so kill all the existing
-        # analyses first.
+        # SACI won't be used long term to launch analyses (in our current
+        # thinking). In order to not overwhelm the server with long-running
+        # analyses, we'll only support running a single analysis at once, so
+        # kill all the existing analyses first.
         running_apps = await get_running_app_ids(client)
         l.debug("killing apps (in background) with IDs %r before starting new analysis", running_apps)
         background_tasks.add_task(kill_apps, running_apps)
