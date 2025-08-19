@@ -1,7 +1,13 @@
 from typing import Optional
 
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
-from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from .component import (
+    CyberComponentHigh,
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentSourceCode,
+    CyberComponentBinary,
+)
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 from ..communication import BaseCommunication
 
@@ -19,8 +25,8 @@ class WifiHigh(CyberComponentHigh):
         "encryption_type": str,
     }
 
-class WifiAlgorithmic(CyberComponentAlgorithmic):
 
+class WifiAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
 
     def accepts_communication(self, communication: BaseCommunication) -> bool:
@@ -35,18 +41,22 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
         "supported_protocols": list,
     }
 
+
 class Wifi(CyberComponentBase):
     """
     This is the base class for all telemetry components.
     """
 
-    def __init__(self, ports: Optional[Ports]=None, **kwargs):
+    def __init__(self, ports: Optional[Ports] = None, **kwargs):
         super().__init__(
-            ports=union_ports({
-                "RF": Port(direction=PortDirection.INOUT),
-                "Networking": Port(direction=PortDirection.INOUT),
-            }, ports),
-            **kwargs
+            ports=union_ports(
+                {
+                    "RF": Port(direction=PortDirection.INOUT),
+                    "Networking": Port(direction=PortDirection.INOUT),
+                },
+                ports,
+            ),
+            **kwargs,
         )
 
         self.ABSTRACTIONS = {

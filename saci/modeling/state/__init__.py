@@ -1,1 +1,1 @@
-from .global_state import GlobalState
+from .global_state import GlobalState as GlobalState

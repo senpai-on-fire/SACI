@@ -12,6 +12,6 @@ WORKDIR /app
 COPY --from=frontend-build /build/dist /app/web/dist
 COPY saci/ /app/saci/
 COPY saci-database/ /app/saci-database/
-COPY setup.cfg pyproject.toml ./
+COPY pyproject.toml ./
 RUN pip install . './saci-database'
 CMD ["uvicorn", "saci.webui.web:app", "--host", "0.0.0.0", "--port", "8000"]

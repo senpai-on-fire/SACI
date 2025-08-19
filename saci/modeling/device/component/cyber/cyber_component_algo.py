@@ -9,14 +9,17 @@ import claripy
 
 class CyberComponentAlgorithmic(CyberComponentBase):
     __state_slots__ = CyberComponentBase.__state_slots__ + ("conditions",)
-    __slots__ = CyberComponentBase.__slots__ + ("conditions", "variables",)
+    __slots__ = CyberComponentBase.__slots__ + (
+        "conditions",
+        "variables",
+    )
 
     def __init__(
         self,
         abstraction=CyberAbstractionLevel.ALGORITHMIC,
         variables: Optional[dict[str, claripy.ast.bv.BV]] = None,
         conditions: Optional[list[claripy.ast.bool.Bool]] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)
         self.variables = variables or {}

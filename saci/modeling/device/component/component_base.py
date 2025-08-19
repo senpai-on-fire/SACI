@@ -1,14 +1,13 @@
 from enum import StrEnum
-from typing import Any, Optional, Tuple, List, TypeAlias, Type
+from typing import Any, Optional, TypeAlias, Type
 from dataclasses import dataclass
-
-from saci.modeling.communication.base_comm import BaseCommunication
 
 
 class PortDirection(StrEnum):
     IN = "in"
     OUT = "out"
     INOUT = "inout"
+
 
 @dataclass(frozen=True)
 class Port:
@@ -19,7 +18,9 @@ class Port:
 
     # TODO: abstraction level, units, etc
 
+
 Ports: TypeAlias = dict[str, Port]
+
 
 def union_ports(ports1: Optional[Ports], ports2: Optional[Ports]) -> Optional[Ports]:
     # TODO: some other strategy for duplicate keys besides rejection?
@@ -31,6 +32,7 @@ def union_ports(ports1: Optional[Ports], ports2: Optional[Ports]) -> Optional[Po
     if set(ports1.keys()) & set(ports2.keys()):
         raise ValueError("ports dictionaries have overlapping keys")
     return ports1 | ports2
+
 
 class ComponentBase:
     """A ComponentBase is the base class for all components in the system. A component, at a high-level, is any device
@@ -59,15 +61,16 @@ class ComponentBase:
      - different representations of the same ports (as in the Blueprint format), to eventually use for different
        abstraction levels/simulation types
     """
+
     __state_slots__ = ()
     __slots__ = ("name", "type", "parameters", "ports")
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            _type=None,
-            parameters: Optional[dict[str, Any]] = None,
-            ports: Optional[dict[str, Port]] = None,
+        self,
+        name: Optional[str] = None,
+        _type=None,
+        parameters: Optional[dict[str, Any]] = None,
+        ports: Optional[dict[str, Port]] = None,
     ):
         self.name = name or self.__class__.__name__
         self.type = _type
