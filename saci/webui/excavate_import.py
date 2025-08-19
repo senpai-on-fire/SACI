@@ -178,6 +178,42 @@ class System(BaseModel):
         # Third collect connections from all interfaces
         connections = self.collect_db_connections(port_to_system, system_to_component)
 
+        # --- Create entry annotations for all ports that are not connected ---
+        # 1. Gather all port unique_instance_ids
+        all_ports = {}
+        def gather_ports(sys: "System"):
+            for sub in sys.systems:
+                gather_ports(sub)
+            for port in sys.ports:
+                all_ports[port.unique_instance_id] = port
+        gather_ports(self)
+
+        # 2. Gather all connected port unique_instance_ids
+        connected_ports = set()
+        def gather_connected_ports(sys: "System"):
+            for sub in sys.systems:
+                gather_connected_ports(sub)
+            for interface in sys.interfaces:
+                connected_ports.add(interface.src_port.unique_instance_id)
+                connected_ports.add(interface.dest_port.unique_instance_id)
+        gather_connected_ports(self)
+
+        # 3. Find unconnected ports
+        unconnected_ports = [port for uid, port in all_ports.items() if uid not in connected_ports]
+
+        # 4. Map port unique_instance_id to system id, then to component
+        annotations = []
+        for port in unconnected_ports:
+            sys_id = port_to_system[port.unique_instance_id]
+            comp = system_to_component[sys_id]
+            # Create entry annotation for this component
+            annotations.append(db.Annotation(
+                attack_surface=comp,
+                effect="entry",
+                attack_model=None,
+                device_id=device_id,
+            ))
+
         return db.Device(
             id=device_id,
             name=self.name,
@@ -185,7 +221,7 @@ class System(BaseModel):
             components=list(system_to_component.values()),
             connections=connections,
             hypotheses=[],
-            annotations=[],
+            annotations=annotations,
         )
 
 
