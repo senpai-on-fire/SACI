@@ -44,7 +44,7 @@ def _all_subclasses(c: type[_T]) -> list[type[_T]]:
 
 
 saci_type_mapping: dict[str, type[SaciComponent]] = {
-    comp_type.__qualname__: comp_type for comp_type in _all_subclasses(SaciComponent)
+    f"{comp_type.__module__}.{comp_type.__qualname__}": comp_type for comp_type in _all_subclasses(SaciComponent)
 }
 
 
@@ -265,7 +265,7 @@ class Device(Base):
         components = {
             comp_id: Component(
                 name=comp.name,
-                type_=type(comp).__qualname__,
+                type_=f"{type(comp).__module__}.{type(comp).__qualname__}",
                 parameters={pname: str(pvalue) for pname, pvalue in comp.parameters.items()},
             )
             for comp_id, comp in device.components.items()
