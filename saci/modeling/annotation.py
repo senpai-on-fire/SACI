@@ -10,7 +10,7 @@ from saci.modeling.vulnerability import VulnerabilityEffect, BaseVulnerability
 CID = TypeVar("CID", bound=Hashable)
 
 
-class AnnotationVulnerability(BaseVulnerability, Generic[CID]):
+class AnnotationVulnerability(BaseVulnerability[CID], Generic[CID]):
     """The device-specific, user-specified component vulnerability derived from an Annotation."""
 
     def __init__(self, device: Device[CID], comp_id: CID, effect: VulnerabilityEffect):

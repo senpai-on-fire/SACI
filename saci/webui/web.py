@@ -132,7 +132,7 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         raise HTTPException(status_code=400, detail="Malformed blueprint")
 
     if not bp_id:
-        bp_id = blueprint.id or blueprint.name
+        bp_id = str(blueprint.id or blueprint.name)
 
     with db.get_session() as session, session.begin():
         # TODO: actually update
