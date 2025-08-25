@@ -16,6 +16,7 @@ class BluetoothHigh(CyberComponentHigh):
     """
     High-level properties for a Bluetooth radio/stack.
     """
+
     __slots__ = ("communication",)
 
     def __init__(self, communication=None, **kwargs):
@@ -48,6 +49,7 @@ class BluetoothAlgorithmic(CyberComponentAlgorithmic):
     Algorithmic acceptance checks: whether a given communication
     object/protocol/profile is supported by this Bluetooth component.
     """
+
     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols", "supported_profiles")
 
     def accepts_communication(self, communication: BaseCommunication) -> bool:
@@ -57,13 +59,9 @@ class BluetoothAlgorithmic(CyberComponentAlgorithmic):
         # - profiles map to A2DP/HFP/SPP/GATT, etc.
         params = self.parameters
 
-        proto_ok = any(
-            isinstance(communication, proto) for proto in params.get("supported_protocols", [])
-        )
+        proto_ok = any(isinstance(communication, proto) for proto in params.get("supported_protocols", []))
 
-        profile_ok = any(
-            isinstance(communication, profile) for profile in params.get("supported_profiles", [])
-        )
+        profile_ok = any(isinstance(communication, profile) for profile in params.get("supported_profiles", []))
 
         return proto_ok or profile_ok
 
@@ -75,8 +73,8 @@ class BluetoothAlgorithmic(CyberComponentAlgorithmic):
 
 class Bluetooth(CyberComponentBase):
     """
-      - "RF": physical RF transceiver path
-      - "Networking": logical link/data path (GATT/SPP/etc.)
+    - "RF": physical RF transceiver path
+    - "Networking": logical link/data path (GATT/SPP/etc.)
     """
 
     def __init__(self, ports: Optional[Ports] = None, **kwargs):
@@ -99,12 +97,12 @@ class Bluetooth(CyberComponentBase):
         }
 
     parameter_types = {
-        "supported_protocols": list,   # ["BR/EDR", "BLE"]
-        "supported_profiles": list,    # ["A2DP", "HFP", "SPP", "GATT", ...]
-        "bt_version": str,             # "v5.3"
-        "roles": list,                 # ["central", "peripheral", ...]
-        "security_mode": str,          # "LE Secure Connections", etc.
-        "encryption_type": str,        # "AES-CCM"
-        "frequency_band": str,         # "2.4 GHz ISM"
-        "tx_power_dbm": int,           # e.g., 8
+        "supported_protocols": list,  # ["BR/EDR", "BLE"]
+        "supported_profiles": list,  # ["A2DP", "HFP", "SPP", "GATT", ...]
+        "bt_version": str,  # "v5.3"
+        "roles": list,  # ["central", "peripheral", ...]
+        "security_mode": str,  # "LE Secure Connections", etc.
+        "encryption_type": str,  # "AES-CCM"
+        "frequency_band": str,  # "2.4 GHz ISM"
+        "tx_power_dbm": int,  # e.g., 8
     }

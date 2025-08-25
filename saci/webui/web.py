@@ -49,6 +49,7 @@ l.setLevel(logging.DEBUG)
 
 APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
 
+
 async def kill_apps(app_ids: list[int], client: httpx.AsyncClient | None = None):
     cm: contextlib.nullcontext[httpx.AsyncClient] | httpx.AsyncClient
     if client is None:
@@ -62,13 +63,16 @@ async def kill_apps(app_ids: list[int], client: httpx.AsyncClient | None = None)
             await c.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
             await c.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
 
+
 async def get_running_app_ids(client: httpx.AsyncClient) -> list[int]:
     apps_resp = await client.get(f"{APP_CONTROLLER_URL}/api/app")
     return [app_json["id"] for app_json in apps_resp.json()]
 
+
 async def kill_all_apps():
     async with httpx.AsyncClient() as client:
         await kill_apps(await get_running_app_ids(client), client=client)
+
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -81,13 +85,18 @@ async def lifespan(app: FastAPI):
             break
         except httpx.ConnectError:
             if i == 0:
-                l.info("don't see app-controller up yet at %r, will try %d more times with %fs between them",
-                       APP_CONTROLLER_URL, num_retries, delay_time)
+                l.info(
+                    "don't see app-controller up yet at %r, will try %d more times with %fs between them",
+                    APP_CONTROLLER_URL,
+                    num_retries,
+                    delay_time,
+                )
             await asyncio.sleep(delay_time)
     else:
         l.warning("don't see app-controller up at %r after %d retries, ignoring", APP_CONTROLLER_URL, num_retries)
 
     yield
+
 
 db.init_db()
 app = FastAPI(lifespan=lifespan)

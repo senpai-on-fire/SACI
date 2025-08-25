@@ -19,15 +19,11 @@ class TestComponentConversion(unittest.TestCase):
         self.component_params = {"param1": "value1", "param2": "value2"}
 
         # Create models for testing
-        self.web_model = ComponentModel(
-            name=self.component_name, parameters=self.component_params
-        )
+        self.web_model = ComponentModel(name=self.component_name, parameters=self.component_params)
 
     def test_from_web_model(self):
         # Test from_web_model conversion
-        db_model = Component.from_web_model(
-            self.web_model, self.device_id
-        )
+        db_model = Component.from_web_model(self.web_model, self.device_id)
 
         # Verify conversion
         self.assertEqual(db_model.name, self.component_name)
@@ -51,9 +47,7 @@ class TestComponentConversion(unittest.TestCase):
 
     def test_roundtrip_conversion(self):
         # Web model -> DB model -> Web model
-        db_model = Component.from_web_model(
-            self.web_model, self.device_id
-        )
+        db_model = Component.from_web_model(self.web_model, self.device_id)
         roundtrip_web_model = db_model.to_web_model()
 
         # Verify no data loss
@@ -71,9 +65,7 @@ class TestConnectionConversion(unittest.TestCase):
 
     def test_from_connection_tuple(self):
         # Convert tuple to Connection
-        db_model = Connection.from_connection_tuple(
-            self.connection_tuple, self.device_id
-        )
+        db_model = Connection.from_connection_tuple(self.connection_tuple, self.device_id)
 
         # Verify conversion
         self.assertEqual(db_model.from_component_id, self.from_component)
@@ -96,9 +88,7 @@ class TestConnectionConversion(unittest.TestCase):
 
     def test_roundtrip_conversion(self):
         # Tuple -> DB model -> Tuple
-        db_model = Connection.from_connection_tuple(
-            self.connection_tuple, self.device_id
-        )
+        db_model = Connection.from_connection_tuple(self.connection_tuple, self.device_id)
         roundtrip_tuple = db_model.to_connection_tuple()
 
         # Verify no data loss
@@ -130,15 +120,11 @@ class TestHypothesisConversion(unittest.TestCase):
         )
 
         # Also test with empty values
-        self.web_model_with_none = HypothesisModel(
-            name=self.hypothesis_name, path=[], annotations=[]
-        )
+        self.web_model_with_none = HypothesisModel(name=self.hypothesis_name, path=[], annotations=[])
 
     def test_from_web_model(self):
         # Test from_web_model conversion
-        db_model = Hypothesis.from_web_model(
-            self.web_model, self.device_id, {self.annot_id: self.annot_db_model}
-        )
+        db_model = Hypothesis.from_web_model(self.web_model, self.device_id, {self.annot_id: self.annot_db_model})
 
         # Verify conversion
         self.assertEqual(db_model.name, self.hypothesis_name)
@@ -147,9 +133,7 @@ class TestHypothesisConversion(unittest.TestCase):
         self.assertEqual(db_model.annotations, [self.annot_db_model])
 
         # Test with empty values
-        db_model_none = Hypothesis.from_web_model(
-            self.web_model_with_none, self.device_id, {}
-        )
+        db_model_none = Hypothesis.from_web_model(self.web_model_with_none, self.device_id, {})
         self.assertEqual(db_model_none.path, [])
         self.assertEqual(db_model_none.annotations, [])
 
@@ -182,9 +166,7 @@ class TestHypothesisConversion(unittest.TestCase):
 
     def test_roundtrip_conversion(self):
         # Web model -> DB model -> Web model
-        db_model = Hypothesis.from_web_model(
-            self.web_model, self.device_id, {self.annot_id: self.annot_db_model}
-        )
+        db_model = Hypothesis.from_web_model(self.web_model, self.device_id, {self.annot_id: self.annot_db_model})
         roundtrip_web_model = db_model.to_web_model()
 
         # Verify no data loss
@@ -193,9 +175,7 @@ class TestHypothesisConversion(unittest.TestCase):
         self.assertEqual(roundtrip_web_model.annotations, [self.annot_id])
 
         # Test with empty values
-        db_model_none = Hypothesis.from_web_model(
-            self.web_model_with_none, self.device_id, {}
-        )
+        db_model_none = Hypothesis.from_web_model(self.web_model_with_none, self.device_id, {})
         roundtrip_web_model_none = db_model_none.to_web_model()
         self.assertEqual(roundtrip_web_model_none.name, self.web_model_with_none.name)
         self.assertEqual(roundtrip_web_model_none.path, [])
@@ -224,9 +204,7 @@ class TestAnnotationConversion(unittest.TestCase):
 
     def test_from_web_model(self):
         # Test from_web_model conversion
-        db_model = Annotation.from_web_model(
-            self.web_model, self.device_id
-        )
+        db_model = Annotation.from_web_model(self.web_model, self.device_id)
 
         # Verify conversion
         self.assertEqual(db_model.attack_surface_id, self.attack_surface)
@@ -235,9 +213,7 @@ class TestAnnotationConversion(unittest.TestCase):
         self.assertEqual(db_model.device_id, self.device_id)
 
         # Test with None values
-        db_model_none = Annotation.from_web_model(
-            self.web_model_with_none, self.device_id
-        )
+        db_model_none = Annotation.from_web_model(self.web_model_with_none, self.device_id)
         self.assertIsNone(db_model_none.attack_model)
 
     def test_to_web_model(self):
@@ -269,30 +245,22 @@ class TestAnnotationConversion(unittest.TestCase):
 
     def test_roundtrip_conversion(self):
         # Web model -> DB model -> Web model
-        db_model = Annotation.from_web_model(
-            self.web_model, self.device_id
-        )
+        db_model = Annotation.from_web_model(self.web_model, self.device_id)
         roundtrip_web_model = db_model.to_web_model()
 
         # Verify no data loss
-        self.assertEqual(
-            roundtrip_web_model.attack_surface, self.web_model.attack_surface
-        )
+        self.assertEqual(roundtrip_web_model.attack_surface, self.web_model.attack_surface)
         self.assertEqual(roundtrip_web_model.effect, self.web_model.effect)
         self.assertEqual(roundtrip_web_model.attack_model, self.web_model.attack_model)
 
         # Test with None values
-        db_model_none = Annotation.from_web_model(
-            self.web_model_with_none, self.device_id
-        )
+        db_model_none = Annotation.from_web_model(self.web_model_with_none, self.device_id)
         roundtrip_web_model_none = db_model_none.to_web_model()
         self.assertEqual(
             roundtrip_web_model_none.attack_surface,
             self.web_model_with_none.attack_surface,
         )
-        self.assertEqual(
-            roundtrip_web_model_none.effect, self.web_model_with_none.effect
-        )
+        self.assertEqual(roundtrip_web_model_none.effect, self.web_model_with_none.effect)
         self.assertIsNone(roundtrip_web_model_none.attack_model)
 
 
@@ -323,18 +291,12 @@ class TestDeviceConversion(unittest.TestCase):
         self.attack_model = "Test Attack"
 
         # Create web models for components
-        self.comp1_model = ComponentModel(
-            name=self.comp1_name, parameters=self.comp1_params
-        )
-        self.comp2_model = ComponentModel(
-            name=self.comp2_name, parameters=self.comp2_params
-        )
+        self.comp1_model = ComponentModel(name=self.comp1_name, parameters=self.comp1_params)
+        self.comp2_model = ComponentModel(name=self.comp2_name, parameters=self.comp2_params)
 
         # Create web model for hypothesis
         self.hyp_model = HypothesisModel(
-            name=self.hyp_name,
-            path=[str(self.comp1_id), str(self.comp2_id)],
-            annotations=[str(self.annot_id)]
+            name=self.hyp_name, path=[str(self.comp1_id), str(self.comp2_id)], annotations=[str(self.annot_id)]
         )
 
         # Create web model for annotation

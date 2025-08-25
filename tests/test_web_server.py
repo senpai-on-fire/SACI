@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 import saci
 
+
 @pytest.fixture(scope="session", autouse=True)
 def create_assets_directory():
     """
@@ -24,6 +25,7 @@ def create_assets_directory():
     print(f"Created assets directory at project root: {assets_dir}")
     print(f"Created assets directory at package location: {package_assets_dir}")
 
+
 @pytest.fixture
 def client():
     """
@@ -31,7 +33,9 @@ def client():
     """
     # Import app only after directory structure is created
     from saci.webui.web import app
+
     return TestClient(app)
+
 
 @pytest.fixture
 def bp_id():
@@ -43,12 +47,14 @@ def bp_id():
     """
     return "ngcrover"
 
+
 def test_server_starts(client):
     """
     Test that the FastAPI server starts successfully.
     """
     response = client.get("/api/blueprints")
     assert response.status_code == 200
+
 
 def test_ngcrover_blueprint_exists(client):
     """Make sure the "ngcrover" blueprint exists and some basic properties of it hold. This will probably have to change
@@ -65,6 +71,7 @@ def test_ngcrover_blueprint_exists(client):
     component_names = {comp["name"] for comp in ngcrover["components"].values()}
     assert "WebServer" in component_names
     assert "Motor" in component_names
+
 
 def test_create_annotation(client, bp_id):
     """Test annotation creation and recall."""

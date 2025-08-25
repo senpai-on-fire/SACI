@@ -33,12 +33,7 @@ def generate_fake_data():
     initial_state = GlobalState(cps.components)
 
     # input: the database with CPV models and CPS vulnerabilities
-    database = {
-        "cpv_model": [MavlinkSiKCPV()],
-        "cpsv_model": [MavlinkMitmVuln()],
-        "cps_vuln": [],
-        "hypotheses": []
-    }
+    database = {"cpv_model": [MavlinkSiKCPV()], "cpsv_model": [MavlinkMitmVuln()], "cps_vuln": [], "hypotheses": []}
     return cps, database, initial_state
 
 
@@ -90,7 +85,23 @@ class TestPipeline(unittest.TestCase):
         cps = NGCRover()
         self.assertEqual(
             set(cps.components),
-            {ComponentID(id_) for id_ in {'wifi', 'webserver', 'gps', 'compass', 'uno_r4', 'serial', 'uno_r3', 'pwm_channel_esc', 'pwm_channel_servo', 'esc', 'steering', 'motor'}},
+            {
+                ComponentID(id_)
+                for id_ in {
+                    "wifi",
+                    "webserver",
+                    "gps",
+                    "compass",
+                    "uno_r4",
+                    "serial",
+                    "uno_r3",
+                    "pwm_channel_esc",
+                    "pwm_channel_servo",
+                    "esc",
+                    "steering",
+                    "motor",
+                }
+            },
             "Looks like we added or removed some components from the NGCRover device model. Fix this test appropriately.",
         )
         self.assertNotIn(
@@ -112,7 +123,7 @@ class TestPipeline(unittest.TestCase):
                 ),
                 RemoveComponentsAssumption(
                     description="Let's not model anything but the components on the CPV path for now",
-                    component_ids=frozenset({ComponentID(id_) for id_ in {'wifi', 'webserver'}}),
+                    component_ids=frozenset({ComponentID(id_) for id_ in {"wifi", "webserver"}}),
                 ),
             ],
         )
@@ -134,7 +145,21 @@ class TestPipeline(unittest.TestCase):
         )
         self.assertEqual(
             set(transformed_cps.components),
-            {ComponentID(id_) for id_ in {'gps', 'compass', 'uno_r4', 'serial', 'uno_r3', 'pwm_channel_esc', 'pwm_channel_servo', 'esc', 'steering', 'motor'}},
+            {
+                ComponentID(id_)
+                for id_ in {
+                    "gps",
+                    "compass",
+                    "uno_r4",
+                    "serial",
+                    "uno_r3",
+                    "pwm_channel_esc",
+                    "pwm_channel_servo",
+                    "esc",
+                    "steering",
+                    "motor",
+                }
+            },
             "Looks like we added or removed some components from the NGCRover device model. Fix this test appropriately.",
         )
 
@@ -168,18 +193,17 @@ class TestPipeline(unittest.TestCase):
         self.assertIn(
             cpv_paths_without_vulns,
             (None, []),
-            "Shouldn't be able to find a wifi-based CPV when the wifi module isn't an entry point"
+            "Shouldn't be able to find a wifi-based CPV when the wifi module isn't an entry point",
         )
         vulns = [wifi_auth_vuln]
         _, cpv_paths_with_vulns = identify(cps, initial_state, cpv_model=cpv, vulns=vulns)
         self.assertIsNotNone(
-            cpv_paths_with_vulns,
-            "Should find a wifi-based CPV when the wifi auth vuln adds wifi as an entry point"
+            cpv_paths_with_vulns, "Should find a wifi-based CPV when the wifi auth vuln adds wifi as an entry point"
         )
         self.assertGreater(
-            len(cpv_paths_with_vulns), # type: ignore
+            len(cpv_paths_with_vulns),  # type: ignore
             0,
-            "Should find a wifi-based CPV when the wifi auth vuln adds wifi as an entry point"
+            "Should find a wifi-based CPV when the wifi auth vuln adds wifi as an entry point",
         )
 
     def test_identifier_hypothesis(self):
@@ -197,7 +221,7 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual(
             len(effects),
             1,
-            "Oops, fix this test to take into account that LackWifiAuthenticationVuln returns more (or fewer?) than one effect now."
+            "Oops, fix this test to take into account that LackWifiAuthenticationVuln returns more (or fewer?) than one effect now.",
         )
         effect = effects[0]
 
@@ -221,7 +245,7 @@ class TestPipeline(unittest.TestCase):
         )
         self.assertFalse(
             identifier.check_hypothesis(cpv, hypothesis_no_annotations),
-            "Without annotations, the hypothesis shouldn't find a match, but it did!"
+            "Without annotations, the hypothesis shouldn't find a match, but it did!",
         )
 
         # Verify that with an annotation added that has the effects of LackWifiAuthenticationVuln, the WifiWebCrashCPV
@@ -229,16 +253,18 @@ class TestPipeline(unittest.TestCase):
         hypothesis_with_annotations = Hypothesis(
             description="Null hypothesis (lol)",
             path=wifi_web_crash_path,
-            annotations=[Annotation(
-                attack_surface=ComponentID("wifi"),
-                underlying_vulnerability=None, # we could put wifi_auth_vuln here but it's not needed
-                effect=effect,
-                attack_model="foo",
-            )],
+            annotations=[
+                Annotation(
+                    attack_surface=ComponentID("wifi"),
+                    underlying_vulnerability=None,  # we could put wifi_auth_vuln here but it's not needed
+                    effect=effect,
+                    attack_model="foo",
+                )
+            ],
         )
         self.assertTrue(
             identifier.check_hypothesis(cpv, hypothesis_with_annotations),
-            "With annotations, the hypothesis should find a match, but it didn't!"
+            "With annotations, the hypothesis should find a match, but it didn't!",
         )
 
     def test_device_int_compids(self):
@@ -249,19 +275,20 @@ class TestPipeline(unittest.TestCase):
         new_components = {compid_mapping[orig_id]: comp for orig_id, comp in cps.components.items()}
         new_graph = nx.DiGraph()
         for comp_id, data in cps.component_graph.nodes(data=True):
-            new_graph.add_node(compid_mapping[comp_id], **data) # type: ignore
-        for from_, to, data in cps.component_graph.edges(data=True): # type: ignore
-            new_graph.add_edge(compid_mapping[from_], compid_mapping[to], **data) # type: ignore
+            new_graph.add_node(compid_mapping[comp_id], **data)  # type: ignore
+        for from_, to, data in cps.component_graph.edges(data=True):  # type: ignore
+            new_graph.add_edge(compid_mapping[from_], compid_mapping[to], **data)  # type: ignore
 
         new_cps: Device[int] = Device(name="foo", components=new_components, component_graph=new_graph)
         initial_state: GlobalState[int] = GlobalState(new_cps.components)
 
         _, cpv_paths = identify(cps, initial_state, cpv_model=MavlinkSiKCPV())
         self.assertIsNotNone(cpv_paths)
-        self.assertGreater(len(cpv_paths), 0) # type: ignore
-        path = cpv_paths[0].path # type: ignore
+        self.assertGreater(len(cpv_paths), 0)  # type: ignore
+        path = cpv_paths[0].path  # type: ignore
         self.assertIsInstance(path[0].component, GCS)
         self.assertIsInstance(path[-1].component, MultiCopterMotor)
+
 
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)
