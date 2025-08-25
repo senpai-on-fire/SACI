@@ -30,11 +30,11 @@ jobs:
 
       - name: Ruff linter
         run: |
-          ruff check --output-format=github saci/
+          ruff check --output-format=github saci/ tests/
 
       - name: Ruff formatting checker
         run: |
-          ruff format --diff saci/
+          ruff format --diff saci/ tests/
 
       - name: Pyright
         run: |
