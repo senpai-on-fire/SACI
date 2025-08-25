@@ -256,6 +256,12 @@ function App() {
     setBpId(newBpId);
     setHypId(null);
     setShowHypothesisTestPanel(false);
+    // Reset component selection and related state when switching devices
+    setSelectedComponent(null);
+    setActiveCPV(undefined);
+    setHoveredComponent(null);
+    setHoveredComponents(null);
+    setHoveringAnalysis(null);
   };
 
   let panelInner = null;

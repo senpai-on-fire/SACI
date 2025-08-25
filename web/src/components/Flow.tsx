@@ -66,6 +66,10 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
       setState({state: "nodevice"});
       return;
     }
+    
+    // Reset annotation state when device changes
+    setActiveAnnotationNode(null);
+    
     setState({state: "laying"});
     const elkGraph = {
       id: "root",
@@ -121,6 +125,15 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
     
     const groupedAnnotations = groupAnnotationsByComponentId(device.annotations);
 
+    // Filter highlights to only include components that exist in the current device
+    const safeHighlights = {
+      ...highlights,
+      involved: highlights?.involved?.filter(compId => device.components[compId]) || null,
+      activePath: highlights?.activePath?.filter(compId => device.components[compId]) || null,
+      hypothesisPath: highlights?.hypothesisPath?.filter(compId => device.components[compId]) || null,
+      hoveredComponent: highlights?.hoveredComponent && device.components[highlights.hoveredComponent] ? highlights.hoveredComponent : null,
+    };
+
     // Create the regular nodes
     nodes = Object.entries(device.components).map(([compId, comp]) => {
       let className = 'react-flow__node-default ';
@@ -151,7 +164,7 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
       };
     });
     
-    // Add annotation node if active
+    // Add annotation node if active and component exists in current device
     const compId = activeAnnotationNode;
     if (compId && device.components[compId]) {
       const sourceNode = nodes.find(node => node.id === compId);
@@ -193,14 +206,14 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
         // Create edges for device connections only (no annotation edges)
         edges = device.connections.map(([from, to]) => {
           const isAnimated = Boolean(
-            (highlights?.activePath && 
-            highlights.activePath.length > 1 && 
-            highlights.activePath.indexOf(from) !== -1 && 
-            highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1) ||
-            (highlights?.hypothesisPath &&
-            highlights.hypothesisPath.length > 1 &&
-            highlights.hypothesisPath.indexOf(from) !== -1 &&
-            highlights.hypothesisPath.indexOf(to) === highlights.hypothesisPath.indexOf(from) + 1)
+            (safeHighlights?.activePath && 
+            safeHighlights.activePath.length > 1 && 
+            safeHighlights.activePath.indexOf(from) !== -1 && 
+            safeHighlights.activePath.indexOf(to) === safeHighlights.activePath.indexOf(from) + 1) ||
+            (safeHighlights?.hypothesisPath &&
+            safeHighlights.hypothesisPath.length > 1 &&
+            safeHighlights.hypothesisPath.indexOf(from) !== -1 &&
+            safeHighlights.hypothesisPath.indexOf(to) === safeHighlights.hypothesisPath.indexOf(from) + 1)
           );
                           
           return {
@@ -214,14 +227,14 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
       } else {
         edges = device.connections.map(([from, to]) => {
           const isAnimated = Boolean(
-            (highlights?.activePath && 
-            highlights.activePath.length > 1 && 
-            highlights.activePath.indexOf(from) !== -1 && 
-            highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1) ||
-            (highlights?.hypothesisPath &&
-            highlights.hypothesisPath.length > 1 &&
-            highlights.hypothesisPath.indexOf(from) !== -1 &&
-            highlights.hypothesisPath.indexOf(to) === highlights.hypothesisPath.indexOf(from) + 1)
+            (safeHighlights?.activePath && 
+            safeHighlights.activePath.length > 1 && 
+            safeHighlights.activePath.indexOf(from) !== -1 && 
+            safeHighlights.activePath.indexOf(to) === safeHighlights.activePath.indexOf(from) + 1) ||
+            (safeHighlights?.hypothesisPath &&
+            safeHighlights.hypothesisPath.length > 1 &&
+            safeHighlights.hypothesisPath.indexOf(from) !== -1 &&
+            safeHighlights.hypothesisPath.indexOf(to) === safeHighlights.hypothesisPath.indexOf(from) + 1)
           );
                           
           return {
@@ -236,14 +249,14 @@ export function Flow({bpId, device, onComponentClick, onPaneClick, children, hig
     } else {
       edges = device.connections.map(([from, to]) => {
         const isAnimated = Boolean(
-          (highlights?.activePath && 
-          highlights.activePath.length > 1 && 
-          highlights.activePath.indexOf(from) !== -1 && 
-          highlights.activePath.indexOf(to) === highlights.activePath.indexOf(from) + 1) ||
-          (highlights?.hypothesisPath &&
-          highlights.hypothesisPath.length > 1 &&
-          highlights.hypothesisPath.indexOf(from) !== -1 &&
-          highlights.hypothesisPath.indexOf(to) === highlights.hypothesisPath.indexOf(from) + 1)
+          (safeHighlights?.activePath && 
+          safeHighlights.activePath.length > 1 && 
+          safeHighlights.activePath.indexOf(from) !== -1 && 
+          safeHighlights.activePath.indexOf(to) === safeHighlights.activePath.indexOf(from) + 1) ||
+          (safeHighlights?.hypothesisPath &&
+          safeHighlights.hypothesisPath.length > 1 &&
+          safeHighlights.hypothesisPath.indexOf(from) !== -1 &&
+          safeHighlights.hypothesisPath.indexOf(to) === safeHighlights.hypothesisPath.indexOf(from) + 1)
         );
                         
         return {
