@@ -77,7 +77,11 @@ class IdentifierCPV(Generic[CID]):
                         stack.append((neighbor, new_path))
 
                 # If the current path is valid, add it to the result
-                if cpv.is_possible_path([device.components[comp_id] for comp_id in path]):
+                if (
+                    cpv.is_possible_path([device.components[comp_id] for comp_id in path])
+                    and cpv.matches_entry(device.components[path[0]])
+                    and cpv.matches_exit(device.components[path[-1]])
+                ):
                     cpv_paths.append(path)
 
         return [tuple(IdentifiedComponent.from_id(device, comp_id) for comp_id in path) for path in cpv_paths]
