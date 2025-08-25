@@ -21,6 +21,7 @@ from sqlalchemy.orm import (
 )
 
 from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent, Annotation as SaciAnnotation
+from saci.modeling.device.device import ComponentID
 from saci.hypothesis import Hypothesis as SaciHypothesis
 from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
 
@@ -149,14 +150,14 @@ class Hypothesis(Base):
             extra_text=self.extra_text,
         )
 
-    def to_saci_hypothesis(self) -> SaciHypothesis[int]:
+    def to_saci_hypothesis(self) -> SaciHypothesis:
         """Convert to a saci.hypothesis.Hypothesis for reasoning.
 
         Depends on Hypothesis.annotations being loaded or loadable.
         """
         return SaciHypothesis(
             description=self.name,
-            path=self.path,
+            path=[ComponentID(str(comp_id)) for comp_id in self.path],
             annotations=[annot.to_saci_annotation() for annot in self.annotations],
         )
 
@@ -195,14 +196,14 @@ class Annotation(Base):
         if self.attack_surface.device_id != self.device_id:
             raise ValueError("Annotation's attack_surface should be a component of the annotation's device")
 
-    def to_saci_annotation(self) -> SaciAnnotation[int]:
+    def to_saci_annotation(self) -> SaciAnnotation:
         match self.effect:
             case "entry":
-                effect = MakeEntryEffect("annotation", frozenset([self.attack_surface_id]))
+                effect = MakeEntryEffect("annotation", frozenset([ComponentID(str(self.attack_surface_id))]))
             case _:
                 effect = VulnerabilityEffect("annotation")
         return SaciAnnotation(
-            attack_surface=self.attack_surface_id,
+            attack_surface=ComponentID(str(self.attack_surface_id)),
             effect=effect,
             attack_model=self.attack_model,
             underlying_vulnerability=None,
@@ -251,10 +252,10 @@ class Device(Base):
         for comp in self.components:
             graph.add_node(comp.id, is_entry=bool(comp.is_entry))
         for conn in self.connections:
-            graph.add_edge(conn.from_component_id, conn.to_component_id)
+            graph.add_edge(ComponentID(str(conn.from_component_id)), ComponentID(str(conn.to_component_id)))
         return SaciDevice(
             name=self.name,
-            components={comp.id: comp.to_saci_component() for comp in self.components},
+            components={ComponentID(str(comp.id)): comp.to_saci_component() for comp in self.components},
             component_graph=graph,
         )
 

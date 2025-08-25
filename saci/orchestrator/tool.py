@@ -1,12 +1,12 @@
 import logging
 import os
-from collections.abc import Hashable
 from dataclasses import dataclass
-from typing import Literal, TypeVar
+from typing import Literal
 
 from pydantic import BaseModel
 
 from saci.modeling.device import ComponentBase, Device, Controller, CompassSensor, Servo, ESC, PWMChannel, Motor
+from saci.modeling.device.device import ComponentID
 
 l = logging.getLogger(__name__)
 
@@ -17,16 +17,13 @@ class Container:
     config_type: type[BaseModel]
 
 
-CID = TypeVar("CID", bound=Hashable)
-
-
 @dataclass(frozen=True)
 class Tool:
     name: str
     containers: tuple[Container]
     compatible_comptypes: frozenset[type[ComponentBase]]
 
-    def compatible_components(self, device: Device[CID]) -> list[CID]:
+    def compatible_components(self, device: Device) -> list[ComponentID]:
         return [
             comp_id
             for comp_id, comp in device.components.items()

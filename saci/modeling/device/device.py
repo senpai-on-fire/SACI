@@ -1,7 +1,5 @@
-from collections.abc import Hashable
 from dataclasses import dataclass
 from typing import ClassVar, Optional, Union
-from typing_extensions import TypeVar, Generic
 
 import networkx as nx
 from clorm import Predicate
@@ -11,23 +9,17 @@ from .componentid import ComponentID
 from ..state import GlobalState
 
 
-# In the examples, and in manual reasoning, strings can be more convenient so as to be human-readable. But from the web
-# frontend we'd like to use database primary keys. Thus this generic. Eventually we'll get rid of the weird ComponentID
-# type alias we're using too, but I'm keeping it now for fewer changes.
-CID = TypeVar("CID", bound=Hashable)
-
-
-class Device(Generic[CID]):
+class Device:
     crash_atom: ClassVar[Predicate]
     description: ClassVar[str]
     name: str
-    components: dict[CID, ComponentBase]
+    components: dict[ComponentID, ComponentBase]
     component_graph: nx.DiGraph
 
     def __init__(
         self,
         name: str,
-        components: list[ComponentBase] | dict[CID, ComponentBase],
+        components: list[ComponentBase] | dict[ComponentID, ComponentBase],
         # communication and mappings between components
         component_graph: Optional[nx.DiGraph] = None,
         state: Optional[GlobalState] = None,
@@ -57,17 +49,17 @@ class Device(Generic[CID]):
 
 
 @dataclass(frozen=True)
-class IdentifiedComponent(Generic[CID]):
-    id_: CID
+class IdentifiedComponent:
+    id_: ComponentID
     component: ComponentBase
 
     @classmethod
-    def from_id(cls, device: Device[CID], comp_id: CID) -> "IdentifiedComponent[CID]":
+    def from_id(cls, device: Device, comp_id: ComponentID) -> "IdentifiedComponent":
         return cls(comp_id, device.components[comp_id])  # type: ignore
 
 
-class DeviceFragment(Generic[CID]):
-    def __init__(self, parent: Union[Device[CID], "DeviceFragment"], components: list[CID]):
+class DeviceFragment:
+    def __init__(self, parent: Union[Device, "DeviceFragment"], components: list[ComponentID]):
         self.parent = parent
         self.components = components
 

@@ -9,7 +9,7 @@ from saci.modeling.annotation import Annotation
 from saci.modeling.cpv import CPV
 from saci.modeling.cpvpath import CPVPath
 from saci.modeling.device.component.component_base import ComponentBase
-from saci.modeling.device.device import Device
+from saci.modeling.device.device import Device, ComponentID
 from saci.modeling.vulnerability.base_vuln import VulnerabilityEffect
 
 
@@ -39,16 +39,16 @@ class AnnotationModel(BaseModel):
     attack_model: str | None
 
     @staticmethod
-    def from_annotationn(annot: Annotation[WebComponentID]) -> AnnotationModel:
+    def from_annotationn(annot: Annotation) -> AnnotationModel:
         return AnnotationModel(
-            attack_surface=annot.attack_surface,
+            attack_surface=int(annot.attack_surface) if isinstance(annot.attack_surface, str) else annot.attack_surface,
             effect=annot.effect.reason,
             attack_model=annot.attack_model,
         )
 
-    def to_annotation(self) -> Annotation[WebComponentID]:
+    def to_annotation(self) -> Annotation:
         return Annotation(
-            attack_surface=self.attack_surface,
+            attack_surface=ComponentID(str(self.attack_surface)),
             effect=VulnerabilityEffect(reason=self.effect),
             attack_model=self.attack_model,
             underlying_vulnerability=None,
@@ -69,10 +69,10 @@ class HypothesisModel(BaseModel):
         default=None,
     )
 
-    def to_hypothesis(self, annotation_mapping: dict[AnnotationID, Annotation]) -> Hypothesis[WebComponentID]:
+    def to_hypothesis(self, annotation_mapping: dict[AnnotationID, Annotation]) -> Hypothesis:
         return Hypothesis(
             description=self.name,
-            path=self.path,
+            path=[ComponentID(str(comp_id)) for comp_id in self.path],
             assumptions=[],  # hopefully my idea for assumptions will come to pass... i think at some point they will
             # merge with annotations. but for now, empty
             annotations=[annotation_mapping[annot_id] for annot_id in self.annotations],
@@ -93,12 +93,18 @@ class DeviceModel(BaseModel):
     def from_device(
         bp: Device,
         hypotheses: dict[HypothesisID, HypothesisModel],
-        annotations: dict[AnnotationID, Annotation[WebComponentID]],
+        annotations: dict[AnnotationID, Annotation],
     ) -> DeviceModel:
         return DeviceModel(
             name=bp.name,
-            components={comp_id: ComponentModel.from_component(comp) for comp_id, comp in bp.components.items()},
-            connections=list(bp.component_graph.edges),
+            components={
+                int(comp_id) if isinstance(comp_id, str) else comp_id: ComponentModel.from_component(comp)
+                for comp_id, comp in bp.components.items()
+            },
+            connections=[
+                (int(from_id) if isinstance(from_id, str) else from_id, int(to_id) if isinstance(to_id, str) else to_id)
+                for from_id, to_id in bp.component_graph.edges
+            ],
             hypotheses=hypotheses,
             annotations={annot_id: AnnotationModel.from_annotationn(annot) for annot_id, annot in annotations.items()},
         )
@@ -123,7 +129,7 @@ class CPVPathModel(BaseModel):
 
     @staticmethod
     def from_cpv_path(path: CPVPath) -> CPVPathModel:
-        return CPVPathModel(path=[c.id_ for c in path.path])
+        return CPVPathModel(path=[int(c.id_) if isinstance(c.id_, str) else c.id_ for c in path.path])
 
 
 class CPVResultModel(BaseModel):

@@ -1,14 +1,10 @@
-from collections.abc import Hashable
 from dataclasses import dataclass
-from typing_extensions import Generic, TypeVar
 
 from ..device import ComponentBase
-
-
-CID = TypeVar("CID", bound=Hashable)
+from ..device.device import ComponentID
 
 
 @dataclass(frozen=True)
-class GlobalState(Generic[CID]):
-    components: dict[CID, ComponentBase]
+class GlobalState:
+    components: dict[ComponentID, ComponentBase]
     time: int = 0

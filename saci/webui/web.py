@@ -37,7 +37,6 @@ from saci.webui.web_models import (
     HypothesisID,
     HypothesisModel,
     ParameterTypeModel,
-    WebComponentID,
 )
 from saci_db.cpvs import CPVS
 
@@ -132,7 +131,7 @@ def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response)
         raise HTTPException(status_code=400, detail="Malformed blueprint")
 
     if not bp_id:
-        bp_id = blueprint.id or blueprint.name
+        bp_id = str(blueprint.id or blueprint.name)
 
     with db.get_session() as session, session.begin():
         # TODO: actually update
@@ -194,13 +193,11 @@ def fetch_saci_db_device(
         return db_device
 
 
-def fetch_saci_device(session: Session, bp_id: str) -> Device[WebComponentID]:
+def fetch_saci_device(session: Session, bp_id: str) -> Device:
     return fetch_saci_db_device(session, bp_id).to_saci_device()
 
 
-def fetch_saci_device_and_annotations(
-    session: Session, bp_id: str
-) -> tuple[Device[WebComponentID], list[Annotation[WebComponentID]]]:
+def fetch_saci_device_and_annotations(session: Session, bp_id: str) -> tuple[Device, list[Annotation]]:
     db_device = fetch_saci_db_device(session, bp_id, with_annotations=True)
     return db_device.to_saci_device(), [annot.to_saci_annotation() for annot in db_device.annotations]
 
@@ -343,7 +340,7 @@ def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
     return {
         tool_id: AnalysisUserInfo(
             name=tool.name,
-            components_included=tool.compatible_components(device),
+            components_included=[int(comp_id) for comp_id in tool.compatible_components(device)],
         )
         for tool_id, tool in TOOLS.items()
     }
