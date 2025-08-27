@@ -26,6 +26,31 @@ from .control.localizer import (
 from .sik_radio import SikRadio as SikRadio
 from .interface.wifi import Wifi as Wifi
 from .mavlink import Mavlink as Mavlink
+from .interface.can_bus import (
+    CANBus as CANBus,
+    CANBusAlgorithmic as CANBusAlgorithmic,
+    CANBusHardware as CANBusHardware,
+    CANBusHardwareCircuit as CANBusHardwareCircuit,
+    CANBusHardwareHigh as CANBusHardwareHigh,
+    CANBusHardwarePackage as CANBusHardwarePackage,
+    CANBusHardwareTechnology as CANBusHardwareTechnology,
+    CANBusHigh as CANBusHigh,
+)
+from .interface.can_shield import (
+    CANShield as CANShield,
+    CANShieldCircuit as CANShieldCircuit,
+    CANShieldPackage as CANShieldPackage,
+    CANShieldTechnology as CANShieldTechnology,
+    CANShieldHigh as CANShieldHigh,
+)
+from .interface.can_transceiver import (
+    CANTransceiver as CANTransceiver,
+    CANTransceiverCircuit as CANTransceiverCircuit,
+    CANTransceiverPackage as CANTransceiverPackage,
+    CANTransceiverTechnology as CANTransceiverTechnology,
+    CANTransceiverHigh as CANTransceiverHigh,
+)
+
 from .interface.serial import (
     Serial as Serial,
     SerialHigh as SerialHigh,
