@@ -115,6 +115,16 @@ class CPV:
 
         return req_i == len(self.required_components)
 
+    def matches_entry(self, component: ComponentBase) -> bool:
+        if self.entry_component is None:
+            return True
+        return isinstance(component, type(self.entry_component))
+
+    def matches_exit(self, component: ComponentBase) -> bool:
+        if self.exit_component is None:
+            return True
+        return isinstance(component, type(self.exit_component))
+
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
 
