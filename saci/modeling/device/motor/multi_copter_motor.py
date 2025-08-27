@@ -1,5 +1,7 @@
 from claripy import BVS
 
+from saci.modeling.device.motor.motor import Motor
+
 from ..component import (
     CyberComponentBase,
     CyberComponentSourceCode,
@@ -130,7 +132,7 @@ class MultiCopterMotorHardwareTechnology(HardwareTechnology):
 # =================== Full MultiCopter Motor Component Abstraction (Cyber) ===================
 
 
-class MultiCopterMotor(CyberComponentBase):
+class MultiCopterMotor(Motor):
     __slots__ = ("ABSTRACTIONS", "variables")
 
     def __init__(self, **kwargs):
