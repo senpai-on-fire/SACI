@@ -3,7 +3,6 @@ from claripy import BVS
 from saci.modeling.device.motor.motor import Motor
 
 from ..component import (
-    CyberComponentBase,
     CyberComponentSourceCode,
     CyberComponentBinary,
     CyberAbstractionLevel,
