@@ -1,7 +1,8 @@
 from claripy import BVS
 
+from saci.modeling.device.motor.steering import Steering
+
 from ..component import (
-    CyberComponentBase,
     CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentSourceCode,
@@ -137,7 +138,7 @@ class MotorHardwareTechnology(HardwareTechnology):
 # =================== Full Motor Component Abstraction (Cyber) ===================
 
 
-class Motor(CyberComponentBase):
+class Motor(Steering):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, **kwargs):
