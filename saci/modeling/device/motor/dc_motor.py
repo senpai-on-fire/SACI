@@ -9,6 +9,7 @@ from ..component import (
     CyberAbstractionLevel,
 )
 from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
+from saci.modeling.device.motor.motor import Motor
 
 import logging
 
@@ -139,7 +140,7 @@ class DCMotorHardwareTechnology(HardwareTechnology):
 # =================== Full DC Motor Component Abstraction (Cyber) ===================
 
 
-class DCMotor(CyberComponentBase):
+class DCMotor(Motor):
     __slots__ = ("ABSTRACTIONS", "variables")
 
     def __init__(self, **kwargs):
