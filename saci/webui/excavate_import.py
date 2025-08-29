@@ -130,8 +130,9 @@ class System(BaseModel):
         # TODO: remove this hack! currently excavate sometimes adds quotes around the saciType. this jankily detects
         # this behavior and strips them if present
         saciType = self.saciType[1:-1] if self.saciType is not None and self.saciType.startswith('"') else self.saciType
+        # Tag everything as an entry point when importing from excavate
         system_to_component[id(self)] = db.Component(
-            name=self.name, type_=saciType, parameters=parameters, is_entry=False
+            name=self.name, type_=saciType, parameters=parameters, is_entry=True
         )
 
         return system_to_component
@@ -178,6 +179,15 @@ class System(BaseModel):
         # Third collect connections from all interfaces
         connections = self.collect_db_connections(port_to_system, system_to_component)
 
+        annotations = []
+        for comp in system_to_component.values():
+            annotations.append(db.Annotation(
+                attack_surface=comp,
+                effect="entry",
+                attack_model=None,
+                device_id=device_id,
+            ))
+
         return db.Device(
             id=device_id,
             name=self.name,
@@ -185,7 +195,7 @@ class System(BaseModel):
             components=list(system_to_component.values()),
             connections=connections,
             hypotheses=[],
-            annotations=[],
+            annotations=annotations,
         )
 
 
