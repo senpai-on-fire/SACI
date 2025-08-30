@@ -93,7 +93,7 @@ class Accelerometer(Sensor):
 # =================== Hardware Abstractions ===================
 
 
-class AccelerometerHardware(Sensor):
+class AccelerometerHardware(Accelerometer):
     """
     Hardware-level accelerometer model, capturing physical/mechanical/electrical attributes.
     """
