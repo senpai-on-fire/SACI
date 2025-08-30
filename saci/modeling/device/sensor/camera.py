@@ -3,7 +3,6 @@ from claripy import BVS
 from .sensor import SensorHigh, SensorAlgorithmic, Sensor
 from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
 from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
-from saci.modeling.communication import BaseCommunication
 
 import logging
 
@@ -11,8 +10,8 @@ _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class CameraHigh(SensorHigh):
 
+class CameraHigh(SensorHigh):
     __slots__ = SensorHigh.__slots__ + ("powered",)
 
     def __init__(self, powered: bool = True, **kwargs):
@@ -25,8 +24,8 @@ class CameraHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class CameraAlgorithmic(SensorAlgorithmic):
 
+class CameraAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + ("powered",)
 
     def __init__(self, powered: bool = True, **kwargs):
@@ -52,15 +51,11 @@ class CameraAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class Camera(Sensor):
 
+class Camera(Sensor):
     __slots__ = ("ABSTRACTIONS", "powered")
 
-    def __init__(
-        self,
-        powered: bool = True,
-        **kwargs
-    ):
+    def __init__(self, powered: bool = True, **kwargs):
         """
         :param powered: Whether the camera is powered on.
         """
@@ -79,17 +74,23 @@ class Camera(Sensor):
 
 # =================== Hardware Abstractions ===================
 
-class CameraHWHigh(HardwareHigh):
 
+class CameraHWHigh(HardwareHigh):
     def __init__(self, **kwargs):
         super().__init__(modality="camera", **kwargs)
 
 
 class CameraHWPackage(HardwarePackage):
-
     KNOWN_CHIP_NAMES = [
-        "IMX219", "IMX477", "OV5647", "AR0330", "GC2145",
-        "SONY_EXMOR", "MT9V034", "PYTHON500", "Lepton3"
+        "IMX219",
+        "IMX477",
+        "OV5647",
+        "AR0330",
+        "GC2145",
+        "SONY_EXMOR",
+        "MT9V034",
+        "PYTHON500",
+        "Lepton3",
     ]
 
     def __init__(self, camera_name, camera_vendor, **kwargs):
@@ -103,7 +104,6 @@ class CameraHWPackage(HardwarePackage):
 
 
 class CameraHWTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["CMOS", "CCD", "Infrared", "Thermal", "LiDAR"]
 
     def __init__(self, technology, **kwargs):

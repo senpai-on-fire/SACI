@@ -1,8 +1,14 @@
 from typing import Optional
 from saci.modeling.device.component.component_base import Port, Ports, union_ports, PortDirection
-from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from .component import (
+    CyberComponentHigh,
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentSourceCode,
+    CyberComponentBinary,
+)
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from ..communication import BaseCommunication, UARTProtocol
+from ..communication import BaseCommunication
 
 
 class DebugHigh(CyberComponentHigh):
@@ -35,16 +41,18 @@ class DebugAlgorithmic(CyberComponentAlgorithmic):
 
 
 class Debug(CyberComponentBase):
-
     __slots__ = ("ABSTRACTIONS",)
 
-    def __init__(self, ports: Optional[Ports]=None, **kwargs):
+    def __init__(self, ports: Optional[Ports] = None, **kwargs):
         super().__init__(
-            ports=union_ports({
-                "RF": Port(direction=PortDirection.INOUT),
-                "Control": Port(direction=PortDirection.INOUT),
-            }, ports),
-            **kwargs
+            ports=union_ports(
+                {
+                    "RF": Port(direction=PortDirection.INOUT),
+                    "Control": Port(direction=PortDirection.INOUT),
+                },
+                ports,
+            ),
+            **kwargs,
         )
 
         self.ABSTRACTIONS = {

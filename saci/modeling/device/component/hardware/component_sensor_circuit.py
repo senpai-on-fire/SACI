@@ -5,16 +5,22 @@ from saci.modeling.device.component.hardware.hardware_abstraction_level import H
 
 import claripy
 
+
 class SensorCircuit(HardwareComponentBase):
-    __state_slots__ = HardwareComponentBase.__state_slots__ + ("internal_voltages", )
-    __slots__ = HardwareComponentBase.__slots__ + ("PhysicalSensorDesign", "SignalProcessingChain", "ADC", "internal_voltages",)
+    __state_slots__ = HardwareComponentBase.__state_slots__ + ("internal_voltages",)
+    __slots__ = HardwareComponentBase.__slots__ + (
+        "PhysicalSensorDesign",
+        "SignalProcessingChain",
+        "ADC",
+        "internal_voltages",
+    )
 
     def __init__(
         self,
         abstraction=HardwareAbstractionLevel.CIRCUIT,
-        PhysicalSensorDesign = None,
-        SignalProcessingChain = None,
-        ADC = None, 
+        PhysicalSensorDesign=None,
+        SignalProcessingChain=None,
+        ADC=None,
         internal_voltages: Optional[dict[str, claripy.ast.bv.BV]] = None,
         **kwargs,
     ):
@@ -23,8 +29,7 @@ class SensorCircuit(HardwareComponentBase):
         self.SignalProcessingChain = SignalProcessingChain
         self.ADC = ADC
         self.internal_voltages = internal_voltages or {}
-    
+
     @property
     def v(self):
         return self.internal_voltages
-    

@@ -7,6 +7,7 @@ class HardwareComponentBase(ComponentBase):
     A CyberComponentBase is the base class for all components in the system. A component, at a high-level, is any device
     in the full system that can talk to at least one other device.
     """
+
     __state_slots__ = ComponentBase.__state_slots__ + ()
     __slots__ = ComponentBase.__slots__ + ("abstraction_level",)
 

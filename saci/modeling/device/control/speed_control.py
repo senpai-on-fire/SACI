@@ -1,9 +1,14 @@
-from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from saci.modeling.device.component import (
+    CyberComponentHigh,
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentSourceCode,
+    CyberComponentBinary,
+)
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
 
 class SpeedControlLogicHigh(CyberComponentHigh):
-
     __slots__ = ("max_speed", "min_speed", "current_speed")
 
     def __init__(self, max_speed=20.0, min_speed=0.0, current_speed=0.0, **kwargs):
@@ -19,7 +24,6 @@ class SpeedControlLogicHigh(CyberComponentHigh):
 
 
 class SpeedControlLogicAlgorithmic(CyberComponentAlgorithmic):
-
     __slots__ = ("max_speed", "min_speed", "current_speed", "speed_adjustment_params")
 
     def __init__(self, max_speed=20.0, min_speed=0.0, current_speed=0.0, speed_adjustment_params=None, **kwargs):
@@ -69,7 +73,6 @@ class SpeedControlLogicAlgorithmic(CyberComponentAlgorithmic):
 
 
 class SpeedControlLogic(CyberComponentBase):
-
     __slots__ = ("ABSTRACTIONS", "max_speed", "min_speed", "current_speed", "speed_adjustment_params")
 
     def __init__(self, max_speed=20.0, min_speed=0.0, current_speed=0.0, speed_adjustment_params=None, **kwargs):
