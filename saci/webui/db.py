@@ -101,32 +101,39 @@ class Port(Base):
 
 
 class Connection(Base):
-    __tablename__ = "component_connections"
+    __tablename__ = "port_connections"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    from_component_id = mapped_column(ForeignKey("components.id"))
-    to_component_id = mapped_column(ForeignKey("components.id"))
-    device_id = mapped_column(ForeignKey("devices.id"))
+    from_port_id: Mapped[int] = mapped_column(ForeignKey("ports.id"))
+    to_port_id: Mapped[int] = mapped_column(ForeignKey("ports.id"))
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id"))
 
-    from_component: Mapped[Component] = relationship(foreign_keys=from_component_id)
-    to_component: Mapped[Component] = relationship(foreign_keys=to_component_id)
+    from_port: Mapped[Port] = relationship(foreign_keys=[from_port_id])
+    to_port: Mapped[Port] = relationship(foreign_keys=[to_port_id])
     device: Mapped["Device"] = relationship(back_populates="connections")
 
-    # we should have from_component.device == to_component.device == device
+    # we should have from_port.component.device == to_port.component.device == device
     # (in this case we might not need device ourselves here? but keeping it for now)
 
     @classmethod
-    def from_connection_tuple(cls, conn_tuple: tuple[int, int], device_id: str) -> Connection:
+    def from_port_tuple(cls, port_tuple: tuple[int, int], device_id: str) -> Connection:
         return cls(
-            from_component_id=conn_tuple[0],
-            to_component_id=conn_tuple[1],
+            from_port_id=port_tuple[0],
+            to_port_id=port_tuple[1],
             device_id=device_id,
         )
 
-    def to_connection_tuple(self) -> tuple[int, int]:
+    def to_port_tuple(self) -> tuple[int, int]:
         return (
-            self.from_component_id,
-            self.to_component_id,
+            self.from_port_id,
+            self.to_port_id,
+        )
+
+    def to_component_tuple(self) -> tuple[int, int]:
+        """Legacy method for compatibility - returns component IDs instead of port IDs"""
+        return (
+            self.from_port.component_id,
+            self.to_port.component_id,
         )
 
 
@@ -242,8 +249,8 @@ class Device(Base):
         # Convert components
         components_dict = {comp.id: comp.to_web_model() for comp in self.components}
 
-        # Convert connections
-        connections_list = [conn.to_connection_tuple() for conn in self.connections]
+        # Convert connections - use component_tuple for backward compatibility with web models
+        connections_list = [conn.to_component_tuple() for conn in self.connections]
 
         # Convert hypotheses
         hypotheses_dict = {hyp.id: hyp.to_web_model() for hyp in self.hypotheses}
@@ -268,7 +275,8 @@ class Device(Base):
         for comp in self.components:
             graph.add_node(comp.id, is_entry=bool(comp.is_entry))
         for conn in self.connections:
-            graph.add_edge(conn.from_component_id, conn.to_component_id)
+            # Use component IDs from the connected ports for the graph edges
+            graph.add_edge(conn.from_port.component_id, conn.to_port.component_id)
         return SaciDevice(
             name=self.name,
             components={comp.id: comp.to_saci_component() for comp in self.components},
@@ -301,10 +309,25 @@ class Device(Base):
 
         for comp_id, is_entry in device.component_graph.nodes(data="is_entry", default=False):  # type: ignore
             components[comp_id].is_entry = is_entry  # type: ignore
-        connections = [
-            Connection(from_component=components[from_id], to_component=components[to_id])
-            for from_id, to_id in device.component_graph.edges
-        ]
+
+        # Create port-based connections
+        connections = []
+        for from_id, to_id in device.component_graph.edges:
+            from_component = components[from_id]
+            to_component = components[to_id]
+
+            # Find the first available port on each component
+            if from_component.ports and to_component.ports:
+                from_port = from_component.ports[0]  # Use first port
+                to_port = to_component.ports[0]  # Use first port
+
+                connections.append(
+                    Connection(
+                        from_port=from_port,
+                        to_port=to_port,
+                    )
+                )
+
         return Device(
             id=device_id,
             name=device.name,

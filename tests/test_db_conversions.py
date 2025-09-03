@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from saci.webui.db import Component, Connection, Hypothesis, Annotation, Device
+from saci.webui.db import Component, Connection, Hypothesis, Annotation, Device, Port
 from saci.webui.web_models import (
     ComponentModel,
     HypothesisModel,
@@ -59,40 +59,60 @@ class TestConnectionConversion(unittest.TestCase):
     def setUp(self):
         # Test data
         self.device_id = "test_device_1"
-        self.from_component = 1
-        self.to_component = 2
-        self.connection_tuple = (self.from_component, self.to_component)
+        self.from_component_id = 1
+        self.to_component_id = 2
+        self.from_port_id = 10
+        self.to_port_id = 20
+        self.port_tuple = (self.from_port_id, self.to_port_id)
+        self.component_tuple = (self.from_component_id, self.to_component_id)
 
-    def test_from_connection_tuple(self):
+        # Create test ports
+        self.from_port = Port(
+            id=self.from_port_id, name="output_port", direction="out", component_id=self.from_component_id
+        )
+        self.to_port = Port(id=self.to_port_id, name="input_port", direction="in", component_id=self.to_component_id)
+
+    def test_from_port_tuple(self):
         # Convert tuple to Connection
-        db_model = Connection.from_connection_tuple(self.connection_tuple, self.device_id)
+        db_model = Connection.from_port_tuple(self.port_tuple, self.device_id)
 
         # Verify conversion
-        self.assertEqual(db_model.from_component_id, self.from_component)
-        self.assertEqual(db_model.to_component_id, self.to_component)
-        self.assertEqual(db_model.device_id, self.device_id)
+        self.assertEqual(db_model.from_port_id, self.from_port_id)
+        self.assertEqual(db_model.to_port_id, self.to_port_id)
 
-    def test_to_connection_tuple(self):
+    def test_to_port_tuple(self):
         # Create DB model
         db_model = Connection(
-            from_component_id=self.from_component,
-            to_component_id=self.to_component,
-            device_id=self.device_id,
+            from_port_id=self.from_port_id,
+            to_port_id=self.to_port_id,
         )
 
         # Convert to tuple
-        conn_tuple = db_model.to_connection_tuple()
+        port_tuple = db_model.to_port_tuple()
 
         # Verify conversion
-        self.assertEqual(conn_tuple, self.connection_tuple)
+        self.assertEqual(port_tuple, self.port_tuple)
+
+    def test_to_component_tuple(self):
+        # Create DB model with port relationships
+        db_model = Connection(
+            from_port=self.from_port,
+            to_port=self.to_port,
+        )
+
+        # Convert to component tuple for backward compatibility
+        component_tuple = db_model.to_component_tuple()
+
+        # Verify conversion
+        self.assertEqual(component_tuple, self.component_tuple)
 
     def test_roundtrip_conversion(self):
-        # Tuple -> DB model -> Tuple
-        db_model = Connection.from_connection_tuple(self.connection_tuple, self.device_id)
-        roundtrip_tuple = db_model.to_connection_tuple()
+        # Port tuple -> DB model -> Port tuple
+        db_model = Connection.from_port_tuple(self.port_tuple, self.device_id)
+        roundtrip_tuple = db_model.to_port_tuple()
 
         # Verify no data loss
-        self.assertEqual(roundtrip_tuple, self.connection_tuple)
+        self.assertEqual(roundtrip_tuple, self.port_tuple)
 
 
 class TestHypothesisConversion(unittest.TestCase):
@@ -331,7 +351,7 @@ class TestDeviceConversion(unittest.TestCase):
         # Create an actual device with components, connections, hypotheses and annotations
         device = Device(id=self.device_id, name=self.device_name)
 
-        # Add actual components
+        # Add actual components with ports
         comp1 = Component(
             id=self.comp1_id,
             name=self.comp1_name,
@@ -344,13 +364,19 @@ class TestDeviceConversion(unittest.TestCase):
             parameters=self.comp2_params,
             device_id=self.device_id,
         )
+
+        # Add ports to components
+        port1 = Port(name="output_port", direction="out", component_id=self.comp1_id)
+        port2 = Port(name="input_port", direction="in", component_id=self.comp2_id)
+        comp1.ports = [port1]
+        comp2.ports = [port2]
+
         device.components = [comp1, comp2]
 
-        # Add actual connections
+        # Add actual connections (port-to-port)
         conn = Connection(
-            from_component_id=self.comp1_id,
-            to_component_id=self.comp2_id,
-            device_id=self.device_id,
+            from_port=port1,
+            to_port=port2,
         )
         device.connections = [conn]
 
@@ -396,7 +422,7 @@ class TestDeviceConversion(unittest.TestCase):
         self.assertEqual(comp2_model.name, self.comp2_name)
         self.assertEqual(comp2_model.parameters, self.comp2_params)
 
-        # Verify connections
+        # Verify connections - should return component tuples for backward compatibility
         self.assertEqual(len(result_web_model.connections), 1)
         self.assertIn(self.connection, result_web_model.connections)
 
