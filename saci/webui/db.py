@@ -21,6 +21,7 @@ from sqlalchemy.orm import (
 )
 
 from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent, Annotation as SaciAnnotation
+from saci.modeling.device.component.component_base import Port as SaciPort, PortDirection as SaciPortDirection
 from saci.hypothesis import Hypothesis as SaciHypothesis
 from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
 
@@ -66,6 +67,7 @@ class Component(Base):
     is_entry: Mapped[bool]
 
     device: Mapped["Device"] = relationship(back_populates="components")
+    ports: Mapped[list["Port"]] = relationship(back_populates="component", cascade="all, delete-orphan")
 
     @classmethod
     def from_web_model(cls, model: ComponentModel, device_id: str) -> Component:
@@ -80,7 +82,22 @@ class Component(Base):
 
     def to_saci_component(self) -> SaciComponent:
         cls = saci_type_mapping.get(self.type_, SaciComponent)
-        return cls(name=self.name, parameters=self.parameters)
+        ports_dict = {
+            port.name: SaciPort(direction=SaciPortDirection(port.direction) if port.direction else None)
+            for port in self.ports
+        }
+        return cls(name=self.name, parameters=self.parameters, ports=ports_dict)
+
+
+class Port(Base):
+    __tablename__ = "ports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    direction: Mapped[str | None]
+    component_id: Mapped[int] = mapped_column(ForeignKey("components.id"))
+
+    component: Mapped["Component"] = relationship(back_populates="ports")
 
 
 class Connection(Base):
@@ -270,6 +287,18 @@ class Device(Base):
             )
             for comp_id, comp in device.components.items()
         }
+
+        # Create ports for each component
+        for comp_id, comp in device.components.items():
+            db_component = components[comp_id]
+            db_component.ports = [
+                Port(
+                    name=port_name,
+                    direction=str(port.direction) if port.direction else None,
+                )
+                for port_name, port in comp.ports.items()
+            ]
+
         for comp_id, is_entry in device.component_graph.nodes(data="is_entry", default=False):  # type: ignore
             components[comp_id].is_entry = is_entry  # type: ignore
         connections = [
