@@ -181,12 +181,14 @@ class System(BaseModel):
 
         annotations = []
         for comp in system_to_component.values():
-            annotations.append(db.Annotation(
-                attack_surface=comp,
-                effect="entry",
-                attack_model=None,
-                device_id=device_id,
-            ))
+            annotations.append(
+                db.Annotation(
+                    attack_surface=comp,
+                    effect="entry",
+                    attack_model=None,
+                    device_id=device_id,
+                )
+            )
 
         return db.Device(
             id=device_id,

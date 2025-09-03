@@ -1,7 +1,6 @@
 from claripy import BVS
 
 from ..component import (
-    CyberComponentBase,
     CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentSourceCode,
