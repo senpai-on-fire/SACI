@@ -131,16 +131,14 @@ class System(BaseModel):
         # this behavior and strips them if present
         saciType = self.saciType[1:-1] if self.saciType is not None and self.saciType.startswith('"') else self.saciType
         # Tag everything as an entry point when importing from excavate
-        component = db.Component(
-            name=self.name, type_=saciType, parameters=parameters, is_entry=True
-        )
-        
+        component = db.Component(name=self.name, type_=saciType, parameters=parameters, is_entry=True)
+
         # Create ports for this component
         component.ports = [
             db.Port(name=port.name, direction=None)  # Excavate ports don't have direction info
             for port in self.ports
         ]
-        
+
         system_to_component[id(self)] = component
 
         return system_to_component
@@ -163,21 +161,21 @@ class System(BaseModel):
             # Find the source and destination components
             src_component = system_to_component[port_to_system[interface.src_port.unique_instance_id]]
             dest_component = system_to_component[port_to_system[interface.dest_port.unique_instance_id]]
-            
+
             # Find the matching ports by name
             src_port = None
             dest_port = None
-            
+
             for port in src_component.ports:
                 if port.name == interface.src_port.name:
                     src_port = port
                     break
-            
+
             for port in dest_component.ports:
                 if port.name == interface.dest_port.name:
                     dest_port = port
                     break
-            
+
             # Create connection if both ports found
             if src_port and dest_port:
                 connections.append(
