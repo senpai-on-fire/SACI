@@ -151,7 +151,7 @@ class Capability(Base):
     component: Mapped["Component"] = relationship(overlaps="capabilities")
     port: Mapped["Port"] = relationship()
 
-    def to_tuple(self) -> tuple[Capability, str | None]:
+    def to_tuple(self) -> tuple[CapabilityEnum, str | None]:
         return (CapabilityEnum(self.capability), self.port.name if self.port else None)
 
 
