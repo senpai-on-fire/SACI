@@ -10,7 +10,11 @@ from saci.webui.web_models import (
     DeviceModel,
 )
 from saci.modeling.capability import Capability as Capability
-from saci.modeling.device.component.component_base import ComponentBase as SaciComponent, Port as SaciPort, PortDirection
+from saci.modeling.device.component.component_base import (
+    ComponentBase as SaciComponent,
+    Port as SaciPort,
+    PortDirection,
+)
 
 
 class TestComponentConversion(unittest.TestCase):
@@ -460,7 +464,7 @@ class TestCapabilityConversion(unittest.TestCase):
             parameters={},
             device_id=self.device_id,
         )
-        
+
         # Create a port for the component
         self.port = Port(
             name=self.port_name,
@@ -475,7 +479,7 @@ class TestCapabilityConversion(unittest.TestCase):
             port_id=self.port.id,
             capability=self.capability_name,
         )
-        
+
         # Create a capability not tied to any specific port
         self.db_capability_without_port = DBCapability(
             component_id=self.component_id,
@@ -486,10 +490,10 @@ class TestCapabilityConversion(unittest.TestCase):
     def test_db_capability_to_tuple_with_port(self):
         # Set up the port relationship
         self.db_capability_with_port.port = self.port
-        
+
         # Convert to tuple
         result_tuple = self.db_capability_with_port.to_tuple()
-        
+
         # Verify conversion
         expected_tuple = (Capability(self.capability_name), self.port_name)
         self.assertEqual(result_tuple, expected_tuple)
@@ -497,7 +501,7 @@ class TestCapabilityConversion(unittest.TestCase):
     def test_db_capability_to_tuple_without_port(self):
         # Convert to tuple (no port)
         result_tuple = self.db_capability_without_port.to_tuple()
-        
+
         # Verify conversion
         expected_tuple = (Capability(self.capability_name), None)
         self.assertEqual(result_tuple, expected_tuple)
@@ -505,14 +509,14 @@ class TestCapabilityConversion(unittest.TestCase):
     def test_component_to_saci_component_with_capabilities(self):
         # Add capabilities to the component
         self.component.capabilities = [self.db_capability_with_port, self.db_capability_without_port]
-        
+
         # Set up relationships
         self.db_capability_with_port.port = self.port
         # Note: db_capability_without_port.port is already None
-        
+
         # Convert to SACI component
         saci_component = self.component.to_saci_component()
-        
+
         # Verify capabilities were converted correctly
         expected_capabilities = {
             (Capability(self.capability_name), self.port_name),
@@ -523,10 +527,10 @@ class TestCapabilityConversion(unittest.TestCase):
     def test_component_to_saci_component_without_capabilities(self):
         # Component with no capabilities
         self.component.capabilities = []
-        
+
         # Convert to SACI component
         saci_component = self.component.to_saci_component()
-        
+
         # Verify no capabilities
         self.assertEqual(saci_component.capabilities, set())
 
@@ -538,21 +542,21 @@ class TestCapabilityConversion(unittest.TestCase):
             (Capability.WIFI, self.port_name),
             (Capability.ICMP, None),
         }
-        
+
         saci_component = SaciComponent(
             name="TestComponent",
             parameters={},
             ports=saci_ports,
             capabilities=saci_capabilities,
         )
-        
+
         # Create a DB component from it (using the janky method as reference)
         db_component = Component(
             name=saci_component.name,
             type_=f"{type(saci_component).__module__}.{type(saci_component).__qualname__}",
             parameters={pname: str(pvalue) for pname, pvalue in saci_component.parameters.items()},
         )
-        
+
         # Create ports
         db_component.ports = [
             Port(
@@ -561,33 +565,37 @@ class TestCapabilityConversion(unittest.TestCase):
             )
             for port_name, port in saci_component.ports.items()
         ]
-        
+
         # Create capabilities
         capabilities = []
         for capability, port_name in saci_component.capabilities:
             if port_name:
                 # Find the port by name
                 port = next((p for p in db_component.ports if p.name == port_name), None)
-                capabilities.append(DBCapability(
-                    component=db_component,
-                    port=port,
-                    capability=str(capability),
-                ))
+                capabilities.append(
+                    DBCapability(
+                        component=db_component,
+                        port=port,
+                        capability=str(capability),
+                    )
+                )
             else:
-                capabilities.append(DBCapability(
-                    component=db_component,
-                    port=None,
-                    capability=str(capability),
-                ))
-        
+                capabilities.append(
+                    DBCapability(
+                        component=db_component,
+                        port=None,
+                        capability=str(capability),
+                    )
+                )
+
         db_component.capabilities = capabilities
-        
+
         # Convert back to SACI component
         roundtrip_saci_component = db_component.to_saci_component()
-        
+
         # Verify capabilities are preserved
         self.assertEqual(roundtrip_saci_component.capabilities, saci_capabilities)
-        
+
         # Verify other properties too
         self.assertEqual(roundtrip_saci_component.name, saci_component.name)
         self.assertEqual(roundtrip_saci_component.parameters, saci_component.parameters)
@@ -602,10 +610,10 @@ class TestCapabilityConversion(unittest.TestCase):
                 port_id=None,
                 capability=str(capability),
             )
-            
+
             # Convert to tuple
             result_tuple = db_cap.to_tuple()
-            
+
             # Verify the capability is correctly converted
             self.assertEqual(result_tuple[0], capability)
             self.assertIsNone(result_tuple[1])
@@ -613,14 +621,14 @@ class TestCapabilityConversion(unittest.TestCase):
     def test_device_capabilities_roundtrip(self):
         """Test that capabilities survive a roundtrip through database component conversion"""
         from saci.webui.db import get_engine, get_session, init_db
-        
+
         # Set up an in-memory database for testing
         engine = get_engine("sqlite:///:memory:")
         init_db(engine)
-        
+
         # Create a DB device with component that has capabilities
         device = Device(id="test_device", name="TestDevice")
-        
+
         # Create a component with ports
         component = Component(
             name="TestComponent",
@@ -629,39 +637,39 @@ class TestCapabilityConversion(unittest.TestCase):
             device_id="test_device",
             is_entry=False,
         )
-        
+
         # Create a port for the component
         port = Port(
             name="input_port",
             direction="in",
             component=component,
         )
-        
+
         # Create capabilities - one with port, one without
         capability_with_port = DBCapability(
             component=component,
             port=port,
             capability="wifi",
         )
-        
+
         capability_without_port = DBCapability(
             component=component,
             port=None,
             capability="icmp",
         )
-        
+
         component.ports = [port]
         component.capabilities = [capability_with_port, capability_without_port]
         device.components = [component]
-        
+
         with get_session(engine) as session, session.begin():
             session.add(device)
             session.flush()  # Ensure IDs are assigned
-            
+
             # Verify capabilities were preserved
             db_component = device.components[0]
             self.assertEqual(len(db_component.capabilities), 2)
-            
+
             # Convert capabilities back to tuples for comparison
             capability_tuples = {cap.to_tuple() for cap in db_component.capabilities}
             expected_capabilities = {
@@ -669,7 +677,7 @@ class TestCapabilityConversion(unittest.TestCase):
                 (Capability.ICMP, None),
             }
             self.assertEqual(capability_tuples, expected_capabilities)
-            
+
             # Test conversion to SACI component
             saci_component = db_component.to_saci_component()
             self.assertEqual(saci_component.capabilities, expected_capabilities)
@@ -677,14 +685,14 @@ class TestCapabilityConversion(unittest.TestCase):
     def test_all_capability_enum_values_roundtrip(self):
         """Test that all Capability enum values can round-trip through the database"""
         from saci.webui.db import get_engine, get_session, init_db
-        
+
         # Set up an in-memory database for testing
         engine = get_engine("sqlite:///:memory:")
         init_db(engine)
-        
+
         # Create a DB device with component that has all capability types
         device = Device(id="test_device_all_caps", name="TestDeviceAllCapabilities")
-        
+
         # Create a component with a port
         component = Component(
             name="TestComponentAllCapabilities",
@@ -693,36 +701,40 @@ class TestCapabilityConversion(unittest.TestCase):
             device_id="test_device_all_caps",
             is_entry=False,
         )
-        
+
         # Create a port for the component
         port = Port(
             name="test_port",
             direction="in",
             component=component,
         )
-        
+
         # Create capabilities with and without ports for each enum value
         capabilities = []
         for i, capability in enumerate(Capability):
             if i % 2 == 0:
                 # Add capability with port
-                capabilities.append(DBCapability(
-                    component=component,
-                    port=port,
-                    capability=str(capability),
-                ))
+                capabilities.append(
+                    DBCapability(
+                        component=component,
+                        port=port,
+                        capability=str(capability),
+                    )
+                )
             else:
                 # Add capability without port
-                capabilities.append(DBCapability(
-                    component=component,
-                    port=None,
-                    capability=str(capability),
-                ))
-        
+                capabilities.append(
+                    DBCapability(
+                        component=component,
+                        port=None,
+                        capability=str(capability),
+                    )
+                )
+
         component.ports = [port]
         component.capabilities = capabilities
         device.components = [component]
-        
+
         # Expected capabilities for comparison
         expected_capabilities: set[tuple[Capability, str | None]] = set()
         for i, capability in enumerate(Capability):
@@ -730,23 +742,23 @@ class TestCapabilityConversion(unittest.TestCase):
                 expected_capabilities.add((capability, "test_port"))
             else:
                 expected_capabilities.add((capability, None))
-        
+
         with get_session(engine) as session, session.begin():
             session.add(device)
             session.flush()  # Ensure IDs are assigned
-            
+
             # Verify all capabilities were preserved
             db_component = device.components[0]
             self.assertEqual(len(db_component.capabilities), len(expected_capabilities))
-            
+
             # Convert capabilities back to tuples for comparison
             capability_tuples = {cap.to_tuple() for cap in db_component.capabilities}
             self.assertEqual(capability_tuples, expected_capabilities)
-            
+
             # Test conversion to SACI component
             saci_component = db_component.to_saci_component()
             self.assertEqual(saci_component.capabilities, expected_capabilities)
-            
+
             # Verify that each individual capability is preserved correctly
             for capability, port_name in expected_capabilities:
                 self.assertIn((capability, port_name), saci_component.capabilities)

@@ -148,7 +148,7 @@ class Capability(Base):
     port_id: Mapped[int | None] = mapped_column(ForeignKey("ports.id"), nullable=True)
     capability: Mapped[str]
 
-    component: Mapped["Component"] = relationship()
+    component: Mapped["Component"] = relationship(overlaps="capabilities")
     port: Mapped["Port"] = relationship()
 
     def to_tuple(self) -> tuple[Capability, str | None]:
