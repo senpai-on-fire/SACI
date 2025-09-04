@@ -21,6 +21,7 @@ from sqlalchemy.orm import (
 )
 
 from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent, Annotation as SaciAnnotation
+from saci.modeling.capability import Capability as CapabilityEnum
 from saci.modeling.device.component.component_base import Port as SaciPort, PortDirection as SaciPortDirection
 from saci.hypothesis import Hypothesis as SaciHypothesis
 from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
@@ -68,6 +69,7 @@ class Component(Base):
 
     device: Mapped["Device"] = relationship(back_populates="components")
     ports: Mapped[list["Port"]] = relationship(back_populates="component", cascade="all, delete-orphan")
+    capabilities: Mapped[list["Capability"]] = relationship(cascade="all, delete-orphan")
 
     @classmethod
     def from_web_model(cls, model: ComponentModel, device_id: str) -> Component:
@@ -86,7 +88,8 @@ class Component(Base):
             port.name: SaciPort(direction=SaciPortDirection(port.direction) if port.direction else None)
             for port in self.ports
         }
-        return cls(name=self.name, parameters=self.parameters, ports=ports_dict)
+        capabilities = {cap.to_tuple() for cap in self.capabilities}
+        return cls(name=self.name, parameters=self.parameters, ports=ports_dict, capabilities=capabilities)
 
 
 class Port(Base):
@@ -135,6 +138,21 @@ class Connection(Base):
             self.from_port.component_id,
             self.to_port.component_id,
         )
+
+
+class Capability(Base):
+    __tablename__ = "capabilities"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    component_id: Mapped[int] = mapped_column(ForeignKey("components.id"))
+    port_id: Mapped[int | None] = mapped_column(ForeignKey("ports.id"), nullable=True)
+    capability: Mapped[str]
+
+    component: Mapped["Component"] = relationship()
+    port: Mapped["Port"] = relationship()
+
+    def to_tuple(self) -> tuple[Capability, str | None]:
+        return (CapabilityEnum(self.capability), self.port.name if self.port else None)
 
 
 class Hypothesis(Base):
@@ -309,6 +327,30 @@ class Device(Base):
 
         for comp_id, is_entry in device.component_graph.nodes(data="is_entry", default=False):  # type: ignore
             components[comp_id].is_entry = is_entry  # type: ignore
+
+        # Create capabilities for each component
+        for comp_id, comp in device.components.items():
+            db_component = components[comp_id]
+            db_component.capabilities = []
+            for capability, port_name in comp.capabilities:
+                if port_name:
+                    # Find the port by name
+                    port = next((p for p in db_component.ports if p.name == port_name), None)
+                    db_component.capabilities.append(
+                        Capability(
+                            component=db_component,
+                            port=port,
+                            capability=str(capability),
+                        )
+                    )
+                else:
+                    db_component.capabilities.append(
+                        Capability(
+                            component=db_component,
+                            port=None,
+                            capability=str(capability),
+                        )
+                    )
 
         # Create port-based connections
         connections = []

@@ -11,6 +11,6 @@ class HardwareComponentBase(ComponentBase):
     __state_slots__ = ComponentBase.__state_slots__ + ()
     __slots__ = ComponentBase.__slots__ + ("abstraction_level",)
 
-    def __init__(self, name=None, _type=ComponentType.HARDWARE, abstraction=None, parameters=None, ports=None):
-        super().__init__(name=name, _type=_type, parameters=parameters, ports=ports)
+    def __init__(self, name=None, _type=ComponentType.HARDWARE, abstraction=None, parameters=None, ports=None, capabilities=None):
+        super().__init__(name=name, _type=_type, parameters=parameters, ports=ports, capabilities=capabilities)
         self.abstraction_level = abstraction

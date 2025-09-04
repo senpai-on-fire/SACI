@@ -31,3 +31,4 @@ from .attack import (
     OpticalAttackSignal as OpticalAttackSignal,
 )
 from .annotation import Annotation as Annotation
+from .capability import Capability as Capability

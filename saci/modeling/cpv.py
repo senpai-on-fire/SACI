@@ -91,6 +91,15 @@ class CPV:
     def in_goal_state(self, state: GlobalState):
         return False
 
+    @staticmethod
+    def _instance_matches(reference: ComponentBase, instance: ComponentBase) -> bool:
+        if not isinstance(instance, type(reference)):
+            return False
+        for capability, port in reference.capabilities:
+            if (capability, port) not in instance.capabilities:
+                return False
+        return True
+
     def is_possible_path(self, path: list[ComponentBase]):
         # This code should accept any path that contains the required components in the correct order, with extra
         # components in between, but not or the start or end.
@@ -103,14 +112,14 @@ class CPV:
         if len(path) == 0:
             return False
 
-        if not isinstance(path[0], type(self.required_components[0])):
+        if not CPV._instance_matches(self.required_components[0], path[0]):
             return False
 
         req_i = 1
         for comp in path:
             if req_i >= len(self.required_components):
                 return False
-            if isinstance(comp, type(self.required_components[req_i])):
+            if CPV._instance_matches(self.required_components[req_i], comp):
                 req_i += 1
 
         return req_i == len(self.required_components)
@@ -118,12 +127,12 @@ class CPV:
     def matches_entry(self, component: ComponentBase) -> bool:
         if self.entry_component is None:
             return True
-        return isinstance(component, type(self.entry_component))
+        return CPV._instance_matches(self.entry_component, component)
 
     def matches_exit(self, component: ComponentBase) -> bool:
         if self.exit_component is None:
             return True
-        return isinstance(component, type(self.exit_component))
+        return CPV._instance_matches(self.exit_component, component)
 
     def __repr__(self):
         return f"<{self.__class__.__name__}>"

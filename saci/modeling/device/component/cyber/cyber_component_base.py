@@ -19,6 +19,7 @@ class CyberComponentBase(ComponentBase):
         abstraction=CyberAbstractionLevel.UNKNOWN,
         parameters=None,
         ports=None,
+        capabilities=None,
     ):
-        super().__init__(name=name, _type=_type, parameters=parameters, ports=ports)
+        super().__init__(name=name, _type=_type, parameters=parameters, ports=ports, capabilities=capabilities)
         self.abstraction_level = abstraction

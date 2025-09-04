@@ -31,8 +31,8 @@ class SensorAlgorithmic(CyberComponentAlgorithmic):
 
 
 class Sensor(CyberComponentBase):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: SensorHigh(),
             CyberAbstractionLevel.ALGORITHMIC: SensorAlgorithmic(),

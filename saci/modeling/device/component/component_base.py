@@ -2,6 +2,8 @@ from enum import StrEnum
 from typing import Any, Optional, TypeAlias, Type
 from dataclasses import dataclass
 
+from saci.modeling.capability import Capability
+
 
 class PortDirection(StrEnum):
     IN = "in"
@@ -63,7 +65,7 @@ class ComponentBase:
     """
 
     __state_slots__ = ()
-    __slots__ = ("name", "type", "parameters", "ports")
+    __slots__ = ("name", "type", "parameters", "ports", "capabilities")
 
     def __init__(
         self,
@@ -71,11 +73,13 @@ class ComponentBase:
         _type=None,
         parameters: Optional[dict[str, Any]] = None,
         ports: Optional[dict[str, Port]] = None,
+        capabilities: set[tuple[Capability, str | None]] | None = None,
     ):
         self.name = name or self.__class__.__name__
         self.type = _type
         self.parameters = parameters or {}
         self.ports = ports or {}
+        self.capabilities = capabilities or set()
 
     def __repr__(self):
         type_name = type(self).__name__
