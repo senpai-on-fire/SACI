@@ -2,18 +2,23 @@ from __future__ import annotations
 
 import unittest
 
-from saci.webui.db import Component, Connection, Hypothesis, Annotation, Device, Port, Capability as DBCapability
-from saci.webui.web_models import (
-    ComponentModel,
-    HypothesisModel,
-    AnnotationModel,
-    DeviceModel,
-)
 from saci.modeling.capability import Capability as Capability
 from saci.modeling.device.component.component_base import (
     ComponentBase as SaciComponent,
+)
+from saci.modeling.device.component.component_base import (
     Port as SaciPort,
+)
+from saci.modeling.device.component.component_base import (
     PortDirection,
+)
+from saci.webui.db import Annotation, Component, Connection, Device, Hypothesis, Port
+from saci.webui.db import Capability as DBCapability
+from saci.webui.web_models import (
+    AnnotationModel,
+    ComponentModel,
+    DeviceModel,
+    HypothesisModel,
 )
 
 

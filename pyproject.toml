@@ -71,7 +71,7 @@ select = [
     # flake8-simplify
     # "SIM",
     # isort
-    # "I",
+    "I",
 ]
 ignore = [
     # I/O/l are considered "ambiguous" as variable names because some

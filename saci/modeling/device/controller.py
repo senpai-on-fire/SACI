@@ -1,5 +1,5 @@
-from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
 from ..state.operation_mode import OperationMode
+from .component import CyberAbstractionLevel, CyberComponentBase, CyberComponentHigh
 
 
 class ControllerHigh(CyberComponentHigh):

@@ -1,14 +1,12 @@
-from collections.abc import Hashable
-from typing import Generic, TypeVar
-from collections.abc import Sequence
+from collections.abc import Hashable, Sequence
 from copy import deepcopy
+from typing import Generic, TypeVar
 
 from saci.hypothesis import Hypothesis
-from saci.modeling import Device, CPV
+from saci.modeling import CPV, Device
 from saci.modeling.device.device import IdentifiedComponent
 from saci.modeling.state import GlobalState
 from saci.modeling.vulnerability import BaseVulnerability
-
 
 CID = TypeVar("CID", bound=Hashable)
 

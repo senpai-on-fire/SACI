@@ -1,13 +1,15 @@
+import logging
+
+import claripy
+
 from saci.modeling.device.component import (
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentBase,
-    CyberComponentSourceCode,
     CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-import claripy
-import logging
 
 _l = logging.getLogger(__name__)
 

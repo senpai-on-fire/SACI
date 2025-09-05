@@ -1,5 +1,5 @@
-from saci.modeling.device.component.cyber.cyber_component_base import CyberComponentBase
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
+from saci.modeling.device.component.cyber.cyber_component_base import CyberComponentBase
 
 
 class CyberComponentHigh(CyberComponentBase):

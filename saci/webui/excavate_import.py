@@ -241,7 +241,7 @@ if __name__ == "__main__":
     device = blueprint.to_db_device(device_id)
 
     # Add example of converting and saving to database
-    from saci.webui.db import get_session, init_db, get_engine
+    from saci.webui.db import get_engine, get_session, init_db
 
     # Initialize DB if needed
     engine = get_engine()

@@ -1,93 +1,204 @@
-from .sensor import (
-    Sensor as Sensor,
-    SensorAlgorithmic as SensorAlgorithmic,
-    SensorHigh as SensorHigh,
-)
 from .accelerometer import (
     Accelerometer as Accelerometer,
+)
+from .accelerometer import (
     AccelerometerAlgorithmic as AccelerometerAlgorithmic,
-    AccelerometerHWPackage as AccelerometerHWPackage,
-    AccelerometerHWTechnology as AccelerometerHWTechnology,
+)
+from .accelerometer import (
     AccelerometerHardware as AccelerometerHardware,
+)
+from .accelerometer import (
     AccelerometerHigh as AccelerometerHigh,
+)
+from .accelerometer import (
+    AccelerometerHWPackage as AccelerometerHWPackage,
+)
+from .accelerometer import (
+    AccelerometerHWTechnology as AccelerometerHWTechnology,
+)
+from .airspeed import (
+    AirspeedAlgorithmic as AirspeedAlgorithmic,
+)
+from .airspeed import (
+    AirspeedHigh as AirspeedHigh,
+)
+from .airspeed import (
+    AirspeedHWPackage as AirspeedHWPackage,
+)
+from .airspeed import (
+    AirspeedHWTechnology as AirspeedHWTechnology,
+)
+from .airspeed import (
+    AirspeedSensor as AirspeedSensor,
 )
 from .barometer import (
     Barometer as Barometer,
+)
+from .barometer import (
     BarometerAlgorithmic as BarometerAlgorithmic,
-    BarometerHWHigh as BarometerHWHigh,
-    BarometerHWPackage as BarometerHWPackage,
-    BarometerHWTechnology as BarometerHWTechnology,
+)
+from .barometer import (
     BarometerHigh as BarometerHigh,
+)
+from .barometer import (
+    BarometerHWHigh as BarometerHWHigh,
+)
+from .barometer import (
+    BarometerHWPackage as BarometerHWPackage,
+)
+from .barometer import (
+    BarometerHWTechnology as BarometerHWTechnology,
 )
 from .camera import (
     Camera as Camera,
+)
+from .camera import (
     CameraAlgorithmic as CameraAlgorithmic,
-    CameraHWHigh as CameraHWHigh,
-    CameraHWPackage as CameraHWPackage,
-    CameraHWTechnology as CameraHWTechnology,
+)
+from .camera import (
     CameraHigh as CameraHigh,
+)
+from .camera import (
+    CameraHWHigh as CameraHWHigh,
+)
+from .camera import (
+    CameraHWPackage as CameraHWPackage,
+)
+from .camera import (
+    CameraHWTechnology as CameraHWTechnology,
+)
+from .compass import (
+    CompassHardware as CompassHardware,
 )
 from .compass import (
     CompassHWPackage as CompassHWPackage,
+)
+from .compass import (
     CompassHWTechnology as CompassHWTechnology,
-    CompassHardware as CompassHardware,
+)
+from .compass import (
     CompassSensor as CompassSensor,
+)
+from .compass import (
     CompassSensorAlgorithmic as CompassSensorAlgorithmic,
+)
+from .compass import (
     CompassSensorHigh as CompassSensorHigh,
 )
 from .depth_camera import (
     DepthCamera as DepthCamera,
+)
+from .depth_camera import (
     DepthCameraAlgorithmic as DepthCameraAlgorithmic,
-    DepthCameraHWPackage as DepthCameraHWPackage,
-    DepthCameraHWTechnology as DepthCameraHWTechnology,
+)
+from .depth_camera import (
     DepthCameraHardware as DepthCameraHardware,
+)
+from .depth_camera import (
     DepthCameraHigh as DepthCameraHigh,
 )
-from .gps import (
-    GPSReceiver as GPSReceiver,
-    GPSReceiverAlgorithmic as GPSReceiverAlgorithmic,
-    GPSReceiverHWPackage as GPSReceiverHWPackage,
-    GPSReceiverHWTechnology as GPSReceiverHWTechnology,
-    GPSReceiverHardware as GPSReceiverHardware,
-    GPSReceiverHigh as GPSReceiverHigh,
+from .depth_camera import (
+    DepthCameraHWPackage as DepthCameraHWPackage,
+)
+from .depth_camera import (
+    DepthCameraHWTechnology as DepthCameraHWTechnology,
 )
 from .gnss import (
     GNSSReceiver as GNSSReceiver,
+)
+from .gnss import (
     GNSSReceiverAlgorithmic as GNSSReceiverAlgorithmic,
-    GNSSReceiverHWPackage as GNSSReceiverHWPackage,
-    GNSSReceiverHWTechnology as GNSSReceiverHWTechnology,
+)
+from .gnss import (
     GNSSReceiverHardware as GNSSReceiverHardware,
+)
+from .gnss import (
     GNSSReceiverHigh as GNSSReceiverHigh,
+)
+from .gnss import (
+    GNSSReceiverHWPackage as GNSSReceiverHWPackage,
+)
+from .gnss import (
+    GNSSReceiverHWTechnology as GNSSReceiverHWTechnology,
+)
+from .gps import (
+    GPSReceiver as GPSReceiver,
+)
+from .gps import (
+    GPSReceiverAlgorithmic as GPSReceiverAlgorithmic,
+)
+from .gps import (
+    GPSReceiverHardware as GPSReceiverHardware,
+)
+from .gps import (
+    GPSReceiverHigh as GPSReceiverHigh,
+)
+from .gps import (
+    GPSReceiverHWPackage as GPSReceiverHWPackage,
+)
+from .gps import (
+    GPSReceiverHWTechnology as GPSReceiverHWTechnology,
 )
 from .gyroscope import (
     Gyroscope as Gyroscope,
+)
+from .gyroscope import (
     GyroscopeAlgorithmic as GyroscopeAlgorithmic,
-    GyroscopeHWHigh as GyroscopeHWHigh,
-    GyroscopeHWPackage as GyroscopeHWPackage,
-    GyroscopeHWTechnology as GyroscopeHWTechnology,
+)
+from .gyroscope import (
     GyroscopeHigh as GyroscopeHigh,
+)
+from .gyroscope import (
+    GyroscopeHWHigh as GyroscopeHWHigh,
+)
+from .gyroscope import (
+    GyroscopeHWPackage as GyroscopeHWPackage,
+)
+from .gyroscope import (
+    GyroscopeHWTechnology as GyroscopeHWTechnology,
 )
 from .magnetometer import (
     Magnetometer as Magnetometer,
+)
+from .magnetometer import (
     MagnetometerAlgorithmic as MagnetometerAlgorithmic,
-    MagnetometerHWPackage as MagnetometerHWPackage,
-    MagnetometerHWTechnology as MagnetometerHWTechnology,
+)
+from .magnetometer import (
     MagnetometerHardware as MagnetometerHardware,
+)
+from .magnetometer import (
     MagnetometerHigh as MagnetometerHigh,
+)
+from .magnetometer import (
+    MagnetometerHWPackage as MagnetometerHWPackage,
+)
+from .magnetometer import (
+    MagnetometerHWTechnology as MagnetometerHWTechnology,
 )
 from .optical_flow import (
     OpticalFlowSensor as OpticalFlowSensor,
+)
+from .optical_flow import (
     OpticalFlowSensorAlgorithmic as OpticalFlowSensorAlgorithmic,
-    OpticalFlowSensorHWPackage as OpticalFlowSensorHWPackage,
-    OpticalFlowSensorHWTechnology as OpticalFlowSensorHWTechnology,
+)
+from .optical_flow import (
     OpticalFlowSensorHardware as OpticalFlowSensorHardware,
+)
+from .optical_flow import (
     OpticalFlowSensorHigh as OpticalFlowSensorHigh,
 )
-
-from .airspeed import (
-    AirspeedSensor as AirspeedSensor,
-    AirspeedAlgorithmic as AirspeedAlgorithmic,
-    AirspeedHigh as AirspeedHigh,
-    AirspeedHWPackage as AirspeedHWPackage,
-    AirspeedHWTechnology as AirspeedHWTechnology,
+from .optical_flow import (
+    OpticalFlowSensorHWPackage as OpticalFlowSensorHWPackage,
+)
+from .optical_flow import (
+    OpticalFlowSensorHWTechnology as OpticalFlowSensorHWTechnology,
+)
+from .sensor import (
+    Sensor as Sensor,
+)
+from .sensor import (
+    SensorAlgorithmic as SensorAlgorithmic,
+)
+from .sensor import (
+    SensorHigh as SensorHigh,
 )

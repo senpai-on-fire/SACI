@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Literal, TypeVar
 
 from pydantic import BaseModel
-
 from saci_db.devices import devices, ingested
 
 from saci.modeling.annotation import Annotation

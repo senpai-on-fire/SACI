@@ -1,9 +1,9 @@
 from .component import (
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentBase,
-    CyberComponentSourceCode,
     CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
 )
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 

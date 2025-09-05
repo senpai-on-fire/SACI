@@ -2,11 +2,11 @@ import re
 from io import StringIO
 from typing import Any
 
-from .device import Device, ComponentBase
+from .attack.base_attack_impact import BaseAttackImpact
+from .attack.base_attack_vector import BaseAttackVector
+from .device import ComponentBase, Device
 from .state import GlobalState
 from .vulnerability import BaseVulnerability
-from .attack.base_attack_vector import BaseAttackVector
-from .attack.base_attack_impact import BaseAttackImpact
 
 _camel_re = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 

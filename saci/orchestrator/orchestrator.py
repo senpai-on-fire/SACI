@@ -1,18 +1,14 @@
+import logging
 from collections.abc import Sequence
 
-
-from saci.modeling.device.device import Device
-
-from saci.modeling.cpv import CPV
-from saci.modeling.vulnerability import BaseVulnerability
-from saci.modeling.state import GlobalState
-from saci.modeling.behavior import Behaviors
-from saci.modeling.cpvpath import CPVPath
 from saci.identifier import IdentifierCPV
-
+from saci.modeling.behavior import Behaviors
+from saci.modeling.cpv import CPV
+from saci.modeling.cpvpath import CPVPath
+from saci.modeling.device.device import Device
+from saci.modeling.state import GlobalState
+from saci.modeling.vulnerability import BaseVulnerability
 from saci.orchestrator.cpv_definitions import CPVS as cpv_database
-
-import logging
 
 l = logging.getLogger(__name__)
 

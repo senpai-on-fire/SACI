@@ -1,5 +1,6 @@
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports
-from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
+
+from .component import CyberAbstractionLevel, CyberComponentBase, CyberComponentHigh
 
 
 class WebServerHigh(CyberComponentHigh):

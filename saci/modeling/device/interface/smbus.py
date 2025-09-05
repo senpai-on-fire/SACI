@@ -1,20 +1,22 @@
+import logging
+
+import claripy
+
+from saci.modeling.communication import BaseCommunication, I2CProtocol, SMBusProtocol
 from saci.modeling.device.component import (
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentBase,
-    CyberComponentSourceCode,
     CyberComponentBinary,
-    HardwareComponentBase,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
     HardwareAbstractionLevel,
-    HardwareHigh,
     HardwareCircuit,
-    HardwareTechnology,
+    HardwareComponentBase,
+    HardwareHigh,
     HardwarePackage,
+    HardwareTechnology,
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from saci.modeling.communication import BaseCommunication, I2CProtocol, SMBusProtocol
-import claripy
-import logging
 
 _l = logging.getLogger(__name__)
 

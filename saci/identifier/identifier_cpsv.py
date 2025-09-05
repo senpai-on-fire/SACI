@@ -1,13 +1,12 @@
-from saci.modeling import Device, CPV
-from saci.modeling.state import GlobalState
-from saci.modeling.behavior import Behaviors
-from saci.modeling.cpvpath import CPVPath
+import logging
 
 from clorm import FactBase
 from clorm.clingo import ClormControl as Control
 
-import logging
-
+from saci.modeling import CPV, Device
+from saci.modeling.behavior import Behaviors
+from saci.modeling.cpvpath import CPVPath
+from saci.modeling.state import GlobalState
 from saci.modeling.vulnerability.base_vuln import BaseVulnerability
 
 l = logging.getLogger(__name__)

@@ -1,13 +1,12 @@
 import json
+import logging
 
 from saci_db import vulns as vulns
 
-from ..modeling import device as device
-from .device import Device, ComponentBase
-from .cpv import CPV
 from ..atoms import Atoms
-
-import logging
+from ..modeling import device as device
+from .cpv import CPV
+from .device import ComponentBase, Device
 
 l = logging.getLogger(__name__)
 

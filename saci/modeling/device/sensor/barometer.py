@@ -2,7 +2,6 @@ import logging
 
 import claripy
 
-from .sensor import Sensor, SensorAlgorithmic, SensorHigh
 from saci.modeling.device.component import (
     CyberAbstractionLevel,
     CyberComponentBinary,
@@ -11,6 +10,8 @@ from saci.modeling.device.component import (
     HardwarePackage,
     HardwareTechnology,
 )
+
+from .sensor import Sensor, SensorAlgorithmic, SensorHigh
 
 _l = logging.getLogger(__name__)
 

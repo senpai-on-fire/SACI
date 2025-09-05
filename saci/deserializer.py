@@ -1,7 +1,7 @@
 import argparse
+import dataclasses
 import json
 import string
-import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeVar

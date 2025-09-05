@@ -1,10 +1,18 @@
 import logging
+
 import claripy
 
+from saci.modeling.device.component import (
+    CyberAbstractionLevel,
+    CyberComponentBinary,
+    CyberComponentSourceCode,
+    HardwareHigh,
+    HardwarePackage,
+    HardwareTechnology,
+)
+
 # Adjust these imports to match your actual project structure:
-from .sensor import SensorHigh, SensorAlgorithmic, Sensor
-from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
-from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
+from .sensor import Sensor, SensorAlgorithmic, SensorHigh
 
 _l = logging.getLogger(__name__)
 

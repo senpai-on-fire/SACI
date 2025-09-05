@@ -1,5 +1,5 @@
-from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
 from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
+from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
 
 
 class HardwareHigh(HardwareComponentBase):

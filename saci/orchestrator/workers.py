@@ -1,8 +1,7 @@
+import logging
 import queue
 import threading
 from abc import ABC, abstractmethod
-
-import logging
 
 l = logging.getLogger("Workers")
 

@@ -1,19 +1,20 @@
 import logging
+
 from claripy import BVS
 
-from ..component import (
-    CyberComponentBase,
-    CyberComponentSourceCode,
-    CyberComponentBinary,
-    CyberAbstractionLevel,
-)
 from saci.modeling.device.component.hardware import (
     HardwareHigh,
     HardwarePackage,
     HardwareTechnology,
 )
 
-from .multi_motor import MultiMotorHigh, MultiMotorAlgorithmic
+from ..component import (
+    CyberAbstractionLevel,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentSourceCode,
+)
+from .multi_motor import MultiMotorAlgorithmic, MultiMotorHigh
 
 _l = logging.getLogger(__name__)
 

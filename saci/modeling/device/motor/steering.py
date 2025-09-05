@@ -1,11 +1,11 @@
-from .servo_motor import ServoHigh
 from ..component import (
     CyberComponentAlgorithmic,
     CyberComponentBase,
-    CyberComponentSourceCode,
     CyberComponentBinary,
+    CyberComponentSourceCode,
 )
 from ..component.cyber.cyber_abstraction_level import CyberAbstractionLevel
+from .servo_motor import ServoHigh
 
 
 class SteeringHigh(ServoHigh):

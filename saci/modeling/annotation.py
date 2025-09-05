@@ -1,12 +1,12 @@
 from collections.abc import Hashable
 from dataclasses import dataclass
-from typing_extensions import TypeVar
 from typing import Generic
+
+from typing_extensions import TypeVar
 
 from saci.modeling.communication.base_comm import BaseCommunication
 from saci.modeling.device import Device
-from saci.modeling.vulnerability import VulnerabilityEffect, BaseVulnerability
-
+from saci.modeling.vulnerability import BaseVulnerability, VulnerabilityEffect
 
 CID = TypeVar("CID", bound=Hashable)
 

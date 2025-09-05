@@ -1,41 +1,44 @@
 from __future__ import annotations
+
 import os
 from typing import TypeVar
 
 import networkx as nx
 from sqlalchemy import (
-    Engine,
-    String,
-    ForeignKey,
-    create_engine,
     JSON,
+    Engine,
+    ForeignKey,
+    String,
+    create_engine,
     select,
 )
 from sqlalchemy.orm import (
-    relationship,
-    sessionmaker,
     DeclarativeBase,
+    Mapped,
     Session,
     mapped_column,
-    Mapped,
+    relationship,
+    sessionmaker,
 )
 
-from saci.modeling import Device as SaciDevice, ComponentBase as SaciComponent, Annotation as SaciAnnotation
-from saci.modeling.capability import Capability as CapabilityEnum
-from saci.modeling.device.component.component_base import Port as SaciPort, PortDirection as SaciPortDirection
 from saci.hypothesis import Hypothesis as SaciHypothesis
+from saci.modeling import Annotation as SaciAnnotation
+from saci.modeling import ComponentBase as SaciComponent
+from saci.modeling import Device as SaciDevice
+from saci.modeling.capability import Capability as CapabilityEnum
+from saci.modeling.device.component.component_base import Port as SaciPort
+from saci.modeling.device.component.component_base import PortDirection as SaciPortDirection
 from saci.modeling.vulnerability.base_vuln import MakeEntryEffect, VulnerabilityEffect
 
 # Import web models for conversion methods
 from saci.webui.web_models import (
+    AnnotationID,
+    AnnotationModel,
     BlueprintID,
     ComponentModel,
-    HypothesisModel,
-    AnnotationModel,
     DeviceModel,
-    AnnotationID,
+    HypothesisModel,
 )
-
 
 # Get all component subclasses. We should have a less janky way of doing this.
 _T = TypeVar("_T")

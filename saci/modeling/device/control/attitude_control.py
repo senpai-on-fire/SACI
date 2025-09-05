@@ -1,9 +1,9 @@
 from saci.modeling.device.component import (
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentBase,
-    CyberComponentSourceCode,
     CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 

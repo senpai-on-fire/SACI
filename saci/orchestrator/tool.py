@@ -6,7 +6,7 @@ from typing import Literal, TypeVar
 
 from pydantic import BaseModel
 
-from saci.modeling.device import ComponentBase, Device, Controller, CompassSensor, Servo, ESC, PWMChannel, Motor
+from saci.modeling.device import ESC, CompassSensor, ComponentBase, Controller, Device, Motor, PWMChannel, Servo
 
 l = logging.getLogger(__name__)
 

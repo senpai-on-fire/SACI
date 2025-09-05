@@ -1,12 +1,13 @@
 import json
 from pathlib import Path
 
+from saci_db.cpvs import CompassPermanentSpoofingCPV
+
 from saci.identifier.identifier_cpv import IdentifierCPV
 from saci.modeling.cpv import CPV
 from saci.modeling.state import GlobalState
 from saci.webui import db as dbmod
 from saci.webui.excavate_import import System
-from saci_db.cpvs import CompassPermanentSpoofingCPV
 
 
 def assert_cpv_matches_blueprint(cpv: CPV, blueprint_filename: str):

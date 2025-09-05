@@ -1,16 +1,17 @@
 from pathlib import Path
+
 import claripy
 
 from saci.modeling.device.component import (
     ComponentBase,
-    CyberComponentHigh,
     CyberAbstractionLevel,
+    CyberComponentBinary,
+    CyberComponentHigh,
     HardwareAbstractionLevel,
     HardwareHigh,
-    CyberComponentBinary,
 )
-from ...state.operation_mode import OperationMode
 
+from ...state.operation_mode import OperationMode
 
 # =================== High-Level Abstraction (Cyber) ===================
 

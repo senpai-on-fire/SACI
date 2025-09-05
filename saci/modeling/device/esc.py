@@ -1,16 +1,17 @@
+import logging
+
+from claripy import BVS
+
 from saci.modeling.device.component import (
-    CyberComponentBase,
-    CyberComponentHigh,
-    CyberComponentAlgorithmic,
-    CyberComponentSourceCode,
-    CyberComponentBinary,
     CyberAbstractionLevel,
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
 )
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
-from claripy import BVS
-
-import logging
 
 _l = logging.getLogger(__name__)
 

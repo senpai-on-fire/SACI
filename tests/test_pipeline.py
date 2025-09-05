@@ -1,30 +1,27 @@
-import sys
 import subprocess
+import sys
+import unittest
 from copy import deepcopy
 
-import unittest
-
 import networkx as nx
+from saci_db.cpvs import CompassPermanentSpoofingCPV, MavlinkSiKCPV, SerialRollOverCPV, WifiWebCrashCPV
+from saci_db.devices.ngcrover import NGCRover
+from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
+from saci_db.vulns import LackWifiAuthenticationVuln, MavlinkMitmVuln
 
 import saci
-from saci.modeling import CPV, ComponentBase
-from saci.modeling.annotation import Annotation
-from saci.modeling.device.sensor.compass import CompassSensor
-from saci.modeling.device.motor.steering import Steering
-from saci.modeling.device.motor.motor import Motor
-from saci.modeling.device.interface.serial import Serial
-from saci.modeling.device.gcs import GCS
-from saci.modeling.device import Device
-from saci.modeling.state import GlobalState
-from saci.modeling.device import ComponentID, MultiCopterMotor, Wifi
-from saci.orchestrator import process, identify
 from saci.hypothesis import Hypothesis, ParameterAssumption, RemoveComponentsAssumption
 from saci.identifier import IdentifierCPV
-
-from saci_db.cpvs import MavlinkSiKCPV, SerialRollOverCPV, CompassPermanentSpoofingCPV, WifiWebCrashCPV
-from saci_db.devices.ngcrover import NGCRover
-from saci_db.vulns import LackWifiAuthenticationVuln, MavlinkMitmVuln
-from saci_db.devices.px4_quadcopter_device import PX4Quadcopter
+from saci.modeling import CPV, ComponentBase
+from saci.modeling.annotation import Annotation
+from saci.modeling.device import ComponentID, Device, MultiCopterMotor, Wifi
+from saci.modeling.device.gcs import GCS
+from saci.modeling.device.interface.serial import Serial
+from saci.modeling.device.motor.motor import Motor
+from saci.modeling.device.motor.steering import Steering
+from saci.modeling.device.sensor.compass import CompassSensor
+from saci.modeling.state import GlobalState
+from saci.orchestrator import identify, process
 
 
 def generate_fake_data():

@@ -1,8 +1,8 @@
 from saci.modeling.device.component import (
-    HardwareComponentBase,
     HardwareAbstractionLevel,
-    HardwareHigh,
     HardwareCircuit,
+    HardwareComponentBase,
+    HardwareHigh,
 )
 from saci.modeling.device.component.component_base import Port, PortDirection
 

@@ -1,8 +1,8 @@
 from saci.modeling.device.component import (
-    CyberComponentBase,
     CyberAbstractionLevel,
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentHigh,
 )
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 

@@ -3,9 +3,9 @@ import pytest
 
 from saci.identifier import IdentifierCPV
 from saci.modeling import CPV, Device
-from saci.modeling.device import Battery, Controller, PWMChannel, Motor
-from saci.modeling.device.sensor import CompassSensor
+from saci.modeling.device import Battery, Controller, Motor, PWMChannel
 from saci.modeling.device.motor.steering import Steering
+from saci.modeling.device.sensor import CompassSensor
 from saci.modeling.state import GlobalState
 
 

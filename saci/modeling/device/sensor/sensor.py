@@ -1,4 +1,4 @@
-from ..component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
+from ..component import CyberAbstractionLevel, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentHigh
 
 
 class SensorHigh(CyberComponentHigh):

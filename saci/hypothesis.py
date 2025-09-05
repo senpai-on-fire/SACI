@@ -1,14 +1,15 @@
 from collections.abc import Hashable
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing_extensions import TypeVar
 from typing import Generic
+
+from typing_extensions import TypeVar
 
 from saci.modeling.device.component.component_base import ComponentBase
 from saci.modeling.device.device import ComponentID
-from .modeling.device import Device
-from .modeling.annotation import Annotation
 
+from .modeling.annotation import Annotation
+from .modeling.device import Device
 
 CID = TypeVar("CID", bound=Hashable, default=ComponentID)
 

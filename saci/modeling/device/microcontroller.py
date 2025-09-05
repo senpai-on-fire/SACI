@@ -1,6 +1,5 @@
 from .component import HardwarePackage
 
-
 ###### Parameters Examples ######
 
 # Example of Chip vendor: "ARM"

@@ -1,16 +1,14 @@
 from collections.abc import Hashable
 from dataclasses import dataclass
-from typing import ClassVar, Union
-from typing_extensions import TypeVar
-from typing import Generic
+from typing import ClassVar, Generic, Union
 
 import networkx as nx
 from clorm import Predicate
+from typing_extensions import TypeVar
 
+from ..state import GlobalState
 from .component import ComponentBase
 from .componentid import ComponentID
-from ..state import GlobalState
-
 
 # In the examples, and in manual reasoning, strings can be more convenient so as to be human-readable. But from the web
 # frontend we'd like to use database primary keys. Thus this generic. Eventually we'll get rid of the weird ComponentID

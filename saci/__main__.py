@@ -17,6 +17,7 @@ def main():
         orchestrator_main()
     elif args.run_component == "web":
         import uvicorn
+
         from .webui.web import app
 
         uvicorn.run(app, host=args.address, port=args.port)
