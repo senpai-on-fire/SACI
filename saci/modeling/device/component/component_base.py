@@ -78,7 +78,7 @@ class ComponentBase:
         self.name = name or self.__class__.__name__
         self.type = _type
         self.parameters = parameters or {}
-        self.ports = ports or {}
+        self.ports = ports or {"Default": Port(direction=None)}
         self.capabilities = capabilities or set()
 
     def __repr__(self):
