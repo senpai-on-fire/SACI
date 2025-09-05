@@ -17,7 +17,7 @@ class WebServer(CyberComponentBase):
             ports = {
                 "Socket": Port(direction=PortDirection.INOUT),
             }
-        super().__init__( ports=ports, **kwargs)
+        super().__init__(ports=ports, **kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: WebServerHigh(**kwargs),
         }

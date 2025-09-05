@@ -25,7 +25,7 @@ class Camera(CyberComponentBase):
                 "Field of View": Port(direction=PortDirection.IN),
                 "Output": Port(direction=PortDirection.OUT),
             }
-        super().__init__( ports=ports, **kwargs)
+        super().__init__(ports=ports, **kwargs)
 
         self.powered = powered
 
