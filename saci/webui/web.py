@@ -185,7 +185,8 @@ def fetch_saci_db_device(
         options.append(selectinload(db.Device.annotations))
     if with_hypotheses:
         options.append(selectinload(db.Device.hypotheses))
-    options.append(raiseload("*"))
+    # TODO: Renable this when queries are properly parameterized
+    # options.append(raiseload("*"))
 
     db_device = session.execute(select(db.Device).where(db.Device.id == bp_id).options(*options)).scalar()
     if db_device is None:
