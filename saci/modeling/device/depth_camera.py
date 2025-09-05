@@ -1,6 +1,6 @@
 from typing import Optional
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -29,15 +29,11 @@ class DepthCamera(CyberComponentBase):
     __slots__ = ("enabled", "ABSTRACTIONS")
 
     def __init__(self, ports: Optional[Ports] = None, enabled=True, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "Field of View": Port(direction=PortDirection.IN),
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "Field of View": Port(direction=PortDirection.IN),
+            }
+        super().__init__(ports=ports, **kwargs)
 
         # TODO: once we support some sort of state variables replace this
         self.enabled = enabled

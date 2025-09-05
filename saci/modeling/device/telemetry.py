@@ -1,6 +1,6 @@
 from typing import Optional
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -20,17 +20,13 @@ class Telemetry(CyberComponentBase):
     __slots__ = CyberComponentBase.__slots__ + ("ABSTRACTIONS",)
 
     def __init__(self, ports: Optional[Ports] = None, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "RF": Port(direction=PortDirection.INOUT),
-                    "Control": Port(direction=PortDirection.OUT),
-                    "Logging": Port(direction=PortDirection.IN),
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "RF": Port(direction=PortDirection.INOUT),
+                "Control": Port(direction=PortDirection.OUT),
+                "Logging": Port(direction=PortDirection.IN),
+            }
+        super().__init__(ports=ports, **kwargs)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: TelemetryHigh(**kwargs),

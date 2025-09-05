@@ -1,4 +1,4 @@
-from saci.modeling.device.component.component_base import Port, PortDirection, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection
 from .component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -20,16 +20,12 @@ class Camera(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "powered")
 
     def __init__(self, powered=True, ports=None, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "Field of View": Port(direction=PortDirection.IN),
-                    "Output": Port(direction=PortDirection.OUT),
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "Field of View": Port(direction=PortDirection.IN),
+                "Output": Port(direction=PortDirection.OUT),
+            }
+        super().__init__( ports=ports, **kwargs)
 
         self.powered = powered
 

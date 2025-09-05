@@ -1,6 +1,6 @@
 from typing import Optional
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -54,16 +54,12 @@ class GPSReceiver(CyberComponentBase):
     __slots__ = "ABSTRACTIONS"
 
     def __init__(self, ports: Optional[Ports] = None, supported_protocols=None, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "RF": Port(direction=PortDirection.IN),
-                    "Location": Port(direction=PortDirection.OUT),
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "RF": Port(direction=PortDirection.IN),
+                "Location": Port(direction=PortDirection.OUT),
+            }
+        super().__init__(ports=ports, **kwargs)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: GPSReceiverHigh(ports=ports, **kwargs),

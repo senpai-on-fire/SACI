@@ -1,6 +1,6 @@
 from typing import Optional
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
 
 
@@ -13,16 +13,11 @@ class WebServerHigh(CyberComponentHigh):
 
 class WebServer(CyberComponentBase):
     def __init__(self, ports: Optional[Ports] = None, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "Socket": Port(direction=PortDirection.INOUT),
-                    # and then in the additional ports that get unioned in are device-specific control inputs/outputs
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "Socket": Port(direction=PortDirection.INOUT),
+            }
+        super().__init__( ports=ports, **kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: WebServerHigh(**kwargs),
         }

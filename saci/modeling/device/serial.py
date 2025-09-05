@@ -1,6 +1,6 @@
 from typing import Optional
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -41,16 +41,12 @@ class SerialAlgorithmic(CyberComponentAlgorithmic):
 
 class Serial(CyberComponentBase):
     def __init__(self, ports: Optional[Ports] = None, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "Pins": Port(direction=PortDirection.INOUT),
-                    "Communication": Port(direction=PortDirection.INOUT),
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "Pins": Port(direction=PortDirection.INOUT),
+                "Communication": Port(direction=PortDirection.INOUT),
+            }
+        super().__init__(ports=ports, **kwargs)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: SerialHigh(**kwargs),

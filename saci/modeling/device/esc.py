@@ -7,7 +7,7 @@ from saci.modeling.device.component import (
     CyberComponentBinary,
     CyberAbstractionLevel,
 )
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
 from claripy import BVS
 
@@ -129,16 +129,12 @@ class ESCHardwareTechnology(HardwareTechnology):
 
 class ESC(CyberComponentBase):
     def __init__(self, ports: Optional[Ports] = None, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "Speed Value": Port(direction=PortDirection.IN),
-                    "Motor Control": Port(direction=PortDirection.OUT),
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "Speed Value": Port(direction=PortDirection.IN),
+                "Motor Control": Port(direction=PortDirection.OUT),
+            }
+        super().__init__(ports=ports, **kwargs)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: ESCHigh(),

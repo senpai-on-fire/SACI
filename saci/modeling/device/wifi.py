@@ -1,6 +1,6 @@
 from typing import Optional
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -48,14 +48,13 @@ class Wifi(CyberComponentBase):
     """
 
     def __init__(self, ports: Optional[Ports] = None, **kwargs):
+        if ports is None:
+            ports = {
+                "RF": Port(direction=PortDirection.INOUT),
+                "Networking": Port(direction=PortDirection.INOUT),
+            }
         super().__init__(
-            ports=union_ports(
-                {
-                    "RF": Port(direction=PortDirection.INOUT),
-                    "Networking": Port(direction=PortDirection.INOUT),
-                },
-                ports,
-            ),
+            ports=ports,
             **kwargs,
         )
 

@@ -1,5 +1,5 @@
 from typing import Optional
-from saci.modeling.device.component.component_base import Port, Ports, union_ports, PortDirection
+from saci.modeling.device.component.component_base import Port, Ports, PortDirection
 from .component import (
     CyberComponentHigh,
     CyberComponentAlgorithmic,
@@ -44,16 +44,12 @@ class Debug(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, ports: Optional[Ports] = None, **kwargs):
-        super().__init__(
-            ports=union_ports(
-                {
-                    "RF": Port(direction=PortDirection.INOUT),
-                    "Control": Port(direction=PortDirection.INOUT),
-                },
-                ports,
-            ),
-            **kwargs,
-        )
+        if ports is None:
+            ports = {
+                "RF": Port(direction=PortDirection.INOUT),
+                "Control": Port(direction=PortDirection.INOUT),
+            }
+        super().__init__(ports=ports, **kwargs)
 
         self.ABSTRACTIONS = {
             # TODO: ports?
