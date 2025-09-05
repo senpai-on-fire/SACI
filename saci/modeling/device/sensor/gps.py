@@ -1,4 +1,3 @@
-from typing import Optional, List
 from claripy import BVS
 import logging
 
@@ -17,7 +16,7 @@ class GPSReceiverHigh(SensorHigh):
 
     def __init__(
         self,
-        supported_protocols: Optional[List[type]] = None,
+        supported_protocols: list[type] | None = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
         **kwargs,
@@ -39,9 +38,7 @@ class GPSReceiverHigh(SensorHigh):
 class GPSReceiverAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + ("supported_protocols", "signal_strength_threshold")
 
-    def __init__(
-        self, supported_protocols: Optional[List[type]] = None, signal_strength_threshold: int = -100, **kwargs
-    ):
+    def __init__(self, supported_protocols: list[type] | None = None, signal_strength_threshold: int = -100, **kwargs):
         """
         :param supported_protocols: List of protocol classes (e.g. [GPSProtocol]).
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
@@ -81,7 +78,7 @@ class GPSReceiver(Sensor):
 
     def __init__(
         self,
-        supported_protocols: Optional[List[type]] = None,
+        supported_protocols: list[type] | None = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
         **kwargs,

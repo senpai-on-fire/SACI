@@ -1,4 +1,4 @@
-from typing import List, Optional, Sequence, Tuple
+from collections.abc import Sequence
 
 
 from saci.modeling.device.device import Device
@@ -19,7 +19,7 @@ l = logging.getLogger(__name__)
 
 def identify(
     cps: Device, initial_state, cpv_model: CPV, vulns: Sequence[BaseVulnerability] | None = None
-) -> Tuple[Optional[CPV], Optional[List[CPVPath]]]:
+) -> tuple[CPV | None, list[CPVPath] | None]:
     """
     Identify if the given CPV model may exist in the CPS model.
     Return a CPV description if it exists, otherwise return None.

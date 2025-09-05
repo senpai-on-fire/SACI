@@ -3,7 +3,6 @@ import subprocess
 from copy import deepcopy
 
 import unittest
-from typing import Optional
 
 import networkx as nx
 
@@ -65,7 +64,7 @@ class TestPipeline(unittest.TestCase):
         cps = NGCRover()
         initial_state = GlobalState(cps.components)
         # this rover sure is vulnerable
-        cpv_hypotheses: list[tuple[CPV, Optional[tuple[type[ComponentBase], type[ComponentBase]]]]] = [
+        cpv_hypotheses: list[tuple[CPV, tuple[type[ComponentBase], type[ComponentBase]] | None]] = [
             (MavlinkSiKCPV(), None),
             # TODO: restore some sort of the abstraction levels in the identification process
             (SerialRollOverCPV(), (Serial, Motor)),

@@ -18,7 +18,7 @@ def assert_cpv_matches_blueprint(cpv: CPV, blueprint_filename: str):
 
     # Load and process blueprint
     blueprint_path = Path(__file__).parent / blueprint_filename
-    with open(blueprint_path, "r") as f:
+    with open(blueprint_path) as f:
         blueprint_data = json.load(f)
 
     blueprint = System(**blueprint_data)

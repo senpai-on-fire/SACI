@@ -67,9 +67,9 @@ class Component(Base):
     device_id = mapped_column(ForeignKey("devices.id"))
     is_entry: Mapped[bool]
 
-    device: Mapped["Device"] = relationship(back_populates="components")
-    ports: Mapped[list["Port"]] = relationship(back_populates="component", cascade="all, delete-orphan")
-    capabilities: Mapped[list["Capability"]] = relationship(cascade="all, delete-orphan")
+    device: Mapped[Device] = relationship(back_populates="components")
+    ports: Mapped[list[Port]] = relationship(back_populates="component", cascade="all, delete-orphan")
+    capabilities: Mapped[list[Capability]] = relationship(cascade="all, delete-orphan")
 
     @classmethod
     def from_web_model(cls, model: ComponentModel, device_id: str) -> Component:
@@ -100,7 +100,7 @@ class Port(Base):
     direction: Mapped[str | None]
     component_id: Mapped[int] = mapped_column(ForeignKey("components.id"))
 
-    component: Mapped["Component"] = relationship(back_populates="ports")
+    component: Mapped[Component] = relationship(back_populates="ports")
 
 
 class Connection(Base):
@@ -113,7 +113,7 @@ class Connection(Base):
 
     from_port: Mapped[Port] = relationship(foreign_keys=[from_port_id])
     to_port: Mapped[Port] = relationship(foreign_keys=[to_port_id])
-    device: Mapped["Device"] = relationship(back_populates="connections")
+    device: Mapped[Device] = relationship(back_populates="connections")
 
     # we should have from_port.component.device == to_port.component.device == device
     # (in this case we might not need device ourselves here? but keeping it for now)
@@ -148,8 +148,8 @@ class Capability(Base):
     port_id: Mapped[int | None] = mapped_column(ForeignKey("ports.id"), nullable=True)
     capability: Mapped[str]
 
-    component: Mapped["Component"] = relationship(overlaps="capabilities")
-    port: Mapped["Port"] = relationship()
+    component: Mapped[Component] = relationship(overlaps="capabilities")
+    port: Mapped[Port] = relationship()
 
     def to_tuple(self) -> tuple[CapabilityEnum, str | None]:
         return (CapabilityEnum(self.capability), self.port.name if self.port else None)
@@ -164,8 +164,8 @@ class Hypothesis(Base):
     device_id = mapped_column(ForeignKey("devices.id"))
     extra_text: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    device: Mapped["Device"] = relationship(back_populates="hypotheses")
-    annotations: Mapped[list["Annotation"]] = relationship(back_populates="hypothesis")
+    device: Mapped[Device] = relationship(back_populates="hypotheses")
+    annotations: Mapped[list[Annotation]] = relationship(back_populates="hypothesis")
 
     @classmethod
     def from_web_model(
@@ -214,7 +214,7 @@ class Annotation(Base):
     hypothesis_id = mapped_column(ForeignKey("hypotheses.id"))
 
     attack_surface: Mapped[Component] = relationship()
-    device: Mapped["Device"] = relationship(back_populates="annotations")
+    device: Mapped[Device] = relationship(back_populates="annotations")
     hypothesis: Mapped[Hypothesis] = relationship(back_populates="annotations")
 
     @classmethod
@@ -302,7 +302,7 @@ class Device(Base):
         )
 
     @staticmethod
-    def janky_from_saci_device(device_id: str, device: SaciDevice) -> "Device":
+    def janky_from_saci_device(device_id: str, device: SaciDevice) -> Device:
         """Please don't use this."""
 
         components = {

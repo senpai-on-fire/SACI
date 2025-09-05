@@ -1,5 +1,3 @@
-from typing import Optional
-
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
@@ -28,7 +26,7 @@ class DepthCameraAlgorithmic(CyberComponentAlgorithmic):
 class DepthCamera(CyberComponentBase):
     __slots__ = ("enabled", "ABSTRACTIONS")
 
-    def __init__(self, ports: Optional[Ports] = None, enabled=True, **kwargs):
+    def __init__(self, ports: Ports | None = None, enabled=True, **kwargs):
         if ports is None:
             ports = {
                 "Field of View": Port(direction=PortDirection.IN),

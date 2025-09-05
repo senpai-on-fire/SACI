@@ -5,7 +5,6 @@ from saci.modeling.device.component import (
     CyberComponentSourceCode,
     CyberComponentBinary,
 )
-from typing import List
 import claripy
 import logging
 
@@ -74,7 +73,7 @@ class LocalizerAlgorithmic(CyberComponentAlgorithmic):
             "fault_detection_flag": claripy.BVS("fault_detection_flag", 8),  # Sensor fault detection flag
         }
 
-    def position(self, localization_components: List[CyberComponentBase]) -> bool:
+    def position(self, localization_components: list[CyberComponentBase]) -> bool:
         """
         Determines if the CPS's position can be accurately estimated.
         """

@@ -1,7 +1,8 @@
 from collections.abc import Hashable
 from dataclasses import dataclass
-from typing import ClassVar, Optional, Union
-from typing_extensions import TypeVar, Generic
+from typing import ClassVar, Union
+from typing_extensions import TypeVar
+from typing import Generic
 
 import networkx as nx
 from clorm import Predicate
@@ -29,8 +30,8 @@ class Device(Generic[CID]):
         name: str,
         components: list[ComponentBase] | dict[CID, ComponentBase],
         # communication and mappings between components
-        component_graph: Optional[nx.DiGraph] = None,
-        state: Optional[GlobalState] = None,
+        component_graph: nx.DiGraph | None = None,
+        state: GlobalState | None = None,
     ):
         self.name = name
 

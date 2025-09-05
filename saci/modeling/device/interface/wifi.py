@@ -1,4 +1,3 @@
-from typing import Optional
 from saci.modeling.communication.protocol import WifiBProtocol, WifiGProtocol, WifiNProtocol
 from saci.modeling.device.component import (
     CyberComponentHigh,
@@ -75,7 +74,7 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
     )
 
     def __init__(
-        self, supported_protocols: Optional[list[type[BaseCommunication]]] = None, interference_level=0, **kwargs
+        self, supported_protocols: list[type[BaseCommunication]] | None = None, interference_level=0, **kwargs
     ):
         """
         :param supported_protocols: List of supported WiFi protocols.

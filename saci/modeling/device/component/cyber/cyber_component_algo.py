@@ -1,5 +1,3 @@
-from typing import Optional
-
 from saci.modeling.device.component.cyber.cyber_component_base import CyberComponentBase
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
@@ -17,8 +15,8 @@ class CyberComponentAlgorithmic(CyberComponentBase):
     def __init__(
         self,
         abstraction=CyberAbstractionLevel.ALGORITHMIC,
-        variables: Optional[dict[str, claripy.ast.bv.BV]] = None,
-        conditions: Optional[list[claripy.ast.bool.Bool]] = None,
+        variables: dict[str, claripy.ast.bv.BV] | None = None,
+        conditions: list[claripy.ast.bool.Bool] | None = None,
         **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)

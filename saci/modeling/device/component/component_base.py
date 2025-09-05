@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Any, Optional, TypeAlias, Type
+from typing import Any, TypeAlias
 from dataclasses import dataclass
 
 from saci.modeling.capability import Capability
@@ -15,7 +15,7 @@ class PortDirection(StrEnum):
 class Port:
     """Description of a port on a component."""
 
-    direction: Optional[PortDirection]
+    direction: PortDirection | None
     """Dataflow direction of the port, with respect to the component this port is part of."""
 
     # TODO: abstraction level, units, etc
@@ -24,7 +24,7 @@ class Port:
 Ports: TypeAlias = dict[str, Port]
 
 
-def union_ports(ports1: Optional[Ports], ports2: Optional[Ports]) -> Optional[Ports]:
+def union_ports(ports1: Ports | None, ports2: Ports | None) -> Ports | None:
     # TODO: some other strategy for duplicate keys besides rejection?
     # TODO: handle arbitrary number of dicts?
     if not ports1:
@@ -69,10 +69,10 @@ class ComponentBase:
 
     def __init__(
         self,
-        name: Optional[str] = None,
+        name: str | None = None,
         _type=None,
-        parameters: Optional[dict[str, Any]] = None,
-        ports: Optional[dict[str, Port]] = None,
+        parameters: dict[str, Any] | None = None,
+        ports: dict[str, Port] | None = None,
         capabilities: set[tuple[Capability, str | None]] | None = None,
     ):
         self.name = name or self.__class__.__name__
@@ -88,7 +88,7 @@ class ComponentBase:
         else:
             return self.name
 
-    parameter_types: dict[str, Type] = {}
+    parameter_types: dict[str, type] = {}
 
     def check_parameter_types(self):
         for param_name, param_value in self.parameters.items():

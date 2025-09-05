@@ -1,5 +1,6 @@
 from collections.abc import Hashable
-from typing import Generic, Sequence, TypeVar
+from typing import Generic, TypeVar
+from collections.abc import Sequence
 from copy import deepcopy
 
 from saci.hypothesis import Hypothesis

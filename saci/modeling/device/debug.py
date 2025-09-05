@@ -1,4 +1,3 @@
-from typing import Optional
 from saci.modeling.device.component.component_base import Port, Ports, PortDirection
 from .component import (
     CyberComponentHigh,
@@ -43,7 +42,7 @@ class DebugAlgorithmic(CyberComponentAlgorithmic):
 class Debug(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
-    def __init__(self, ports: Optional[Ports] = None, **kwargs):
+    def __init__(self, ports: Ports | None = None, **kwargs):
         if ports is None:
             ports = {
                 "RF": Port(direction=PortDirection.INOUT),

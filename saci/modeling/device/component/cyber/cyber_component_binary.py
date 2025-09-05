@@ -1,4 +1,3 @@
-from typing import Optional
 from pathlib import Path
 
 from saci.modeling.device.component.cyber.cyber_component_base import CyberComponentBase
@@ -14,8 +13,8 @@ class CyberComponentBinary(CyberComponentBase):
 
     def __init__(
         self,
-        binary_path: Optional[Path] = None,
-        pc: Optional[int] = None,
+        binary_path: Path | None = None,
+        pc: int | None = None,
         abstraction=CyberAbstractionLevel.BINARY,
         **kwargs,
     ):

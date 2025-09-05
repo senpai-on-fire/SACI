@@ -75,7 +75,7 @@ class Loggers:
             raise AttributeError(k)
 
     def __dir__(self):
-        return list(super(Loggers, self).__dir__()) + list(self._loggers.keys())
+        return list(super().__dir__()) + list(self._loggers.keys())
 
 
 def is_enabled_for(self: logging.Logger, level: int) -> bool:

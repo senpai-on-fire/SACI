@@ -1,5 +1,3 @@
-from typing import Optional
-
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
 
@@ -12,7 +10,7 @@ class WebServerHigh(CyberComponentHigh):
 
 
 class WebServer(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports] = None, **kwargs):
+    def __init__(self, ports: Ports | None = None, **kwargs):
         if ports is None:
             ports = {
                 "Socket": Port(direction=PortDirection.INOUT),

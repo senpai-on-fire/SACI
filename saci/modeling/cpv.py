@@ -1,6 +1,6 @@
 import re
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 from .device import Device, ComponentBase
 from .state import GlobalState
@@ -53,19 +53,19 @@ class CPV:
 
     def __init__(
         self,
-        required_components: Optional[list[ComponentBase]] = None,
-        entry_component: Optional[ComponentBase] = None,
-        exit_component: Optional[ComponentBase] = None,
-        goals: Optional[list[ComponentBase]] = None,
-        vulnerabilities: Optional[list[BaseVulnerability]] = None,
-        initial_conditions: Optional[dict[str, Any]] = None,
+        required_components: list[ComponentBase] | None = None,
+        entry_component: ComponentBase | None = None,
+        exit_component: ComponentBase | None = None,
+        goals: list[ComponentBase] | None = None,
+        vulnerabilities: list[BaseVulnerability] | None = None,
+        initial_conditions: dict[str, Any] | None = None,
         # final_conditions: Optional[list[str]] = None,
-        attack_vectors: Optional[list[BaseAttackVector]] = None,
-        attack_requirements: Optional[list[str]] = None,
-        exploit_steps: Optional[list[str]] = None,
-        attack_impacts: Optional[list[BaseAttackImpact]] = None,
-        associated_files: Optional[list[str]] = None,
-        reference_urls: Optional[list[str]] = None,
+        attack_vectors: list[BaseAttackVector] | None = None,
+        attack_requirements: list[str] | None = None,
+        exploit_steps: list[str] | None = None,
+        attack_impacts: list[BaseAttackImpact] | None = None,
+        associated_files: list[str] | None = None,
+        reference_urls: list[str] | None = None,
     ):
         self.required_components = required_components or []
         self.entry_component = entry_component

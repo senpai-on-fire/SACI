@@ -1,6 +1,3 @@
-from typing import Optional
-
-
 from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
 from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
 
@@ -17,8 +14,8 @@ class HardwareTechnology(HardwareComponentBase):
     def __init__(
         self,
         abstraction=HardwareAbstractionLevel.TECHNOLOGY,
-        technology: Optional[str] = None,
-        readings: Optional[dict[str, claripy.ast.bv.BV]] = None,
+        technology: str | None = None,
+        readings: dict[str, claripy.ast.bv.BV] | None = None,
         **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)

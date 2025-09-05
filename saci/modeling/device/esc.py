@@ -1,4 +1,3 @@
-from typing import Optional
 from saci.modeling.device.component import (
     CyberComponentBase,
     CyberComponentHigh,
@@ -128,7 +127,7 @@ class ESCHardwareTechnology(HardwareTechnology):
 
 
 class ESC(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports] = None, **kwargs):
+    def __init__(self, ports: Ports | None = None, **kwargs):
         if ports is None:
             ports = {
                 "Speed Value": Port(direction=PortDirection.IN),

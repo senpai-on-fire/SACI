@@ -1,5 +1,3 @@
-from typing import Optional
-
 from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
 from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
 
@@ -17,9 +15,9 @@ class HardwarePackage(HardwareComponentBase):
     def __init__(
         self,
         abstraction=HardwareAbstractionLevel.PACKAGE,
-        chip_name: Optional[str] = None,
-        chip_vendor: Optional[str] = None,
-        pin_state: Optional[dict[str, claripy.ast.bv.BV]] = None,
+        chip_name: str | None = None,
+        chip_vendor: str | None = None,
+        pin_state: dict[str, claripy.ast.bv.BV] | None = None,
         **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)

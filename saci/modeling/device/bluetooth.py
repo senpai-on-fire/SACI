@@ -1,5 +1,3 @@
-from typing import Optional
-
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
@@ -77,7 +75,7 @@ class Bluetooth(CyberComponentBase):
     - "Networking": logical link/data path (GATT/SPP/etc.)
     """
 
-    def __init__(self, ports: Optional[Ports] = None, **kwargs):
+    def __init__(self, ports: Ports | None = None, **kwargs):
         if ports is None:
             ports = {
                 "RF": Port(direction=PortDirection.INOUT),

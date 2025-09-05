@@ -1,4 +1,3 @@
-from typing import Optional
 from saci.modeling.device.component import (
     CyberComponentBase,
     CyberAbstractionLevel,
@@ -23,7 +22,7 @@ class BMSAlgorithmic(CyberComponentAlgorithmic):
 
 
 class BMS(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports] = None, **kwargs):
+    def __init__(self, ports: Ports | None = None, **kwargs):
         if ports is None:
             ports = {
                 "Battery": Port(direction=PortDirection.INOUT),

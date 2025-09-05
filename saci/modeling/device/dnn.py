@@ -1,4 +1,3 @@
-from typing import Optional
 from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 from .component import (
     CyberComponentHigh,
@@ -25,7 +24,7 @@ class DNNAlgorithmic(CyberComponentAlgorithmic):
 
 
 class DNN(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports] = None, **kwargs):
+    def __init__(self, ports: Ports | None = None, **kwargs):
         if ports is None:
             ports = {
                 "Input": Port(direction=PortDirection.IN),

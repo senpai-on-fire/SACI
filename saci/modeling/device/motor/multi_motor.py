@@ -1,4 +1,3 @@
-from typing import List
 from claripy import BVS
 
 from ..component import (
@@ -29,7 +28,7 @@ class MultiMotorHigh(MotorHigh):
         :param load_imbalance_flag: Flags an imbalance in power/load distribution across motors.
         """
         super().__init__(**kwargs)
-        self.motors: List[MotorHigh] = motors or []
+        self.motors: list[MotorHigh] = motors or []
         self.is_operational = is_operational
         self.fault_detection_flag = fault_detection_flag
         self.load_imbalance_flag = load_imbalance_flag  # Helps detect uneven power/load distribution.
@@ -74,7 +73,7 @@ class MultiMotorAlgorithmic(MotorAlgorithmic):
         :param inter_motor_sync_error: Measures synchronization errors across multiple motors.
         """
         super().__init__(**kwargs)
-        self.motors: List[MotorAlgorithmic] = motors or []
+        self.motors: list[MotorAlgorithmic] = motors or []
         self.power_distribution_ratio = power_distribution_ratio
         self.torque_fluctuation_flag = torque_fluctuation_flag
         self.thermal_safety_limit = thermal_safety_limit

@@ -1,4 +1,3 @@
-from typing import Optional
 from pathlib import Path
 import claripy
 
@@ -106,8 +105,8 @@ class ControllerBinary(CyberComponentBinary):
 
     def __init__(
         self,
-        binary_path: Optional[Path] = None,
-        pc: Optional[int] = None,
+        binary_path: Path | None = None,
+        pc: int | None = None,
         patch_status="up-to-date",
         firmware_version="v1.0",
         **kwargs,

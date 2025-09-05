@@ -1,4 +1,3 @@
-from typing import Optional
 from pathlib import Path
 
 from saci.modeling.device.component.cyber.cyber_component_base import CyberComponentBase
@@ -14,8 +13,8 @@ class CyberComponentSourceCode(CyberComponentBase):
 
     def __init__(
         self,
-        source_root: Optional[Path] = None,
-        current_line: Optional[int] = None,
+        source_root: Path | None = None,
+        current_line: int | None = None,
         abstraction=CyberAbstractionLevel.SOURCE,
         **kwargs,
     ):

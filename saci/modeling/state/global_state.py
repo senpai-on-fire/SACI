@@ -1,6 +1,7 @@
 from collections.abc import Hashable
 from dataclasses import dataclass
-from typing_extensions import Generic, TypeVar
+from typing_extensions import TypeVar
+from typing import Generic
 
 from ..device import ComponentBase
 

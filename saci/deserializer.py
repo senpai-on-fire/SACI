@@ -4,7 +4,7 @@ import string
 import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 import networkx as nx
 from jinja2 import Environment
@@ -26,7 +26,7 @@ class ComponentPath:
     attr_name: str
     local: bool = False
     """True when this component is being generated here."""
-    file_name: Optional[str] = None
+    file_name: str | None = None
     """Present when this component is being generated here."""
 
     @property
