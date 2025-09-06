@@ -1,9 +1,14 @@
-from typing import Optional
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
-from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from ..communication import BaseCommunication
+from .component import (
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
+)
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from ..communication import BaseCommunication, UARTProtocol
 
 
 class SerialHigh(CyberComponentHigh):
@@ -34,14 +39,13 @@ class SerialAlgorithmic(CyberComponentAlgorithmic):
 
 
 class Serial(CyberComponentBase):
-    def __init__(self, ports: Optional[Ports]=None, **kwargs):
-        super().__init__(
-            ports=union_ports({
+    def __init__(self, ports: Ports | None = None, **kwargs):
+        if ports is None:
+            ports = {
                 "Pins": Port(direction=PortDirection.INOUT),
                 "Communication": Port(direction=PortDirection.INOUT),
-            }, ports),
-            **kwargs
-        )
+            }
+        super().__init__(ports=ports, **kwargs)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: SerialHigh(**kwargs),

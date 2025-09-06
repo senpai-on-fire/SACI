@@ -1,8 +1,11 @@
-from typing import Optional
-
-from .servo_motor import ServoHigh, ServoAlgorithmic
-from ..component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from ..component import (
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentSourceCode,
+)
 from ..component.cyber.cyber_abstraction_level import CyberAbstractionLevel
+from .servo_motor import ServoHigh
 
 
 class SteeringHigh(ServoHigh):

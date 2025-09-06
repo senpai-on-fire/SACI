@@ -1,8 +1,7 @@
-
 from ..communication.auth_comm import AuthenticatedCommunication
+from .component.cyber import CyberComponentBinary, CyberComponentSourceCode
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from .component.cyber import CyberComponentSourceCode, CyberComponentBinary
-from .telemetry import Telemetry, TelemetryHigh, TelemetryAlgorithmic
+from .telemetry import Telemetry, TelemetryAlgorithmic, TelemetryHigh
 
 
 class Mavlink(Telemetry):

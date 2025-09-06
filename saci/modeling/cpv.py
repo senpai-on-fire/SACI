@@ -1,37 +1,43 @@
 import re
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
-from .device import Device, ComponentBase
+from .attack.base_attack_impact import BaseAttackImpact
+from .attack.base_attack_vector import BaseAttackVector
+from .device import ComponentBase, Device
 from .state import GlobalState
 from .vulnerability import BaseVulnerability
-from .attack.base_attack_vector import BaseAttackVector
-from .attack.base_attack_impact import BaseAttackImpact
 
 _camel_re = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+
+
 def _camel_to_snake_case(name):
-    return _camel_re.sub('_', name).lower()
+    return _camel_re.sub("_", name).lower()
+
 
 def _comp_type_to_asp(comp):
     # TODO: remove High/Algorithmic/etc if it's there
     return _camel_to_snake_case(type(comp).__name__)
 
+
 def _vuln_type_to_asp(comp):
     return _camel_to_snake_case(type(comp).__name__)
 
+
 def _asp_escape_char(c):
     match c:
-        case '\\':
-            return '\\\\'
-        case '\n':
-            return '\\n'
+        case "\\":
+            return "\\\\"
+        case "\n":
+            return "\\n"
         case '"':
             return '\\"'
         case _:
             return c
 
+
 def _asp_string(s):
-    return '"' + ''.join(_asp_escape_char(c) for c in s) + '"'
+    return '"' + "".join(_asp_escape_char(c) for c in s) + '"'
 
 
 class CPV:
@@ -47,19 +53,19 @@ class CPV:
 
     def __init__(
         self,
-        required_components: Optional[list[ComponentBase]] = None,
-        entry_component: Optional[ComponentBase] = None,
-        exit_component: Optional[ComponentBase] = None,
-        goals: Optional[list[ComponentBase]] = None,
-        vulnerabilities: Optional[list[BaseVulnerability]] = None,
-        initial_conditions: Optional[dict[str, Any]] = None,
+        required_components: list[ComponentBase] | None = None,
+        entry_component: ComponentBase | None = None,
+        exit_component: ComponentBase | None = None,
+        goals: list[ComponentBase] | None = None,
+        vulnerabilities: list[BaseVulnerability] | None = None,
+        initial_conditions: dict[str, Any] | None = None,
         # final_conditions: Optional[list[str]] = None,
-        attack_vectors: Optional[list[BaseAttackVector]] = None,  
-        attack_requirements: Optional[list[str]] = None, 
-        exploit_steps: Optional[list[str]] = None,
-        attack_impacts: Optional[list[BaseAttackImpact]] = None,
-        associated_files: Optional[list[str]] = None,
-        reference_urls: Optional[list[str]] = None,
+        attack_vectors: list[BaseAttackVector] | None = None,
+        attack_requirements: list[str] | None = None,
+        exploit_steps: list[str] | None = None,
+        attack_impacts: list[BaseAttackImpact] | None = None,
+        associated_files: list[str] | None = None,
+        reference_urls: list[str] | None = None,
     ):
         self.required_components = required_components or []
         self.entry_component = entry_component
@@ -85,18 +91,48 @@ class CPV:
     def in_goal_state(self, state: GlobalState):
         return False
 
-    def is_possible_path(self, path: list[ComponentBase]):
-        if len(path) == len(self.required_components):
-
-            for i in range(len(path)):
-                if type(path[i]) is type(self.required_components[i]):
-                    continue
-                else:
-                    return False
-        else: 
+    @staticmethod
+    def _instance_matches(reference: ComponentBase, instance: ComponentBase) -> bool:
+        if not isinstance(instance, type(reference)):
             return False
-        
+        for capability, port in reference.capabilities:
+            if (capability, port) not in instance.capabilities:
+                return False
         return True
+
+    def is_possible_path(self, path: list[ComponentBase]):
+        # This code should accept any path that contains the required components in the correct order, with extra
+        # components in between, but not or the start or end.
+
+        # i need to rewrite this. i wrote it in a hurry.
+
+        if len(self.required_components) == 0:  # why would this happen
+            return True
+
+        if len(path) == 0:
+            return False
+
+        if not CPV._instance_matches(self.required_components[0], path[0]):
+            return False
+
+        req_i = 1
+        for comp in path:
+            if req_i >= len(self.required_components):
+                return False
+            if CPV._instance_matches(self.required_components[req_i], comp):
+                req_i += 1
+
+        return req_i == len(self.required_components)
+
+    def matches_entry(self, component: ComponentBase) -> bool:
+        if self.entry_component is None:
+            return True
+        return CPV._instance_matches(self.entry_component, component)
+
+    def matches_exit(self, component: ComponentBase) -> bool:
+        if self.exit_component is None:
+            return True
+        return CPV._instance_matches(self.exit_component, component)
 
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
@@ -140,9 +176,15 @@ class CPV:
             if vector.signal.data is not None:
                 print(f"attack_signal({signal_id}, data, {_asp_string(vector.signal.data)}).", file=f)
             print(f"attack_vector({vector_id}, signal, {signal_id}).", file=f)
-            print(f"attack_vector({vector_id}, required_access_level, {_asp_string(vector.required_access_level)}).", file=f)
+            print(
+                f"attack_vector({vector_id}, required_access_level, {_asp_string(vector.required_access_level)}).",
+                file=f,
+            )
             for conf_key, conf_value in vector.configuration.items():
-                print(f"attack_vector({vector_id}, configuration({_asp_string(conf_key)}), {_asp_string(conf_value)}).", file=f)
+                print(
+                    f"attack_vector({vector_id}, configuration({_asp_string(conf_key)}), {_asp_string(conf_value)}).",
+                    file=f,
+                )
             print(f"attack_vector({vector_id}, name, {_asp_string(vector.name)}).", file=f)
             print(f"cpv({ident}, attack_vector, {vector_id}).", file=f)
         for i, impact in enumerate(self.attack_impacts):

@@ -1,5 +1,5 @@
-from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
 from ..state.operation_mode import OperationMode
+from .component import CyberAbstractionLevel, CyberComponentBase, CyberComponentHigh
 
 
 class ControllerHigh(CyberComponentHigh):
@@ -32,7 +32,7 @@ class Controller(CyberComponentBase):
             CyberAbstractionLevel.HIGH: ControllerHigh(),
         }
 
-    # TODO: dedup this with the abstracted version; perhaps this can happen automatically once we 
+    # TODO: dedup this with the abstracted version; perhaps this can happen automatically once we
     parameter_types = {
         # TODO: How do we know if the controller has integrity check?
         "has_integrity_check": bool,

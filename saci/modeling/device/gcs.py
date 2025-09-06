@@ -1,8 +1,14 @@
-from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from .component import (
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
+)
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
-class GCS(CyberComponentBase):
 
+class GCS(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "communication_protocols")
 
     def __init__(self, communication_protocols=None, **kwargs):
@@ -22,12 +28,12 @@ class GCS(CyberComponentBase):
 
 
 class GCSHigh(CyberComponentHigh):
-
     __slots__ = ("communication_protocols", "connected_uavs", "mission_status")
 
     def __init__(self, communication_protocols=None, connected_uavs=None, mission_status="IDLE", **kwargs):
         """
-        :param communication_protocols: List of communication protocols the GCS supports (e.g., MAVLink, custom protocols).
+        :param communication_protocols: List of communication protocols the GCS supports (e.g., MAVLink, custom
+        protocols).
         :param connected_uavs: List of currently connected UAVs.
         :param mission_status: Current mission status (e.g., "IDLE", "IN_PROGRESS", "COMPLETED").
         """
@@ -38,10 +44,11 @@ class GCSHigh(CyberComponentHigh):
 
 
 class GCSAlgorithmic(CyberComponentAlgorithmic):
-
     __slots__ = ("communication_protocols", "connected_uavs", "mission_status", "telemetry_buffer")
 
-    def __init__(self, communication_protocols=None, connected_uavs=None, mission_status="IDLE", telemetry_buffer=None, **kwargs):
+    def __init__(
+        self, communication_protocols=None, connected_uavs=None, mission_status="IDLE", telemetry_buffer=None, **kwargs
+    ):
         """
         :param communication_protocols: List of communication protocols the GCS supports.
         :param connected_uavs: List of currently connected UAVs.

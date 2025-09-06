@@ -1,9 +1,15 @@
-from typing import Optional
+from saci.modeling.device.component.component_base import Port, PortDirection, Ports
 
-from saci.modeling.device.component.component_base import Port, PortDirection, Ports, union_ports
-from .component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from ..communication import BaseCommunication
+from .component import (
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
+)
 from .component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from ..communication import BaseCommunication, GPSProtocol
+
 
 class GPSReceiverHigh(CyberComponentHigh):
     __slots__ = CyberComponentHigh.__slots__ + ("supported_protocols", "authenticated", "signal_strength_threshold")
@@ -16,8 +22,9 @@ class GPSReceiverHigh(CyberComponentHigh):
 
     parameter_types = {
         "signal_strength_threshold": float,
-        "supported_protocols": list, # TODO: obviously make this better
+        "supported_protocols": list,  # TODO: obviously make this better
     }
+
 
 class GPSReceiverAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols",)
@@ -38,20 +45,20 @@ class GPSReceiverAlgorithmic(CyberComponentAlgorithmic):
 
     parameter_types = {
         "signal_strength_threshold": float,
-        "supported_protocols": list, # TODO: obviously make this better
+        "supported_protocols": list,  # TODO: obviously make this better
     }
 
-class GPSReceiver(CyberComponentBase):
-    __slots__ = ("ABSTRACTIONS")
 
-    def __init__(self, ports: Optional[Ports]=None, supported_protocols=None, **kwargs):
-        super().__init__(
-            ports=union_ports({
+class GPSReceiver(CyberComponentBase):
+    __slots__ = "ABSTRACTIONS"
+
+    def __init__(self, ports: Ports | None = None, supported_protocols=None, **kwargs):
+        if ports is None:
+            ports = {
                 "RF": Port(direction=PortDirection.IN),
                 "Location": Port(direction=PortDirection.OUT),
-            }, ports),
-            **kwargs
-        )
+            }
+        super().__init__(ports=ports, **kwargs)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: GPSReceiverHigh(ports=ports, **kwargs),
@@ -62,5 +69,5 @@ class GPSReceiver(CyberComponentBase):
 
     parameter_types = {
         "signal_strength_threshold": float,
-        "supported_protocols": list, # TODO: obviously make this better
+        "supported_protocols": list,  # TODO: obviously make this better
     }

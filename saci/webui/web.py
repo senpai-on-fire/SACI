@@ -1,309 +1,432 @@
-from __future__ import annotations
-from dataclasses import dataclass
-from collections import defaultdict
-from enum import StrEnum
 import asyncio
+import contextlib
 import logging
-
-import json
-import time
-import importlib
-from io import StringIO
-from pathlib import Path
 import os
-from typing import Annotated, Optional, TypeVar
+from pathlib import Path
 
 import httpx
-
-# from flask import Flask, render_template, send_file, request, abort
-from fastapi import FastAPI, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect, status
-from fastapi.staticfiles import StaticFiles
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
-from saci.modeling.cpv import CPV
-from saci.modeling.cpvpath import CPVPath
-from websockets.asyncio.client import connect as ws_connect, ClientConnection as WsClientConnection
-from websockets.exceptions import InvalidStatus as WsInvalidStatus, ConnectionClosedOK as WsConnectionClosedOK
+from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
+from saci_db.cpvs import CPVS
+from sqlalchemy import select
+from sqlalchemy.orm import Session, raiseload, selectinload
+from websockets.asyncio.client import ClientConnection as WsClientConnection
+from websockets.asyncio.client import connect as ws_connect
+from websockets.exceptions import ConnectionClosedOK as WsConnectionClosedOK
+from websockets.exceptions import InvalidStatus as WsInvalidStatus
 
-from saci.modeling.device import ComponentID, ComponentBase
-from saci.modeling.device.control.controller import Controller
-from saci.modeling.device.sensor.compass import CompassSensor
-from saci.modeling.device.esc import ESC
-from saci.modeling.device.motor.steering import Steering
-from saci.modeling.device.webserver import WebServer
+import saci.webui.data as data
+import saci.webui.db as db
+from saci.modeling.annotation import Annotation
+from saci.modeling.device import Device
 from saci.modeling.state.global_state import GlobalState
+from saci.orchestrator.tool import TOOLS
+from saci.webui.excavate_import import System
+from saci.webui.web_models import (
+    AnalysisID,
+    AnalysisUserInfo,
+    AnnotationID,
+    AnnotationModel,
+    BlueprintID,
+    ComponentTypeID,
+    ComponentTypeModel,
+    CPVModel,
+    CPVResultModel,
+    DeviceModel,
+    HypothesisID,
+    HypothesisModel,
+    ParameterTypeModel,
+    WebComponentID,
+)
 
+from ..identifier import IdentifierCPV
 from ..orchestrator import identify
-from ..deserializer import ingest
-from ..modeling import Device, ComponentBase
-from ..modeling.device import Wifi, Motor, GPSReceiver
 
 l = logging.getLogger(__name__)
+l.setLevel(logging.DEBUG)
 
-app = FastAPI()
+APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
+
+
+async def kill_apps(app_ids: list[int], client: httpx.AsyncClient | None = None):
+    cm: contextlib.nullcontext[httpx.AsyncClient] | httpx.AsyncClient
+    if client is None:
+        cm = httpx.AsyncClient()
+    else:
+        cm = contextlib.nullcontext(client)
+
+    async with cm as c:
+        for app_id in app_ids:
+            l.info(f"killing app {app_id}")
+            await c.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
+            await c.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
+
+
+async def get_running_app_ids(client: httpx.AsyncClient) -> list[int]:
+    apps_resp = await client.get(f"{APP_CONTROLLER_URL}/api/app")
+    return [app_json["id"] for app_json in apps_resp.json()]
+
+
+async def kill_all_apps():
+    async with httpx.AsyncClient() as client:
+        await kill_apps(await get_running_app_ids(client), client=client)
+
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    # kill all existing apps when we start. we should probably not have this behavior permanently
+    num_retries = 20
+    delay_time = 0.1
+    for i in range(num_retries):
+        try:
+            await kill_all_apps()
+            break
+        except httpx.ConnectError:
+            if i == 0:
+                l.info(
+                    "don't see app-controller up yet at %r, will try %d more times with %fs between them",
+                    APP_CONTROLLER_URL,
+                    num_retries,
+                    delay_time,
+                )
+            await asyncio.sleep(delay_time)
+    else:
+        l.warning("don't see app-controller up at %r after %d retries, ignoring", APP_CONTROLLER_URL, num_retries)
+
+    yield
+
+
+db.init_db()
+app = FastAPI(lifespan=lifespan)
 
 SACI_ROOT = Path(__file__).resolve().parent.parent.parent
 
 ### Endpoints for the frontend UI
 
-app.mount("/assets", StaticFiles(directory=str(SACI_ROOT/"web"/"dist"/"assets")), name="assets")
+app.mount("/assets", StaticFiles(directory=str(SACI_ROOT / "web" / "dist" / "assets")), name="assets")
+
 
 @app.get("/")
 async def serve_frontend_root():
-    return FileResponse(str(SACI_ROOT/"web"/"dist"/"index.html"))
+    return FileResponse(str(SACI_ROOT / "web" / "dist" / "index.html"))
+
 
 ### Endpoints for blueprint management
 
-class ComponentModel(BaseModel):
-    name: str
-    parameters: dict[str, object]
 
-def component_to_model(comp: ComponentBase) -> ComponentModel:
-    return ComponentModel(
-        name=comp.name,
-        parameters=dict(comp.parameters), # shallow copy to be safe -- oh, how i yearn for immutability by default
-    )
-
-class HypothesisModel(BaseModel):
-    name: str
-    entry_component: Optional[ComponentID]
-    exit_component: Optional[ComponentID]
-
-HypothesisID = str
-
-class DeviceModel(BaseModel):
-    name: str
-    components: dict[ComponentID, ComponentModel]
-    connections: list[tuple[ComponentID, ComponentID]]
-    hypotheses: dict[HypothesisID, HypothesisModel]
-
-def blueprint_to_model(bp: Device, hypotheses: dict[HypothesisID, HypothesisModel]) -> DeviceModel:
-    return DeviceModel(
-        name=bp.name,
-        components={comp_id: component_to_model(comp) for comp_id, comp in bp.components.items()},
-        connections=[(from_, to_) for (from_, to_) in bp.component_graph.edges],
-        hypotheses=hypotheses,
-    )
-
-BlueprintID = str
-
-@app.get('/api/blueprints')
+@app.get("/api/blueprints")
 def get_blueprints() -> dict[BlueprintID, DeviceModel]:
     # TODO: eventually we won't want to send all this data at once
-    # TODO: store the hypotheses per-blueprint
-    return {bp_id: blueprint_to_model(bp, hypotheses[bp_id]) for bp_id, bp in blueprints.items()}
+    with db.get_session() as session:
+        db_devices = session.query(db.Device).all()
+        return {device.id: device.to_web_model() for device in db_devices}
+
 
 @app.post("/api/blueprints/{bp_id}")
 def create_or_update_blueprint(bp_id: str, serialized: dict, response: Response):
-    if not bp_id.isidentifier():
-        err = "Blueprint ID is not a valid Python identifier (this restriction will be removed in the future"
-        raise HTTPException(status_code=400, detail=err)
-
     try:
-        ingest(serialized, INGESTION_DIR / bp_id, force=True)
+        blueprint = System(**serialized)
+    except ValidationError:
+        raise HTTPException(status_code=400, detail="Malformed blueprint")
 
-        if bp_id in blueprints:
-            # TODO: actually check to make sure this is actually a fast-forwarded version
-            created = False
-        else:
-            created = True
-    except ValueError as e:
-        l.warning(f"got deserialization error {e} when attempting to ingest blueprint")
-        raise HTTPException(status_code=400, detail="Couldn't deserialize provided blueprint")
+    if not bp_id:
+        bp_id = str(blueprint.id or blueprint.name)
 
-    importlib.invalidate_caches()
-    # TODO: probably don't need to reload *all* the ingested modules
-    importlib.reload(ingested)
-    blueprints[bp_id] = ingested.devices[bp_id]
-    
-    if created:
-        response.status_code = status.HTTP_201_CREATED
+    with db.get_session() as session, session.begin():
+        # TODO: actually update
+        existing_device = session.get(db.Device, bp_id)
+        if existing_device is not None:
+            session.delete(existing_device)
+        session.add(blueprint.to_db_device(bp_id))
 
+    response.status_code = status.HTTP_201_CREATED
     return {}
 
-class CPVModel(BaseModel):
-    name: str
-    exploit_steps: list[str]
 
-def cpv_to_model(cpv: CPV) -> CPVModel:
-    # Extract exploit steps if available, or use empty list as fallback
-    exploit_steps = cpv.exploit_steps if hasattr(cpv, 'exploit_steps') else []
-    
-    return CPVModel(
-        name=cpv.NAME,
-        exploit_steps=exploit_steps
-    )
+@app.post("/api/blueprints/{bp_id}/annotations")
+def create_annotation(bp_id: str, annot_model: AnnotationModel, response: Response) -> AnnotationID:
+    with db.get_session() as session:
+        with session.begin():
+            # Make sure the attack surface actually exists and is part of the specified device
+            attack_surface = session.get(db.Component, annot_model.attack_surface)
+            if attack_surface is None:
+                raise HTTPException(status_code=400, detail="Attack surface component does not exist")
+            if attack_surface.device_id != bp_id:
+                raise HTTPException(
+                    status_code=400, detail="Attack surface component is not part of the specified device"
+                )
+            annot_db = db.Annotation.from_web_model(annot_model, bp_id)
+            session.add(annot_db)
+        annot_id = annot_db.id
 
-class CPVPathModel(BaseModel):
-    path: list[ComponentID]
+    response.status_code = status.HTTP_201_CREATED
+    return annot_id
 
-def cpv_path_to_model(path: CPVPath) -> CPVPathModel:
-    return CPVPathModel(path=[c.id_ for c in path.path])
 
-class CPVResultModel(BaseModel):
-    cpv: CPVModel
-    path: CPVPathModel
+@app.delete("/api/blueprints/{bp_id}/annotations/{annot_id}")
+def delete_annotation(bp_id: str, annot_id: AnnotationID):
+    with db.get_session() as session, session.begin():
+        annot_db = session.get(db.Annotation, annot_id)
+        if annot_db is None:
+            raise HTTPException(status_code=404, detail="Annotation does not exist")
+        if annot_db.device_id != bp_id:
+            raise HTTPException(status_code=404, detail="Annotation is not part of given device")
 
-def cpv_result_to_model(cpv: CPV, path: CPVPath) -> CPVResultModel:
-    return CPVResultModel(cpv=cpv_to_model(cpv), path=cpv_path_to_model(path))
+        session.delete(annot_db)
+
+
+def fetch_saci_db_device(
+    session: Session, bp_id: str, with_annotations: bool = False, with_hypotheses: bool = False
+) -> db.Device:
+    options = [selectinload(db.Device.components), selectinload(db.Device.connections)]
+    if with_annotations:
+        options.append(selectinload(db.Device.annotations))
+    if with_hypotheses:
+        options.append(selectinload(db.Device.hypotheses))
+    # TODO: Renable this when queries are properly parameterized
+    # options.append(raiseload("*"))
+
+    db_device = session.execute(select(db.Device).where(db.Device.id == bp_id).options(*options)).scalar()
+    if db_device is None:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+    else:
+        return db_device
+
+
+def fetch_saci_device(session: Session, bp_id: str) -> Device[WebComponentID]:
+    return fetch_saci_db_device(session, bp_id).to_saci_device()
+
+
+def fetch_saci_device_and_annotations(
+    session: Session, bp_id: str
+) -> tuple[Device[WebComponentID], list[Annotation[WebComponentID]]]:
+    db_device = fetch_saci_db_device(session, bp_id, with_annotations=True)
+    return db_device.to_saci_device(), [annot.to_saci_annotation() for annot in db_device.annotations]
+
 
 @app.get("/api/blueprints/{bp_id}/cpvs")
-def identify_cpvs(bp_id: str) -> list[CPVResultModel]:
-    if (blueprint := blueprints.get(bp_id)) is None:
-        raise HTTPException(status_code=404, detail="Blueprint not found")
+def identify_cpvs(bp_id: str, only_special: bool = False) -> list[CPVResultModel]:
+    with db.get_session() as session:
+        cps, annotations = fetch_saci_device_and_annotations(session, bp_id)
 
-    # TODO: re-introduce the queueing model once this takes more time
-    initial_state = GlobalState(blueprint.components)
-    return [
-        cpv_result_to_model(cpv, path)
+    # TODO: re-introduce the queueing model to this routine once this takes more time
+
+    initial_state = GlobalState(cps.components)
+
+    # TODO: the CPVPaths contain the actual ComponentBases and so hashability is fragile and dependent on being
+    # identified from the same device object. we should probably make them just have the component IDs.
+    annotation_vulns = [annot.into_vulnerability(cps) for annot in annotations]
+    identified_cpvs = {
+        (cpv, path)
         for cpv in CPVS
-        if (paths := identify(blueprint, initial_state, cpv_model=cpv)[1]) is not None
+        if (paths := identify(cps, initial_state, cpv_model=cpv, vulns=annotation_vulns)[1]) is not None
         for path in paths
-    ]
+    }
 
-T = TypeVar('T')
-def _all_subclasses(c: type[T]) -> list[type[T]]:
-    return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
+    if only_special:
+        bare_cpvs = {
+            (cpv, path)
+            for cpv in CPVS
+            if (paths := identify(cps, initial_state, cpv_model=cpv)[1]) is not None
+            for path in paths
+        }
+        identified_cpvs -= bare_cpvs
 
-class ParameterTypeModel(BaseModel):
-    type_: Annotated[str, Field(serialization_alias="type")]
-    description: str
+    return [CPVResultModel.from_cpv_result(cpv, path) for cpv, path in identified_cpvs]
 
-class PortModel(BaseModel):
-    direction: str
 
-class ComponentTypeModel(BaseModel):
-    name: str # human-readable name
-    parameters: dict[str, ParameterTypeModel]
-    ports: dict[str, PortModel]
+@app.post("/api/blueprints/{bp_id}/hypotheses")
+def create_hypothesis(bp_id: str, hypothesis_model: HypothesisModel, response: Response) -> HypothesisID:
+    with db.get_session() as session:
+        with session.begin():
+            # Fetch the device to make sure it exists and to use in validation
+            device = session.execute(
+                select(db.Device)
+                .where(db.Device.id == bp_id)
+                .options(selectinload(db.Device.components), selectinload(db.Device.annotations), raiseload("*"))
+            ).scalar()
+            if device is None:
+                raise HTTPException(status_code=404, detail="Blueprint not found")
 
-ComponentTypeID = str
-def component_type_id(comp_type: type[ComponentBase]) -> str:
-    return f"{comp_type.__module__}.{comp_type.__qualname__}"
+            # Validate that the parts of the hypothesis specified exist in a valid state
+            if (bad_comps := set(hypothesis_model.path) - {comp.id for comp in device.components}) != set():
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "message": "Components specified are not part of device specified",
+                        "invalid_components": list(bad_comps),
+                    },
+                )
+            hypothesis_annotations = set(hypothesis_model.annotations)
+            if (bad_annots := hypothesis_annotations - {annot.id for annot in device.annotations}) != set():
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "message": "Annotations specified are not part of device specified",
+                        "invalid_annotations": list(bad_annots),
+                    },
+                )
+            if (bad_annots := {annot.id for annot in device.annotations if annot.hypothesis_id is not None}) != set():
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "message": "Annotations specified are not all unassigned to hypotheses",
+                        "invalid_annotations": list(bad_annots),
+                    },
+                )
 
-# TODO: so janky
-all_component_types: dict[ComponentTypeID, type[ComponentBase]] = {}
-for comp_type in _all_subclasses(ComponentBase):
-    type_id = component_type_id(comp_type)
-    if dup := all_component_types.get(type_id):
-        l.warning(f"duplicately-IDed component types {dup} and {comp_type} (both have ID {type_id}), only including {dup}")
-    all_component_types[type_id] = comp_type
+            # Create the hypothesis in the DB
+            hypot_db = db.Hypothesis(
+                device_id=bp_id,
+                name=hypothesis_model.name,
+                path=hypothesis_model.path,
+                annotations=[annot for annot in device.annotations if annot.id in hypothesis_annotations],
+            )
+            session.add(hypot_db)
+
+        hypot_id = hypot_db.id
+
+    response.status_code = status.HTTP_201_CREATED
+    return hypot_id
+
+
+@app.get("/api/blueprints/{bp_id}/hypotheses/{hypot_id}/cpvs")
+def hypothesis_cpvs(bp_id: str, hypot_id: HypothesisID) -> list[CPVModel]:
+    with db.get_session() as session:
+        device = fetch_saci_device(session, bp_id)
+        db_hypot = session.execute(
+            select(db.Hypothesis)
+            .where(db.Hypothesis.id == hypot_id)
+            .where(db.Hypothesis.device_id == bp_id)
+            .options(selectinload(db.Hypothesis.annotations), raiseload("*"))
+        ).scalar()
+        if db_hypot is None:
+            raise HTTPException(status_code=404, detail="Hypothesis not found")
+        hypot = db_hypot.to_saci_hypothesis()
+
+    identifier = IdentifierCPV(device, GlobalState(device.components))
+    matched_cpvs = [cpv for cpv in CPVS if identifier.check_hypothesis(cpv, hypot)]
+
+    return [CPVModel.from_cpv(cpv) for cpv in matched_cpvs]
+
 
 @app.get("/api/components/")
 def list_component_types() -> list[ComponentTypeID]:
-    return list(all_component_types)
+    return list(data.all_component_types)
+
 
 @app.get("/api/components/{type_id}")
 def component_type_details(type_id: str) -> ComponentTypeModel:
-    if (comp_type := all_component_types.get(type_id)) is None:
+    if (comp_type := data.all_component_types.get(type_id)) is None:
         raise HTTPException(status_code=404, detail="No component type with that ID")
     return ComponentTypeModel(
         # TODO: have component types have better human-readable names
         name=comp_type.__name__,
         # TODO: have parameters have more metadata associated with them
-        parameters={name: ParameterTypeModel(type_=type_.__name__, description="coming soon") for name, type_ in comp_type.parameter_types.items()},
+        parameters={
+            name: ParameterTypeModel(type_=type_.__name__, description="coming soon")
+            for name, type_ in comp_type.parameter_types.items()
+        },
         ports={},
     )
 
-@app.post("/api/ingest_blueprint")
-def ingest_blueprint_legacy(name: str, serialized: dict, force: bool = False):
-    if name in blueprints:
-        return {"error": "exists"}, 400
-    try:
-        # TODO: move this to another thread and return a promise?
-        ingest(serialized, INGESTION_DIR / name, force=force)
-    except FileExistsError as e:
-        return {"error": "exists"}, 400
-    except ValueError as e:
-        print(e)
-        return {"error": "couldn't deserialize blueprint"}, 400
-
-    importlib.invalidate_caches()
-    # TODO: probably don't need to reload *all* the ingested modules
-    importlib.reload(ingested)
-    # TODO: should probably just separate builtin and ingested blueprints...
-    blueprint_id = name
-    device = ingested.devices[blueprint_id]
-    blueprints[blueprint_id] = device
-
-    return {"id": blueprint_id, "name": device.name}
 
 ### Endpoints for launching analyses using app-controller
 
-APP_CONTROLLER_URL = os.environ.get("APP_CONTROLLER_URL", "http://localhost:3000")
-
-def kill_all_apps():
-    apps_resp = httpx.get(f"{APP_CONTROLLER_URL}/api/app")
-    for app_json in apps_resp.json():
-        app_id = app_json['id']
-        l.info(f"killing app {app_id}")
-        httpx.post(f"{APP_CONTROLLER_URL}/api/app/{app_id}/stop")
-        httpx.delete(f"{APP_CONTROLLER_URL}/api/app/{app_id}")
-
-# kill all existing apps when we start. we should probably not have this behavior permanently
-try:
-    kill_all_apps()
-except httpx.ConnectError:
-    l.warning("can't connect to app-controller, is it up and the URL configured correctly?")
-
-class AnalysisUserInfo(BaseModel):
-    """User-level metadata associated with an analysis type the user can run."""
-    name: str
-    components_included: list[ComponentID] = Field(default_factory=list)
-
-class InteractionModel(StrEnum):
-    UNKNOWN = "Unknown"
-    X11 = "X11"
-
-@dataclass(frozen=True)
-class Analysis:
-    """All the information associated with an analysis type, including what the system needs to know to launch it."""
-    user_info: AnalysisUserInfo
-    interaction_model: InteractionModel
-    images: list[str]
-
-    def as_appconfig(self):
-        return {
-            "name": "app",
-            "interaction_model": self.interaction_model,
-            "images": self.images,
-            "always_pull_images": False,
-        }
-
-AnalysisID = str
 
 @app.get("/api/blueprints/{bp_id}/analyses")
 def get_analyses(bp_id: str) -> dict[AnalysisID, AnalysisUserInfo]:
-    # for now ignore bp_id, but eventually analyses will be available per-device or something.
-    # return mapping of analysis ID to analysis info
-    return {id_: analysis.user_info for id_, analysis in analyses.items()}
+    with db.get_session() as session:
+        device = fetch_saci_device(session, bp_id)
 
-@app.post("/api/blueprints/{bp_id}/analyses/{analysis_id}/launch")
-async def launch_analysis(bp_id: str, analysis_id: str) -> int:
-    if analysis_id not in analyses:
-        raise HTTPException(status_code=400, detail="analysis not found")
-    analysis = analyses[analysis_id]
+    return {
+        tool_id: AnalysisUserInfo(
+            name=tool.name,
+            components_included=tool.compatible_components(device),
+        )
+        for tool_id, tool in TOOLS.items()
+    }
+
+
+@app.post("/api/blueprints/{bp_id}/analyses/{tool_id}/launch")
+async def launch_analysis(bp_id: str, tool_id: str, raw_configs: list[str], background_tasks: BackgroundTasks) -> int:
+    # TODO: use bp_id...
+    if (tool := TOOLS.get(tool_id)) is None:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    if len(raw_configs) != len(tool.containers):
+        raise HTTPException(status_code=400, detail="Wrong number of configurations")
+
+    container_configs = []
+    for i, (raw_config, container) in enumerate(zip(raw_configs, tool.containers)):
+        try:
+            config = container.config_type.model_validate_json(raw_config)
+            container_configs.append(
+                data.ContainerConfig(
+                    image=container.image_name,
+                    config=config.model_dump_json(),
+                    image_pull_policy="IfNotPresent",
+                )
+            )
+        except ValidationError as e:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": f"Configuration #{i} did not validate",
+                    "validation_error": str(e),
+                },
+            )
+
     async with httpx.AsyncClient() as client:
-        create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=analysis.as_appconfig())
+        # SACI won't be used long term to launch analyses (in our current
+        # thinking). In order to not overwhelm the server with long-running
+        # analyses, we'll only support running a single analysis at once, so
+        # kill all the existing analyses first.
+        running_apps = await get_running_app_ids(client)
+        l.debug("killing apps (in background) with IDs %r before starting new analysis", running_apps)
+        background_tasks.add_task(kill_apps, running_apps)
+
+        app_config = data.AppConfig(
+            name=f"{tool.name}-{bp_id}".lower(),
+            interaction_model=data.InteractionModel.X11,
+            containers=container_configs,
+            always_pull_images=False,
+            enable_docker=False,
+            autostart=True,
+        )
+
+        create_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app", json=app_config.model_dump())
+
         if not create_resp.is_success:
+            print(f"app_config was {app_config.model_dump_json()}")
             print(f"got error {create_resp.text} when trying to create analysis")
             raise HTTPException(status_code=500, detail="couldn't create analysis")
         app = create_resp.json()
-        start_resp = await client.post(f"{APP_CONTROLLER_URL}/api/app/{app['id']}/start")
-        if not start_resp.is_success:
-            raise HTTPException(status_code=500, detail="couldn't start analysis")
-        return app['id']
+
+        return app["id"]
+
+
+@app.get("/api/logs")
+async def logs(app_id: int):
+    async with httpx.AsyncClient() as client:
+        logs_resp = await client.get(f"{APP_CONTROLLER_URL}/api/app/{app_id}/output/0")
+        return logs_resp.text
+
 
 async def ws_proxy_to(ws1: WebSocket, ws2: WsClientConnection):
     while True:
         buf = await ws1.receive_bytes()
         await ws2.send(buf)
 
+
 async def ws_proxy_from(ws1: WebSocket, ws2: WsClientConnection):
     async for buf in ws2:
         if not isinstance(buf, bytes):
             raise ValueError("should only get bytes in this websocket proxy")
         await ws1.send_bytes(buf)
+
 
 # when deployed we should have nginx handle this proxying, but in development it's convenient to have just this one
 # server handling everything. this is certainly not very performant but hopefully it's good enough for a dev proxy.
@@ -339,115 +462,3 @@ async def vnc_proxy(*, websocket: WebSocket, app_id: int):
         _, rest = e.split(lambda e: isinstance(e, WebSocketDisconnect) and e.code in (1000, 1001, 1005))
         if rest is not None:
             raise rest
-
-# delayed import
-from saci_db.devices import devices, ingested
-from saci_db.cpvs import CPVS
-
-if (dirname := os.getenv("INGESTION_DIR")) is not None:
-    INGESTION_DIR = Path(dirname)
-else:
-    INGESTION_DIR = Path(ingested.__file__).resolve().parent
-del dirname
-
-blueprints: dict[BlueprintID, Device] = devices | ingested.devices
-
-# TODO: this is hacky and an indication that we should have a better way of doing this...
-def _find_comps(device: Device, comp_type: type[ComponentBase]) -> list[ComponentID]:
-    return [comp_id for comp_id, comp in device.components.items() if isinstance(comp, comp_type)]
-
-def _find_comp(device: Device, comp_type: type[ComponentBase]) -> ComponentID:
-    comps = _find_comps(device, comp_type)
-    if len(comps) == 0:
-        raise ValueError(f"device {device!r} has no component of type {comp_type}")
-    elif len(comps) > 1:
-        raise ValueError(f"device {device!r} has more than one component of type {comp_type}")
-    else:
-        return comps[0]
-
-rover = blueprints["ngcrover"]
-
-analyses: dict[AnalysisID, Analysis] = {
-    "taveren_model": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: Ta'veren Controller",
-            # TODO: hackyyyyy... should either use different controllers' different IDs (now that they have them!) or have some nice query mechanism
-            components_included=[
-                _find_comps(rover, WebServer)[0],
-                _find_comps(rover, Controller)[0],
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["taveren:latest"],
-    ),
-    "binsync_re": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: BinSync-enabled RE",
-            components_included=[_find_comps(rover, Controller)[0]],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
-    ),
-    "hybrid_automata": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Model: Hybrid Automata",
-            components_included=_find_comps(rover, Controller) + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/twizmwazin/app-controller/firefox-demo:latest"],
-    ),
-    "gazebo_hybrid_automata": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Co-Simulation: Gazebo + Hybrid Automata",
-            components_included=_find_comps(rover, Controller) + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["ghcr.io/cpslab-asu/gzcm/px4/firmware:0.2.0", "ghcr.io/cpslab-asu/gzcm/px4/gazebo:harmonic"],
-    ),
-    "gazebo_firmware": Analysis(
-        user_info=AnalysisUserInfo(
-            name="Co-Simulation: Gazebo + Firmware",
-            components_included=_find_comps(rover, Controller) + [
-                _find_comp(rover, GPSReceiver),
-                _find_comp(rover, CompassSensor),
-                _find_comp(rover, Steering),
-                _find_comp(rover, ESC),
-                _find_comp(rover, Motor),
-            ],
-        ),
-        interaction_model=InteractionModel.X11,
-        images=["onex:latest"],
-    ),
-}
-
-hypotheses: dict[BlueprintID, dict[HypothesisID, HypothesisModel]] = defaultdict(dict, {
-    "ngcrover": {
-        "webserver_stop": HypothesisModel(
-            name="From the webserver, stop the rover.",
-            entry_component=_find_comp(rover, Wifi),
-            exit_component=_find_comp(rover, Motor),
-        ),
-        "emi_compass": HypothesisModel(
-            name="Using EMI, influence the compass to affect the mission.",
-            entry_component=_find_comp(rover, CompassSensor),
-            exit_component=None,
-        ),
-        "wifi_rollover": HypothesisModel(
-            name="Over WiFi, subvert the control system to roll the rover.",
-            entry_component=_find_comp(rover, Wifi),
-            exit_component=_find_comp(rover, Steering),
-        ),
-    },
-})
