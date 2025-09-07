@@ -40,6 +40,9 @@ from .battery.bms import (
 from .battery.bms import (
     BMSHigh as BMSHigh,
 )
+from .battery.powercable import (
+    PowerCable as PowerCable,
+)
 from .bluetooth import (
     BluetoothAlgorithmic as BluetoothAlgorithmic,
 )
@@ -430,79 +433,230 @@ from .motor import (
 )
 from .sensor import (
     Accelerometer as Accelerometer,
+)
+from .sensor import (
     AccelerometerAlgorithmic as AccelerometerAlgorithmic,
+)
+from .sensor import (
     AccelerometerHardware as AccelerometerHardware,
+)
+from .sensor import (
     AccelerometerHigh as AccelerometerHigh,
+)
+from .sensor import (
     AccelerometerHWPackage as AccelerometerHWPackage,
+)
+from .sensor import (
     AccelerometerHWTechnology as AccelerometerHWTechnology,
-    AirspeedSensor as AirspeedSensor,
+)
+from .sensor import (
     AirspeedAlgorithmic as AirspeedAlgorithmic,
+)
+from .sensor import (
     AirspeedHigh as AirspeedHigh,
+)
+from .sensor import (
     AirspeedHWHigh as AirspeedHWHigh,
+)
+from .sensor import (
     AirspeedHWPackage as AirspeedHWPackage,
+)
+from .sensor import (
     AirspeedHWTechnology as AirspeedHWTechnology,
+)
+from .sensor import (
+    AirspeedSensor as AirspeedSensor,
+)
+from .sensor import (
     Barometer as Barometer,
+)
+from .sensor import (
     BarometerAlgorithmic as BarometerAlgorithmic,
+)
+from .sensor import (
     BarometerHigh as BarometerHigh,
+)
+from .sensor import (
     BarometerHWHigh as BarometerHWHigh,
+)
+from .sensor import (
     BarometerHWPackage as BarometerHWPackage,
+)
+from .sensor import (
     BarometerHWTechnology as BarometerHWTechnology,
+)
+from .sensor import (
     Camera as Camera,
+)
+from .sensor import (
     CameraAlgorithmic as CameraAlgorithmic,
+)
+from .sensor import (
     CameraHigh as CameraHigh,
+)
+from .sensor import (
     CameraHWHigh as CameraHWHigh,
+)
+from .sensor import (
     CameraHWPackage as CameraHWPackage,
+)
+from .sensor import (
     CameraHWTechnology as CameraHWTechnology,
+)
+from .sensor import (
     CompassHardware as CompassHardware,
+)
+from .sensor import (
     CompassHWPackage as CompassHWPackage,
+)
+from .sensor import (
     CompassHWTechnology as CompassHWTechnology,
+)
+from .sensor import (
     CompassSensor as CompassSensor,
+)
+from .sensor import (
     CompassSensorAlgorithmic as CompassSensorAlgorithmic,
+)
+from .sensor import (
     CompassSensorHigh as CompassSensorHigh,
+)
+from .sensor import (
     DepthCamera as DepthCamera,
+)
+from .sensor import (
     DepthCameraAlgorithmic as DepthCameraAlgorithmic,
+)
+from .sensor import (
     DepthCameraHardware as DepthCameraHardware,
+)
+from .sensor import (
     DepthCameraHigh as DepthCameraHigh,
+)
+from .sensor import (
     DepthCameraHWPackage as DepthCameraHWPackage,
+)
+from .sensor import (
     DepthCameraHWTechnology as DepthCameraHWTechnology,
+)
+from .sensor import (
     GNSSReceiver as GNSSReceiver,
+)
+from .sensor import (
     GNSSReceiverAlgorithmic as GNSSReceiverAlgorithmic,
+)
+from .sensor import (
     GNSSReceiverHardware as GNSSReceiverHardware,
+)
+from .sensor import (
     GNSSReceiverHigh as GNSSReceiverHigh,
+)
+from .sensor import (
     GNSSReceiverHWPackage as GNSSReceiverHWPackage,
+)
+from .sensor import (
     GNSSReceiverHWTechnology as GNSSReceiverHWTechnology,
+)
+from .sensor import (
     GPSReceiver as GPSReceiver,
+)
+from .sensor import (
     GPSReceiverAlgorithmic as GPSReceiverAlgorithmic,
+)
+from .sensor import (
     GPSReceiverHardware as GPSReceiverHardware,
+)
+from .sensor import (
     GPSReceiverHigh as GPSReceiverHigh,
+)
+from .sensor import (
     GPSReceiverHWPackage as GPSReceiverHWPackage,
+)
+from .sensor import (
     GPSReceiverHWTechnology as GPSReceiverHWTechnology,
+)
+from .sensor import (
     Gyroscope as Gyroscope,
+)
+from .sensor import (
     GyroscopeAlgorithmic as GyroscopeAlgorithmic,
+)
+from .sensor import (
     GyroscopeHigh as GyroscopeHigh,
+)
+from .sensor import (
     GyroscopeHWHigh as GyroscopeHWHigh,
+)
+from .sensor import (
     GyroscopeHWPackage as GyroscopeHWPackage,
+)
+from .sensor import (
     GyroscopeHWTechnology as GyroscopeHWTechnology,
+)
+from .sensor import (
     Lidar as Lidar,
+)
+from .sensor import (
+    Lidar as LiDAR,
+)
+from .sensor import (
     LidarSensorAlgorithmic as LidarSensorAlgorithmic,
+)
+from .sensor import (
     LidarSensorHardware as LidarSensorHardware,
+)
+from .sensor import (
     LidarSensorHigh as LidarSensorHigh,
+)
+from .sensor import (
     LidarSensorHWPackage as LidarSensorHWPackage,
+)
+from .sensor import (
     LidarSensorHWTechnology as LidarSensorHWTechnology,
+)
+from .sensor import (
     Magnetometer as Magnetometer,
+)
+from .sensor import (
     MagnetometerAlgorithmic as MagnetometerAlgorithmic,
+)
+from .sensor import (
     MagnetometerHardware as MagnetometerHardware,
+)
+from .sensor import (
     MagnetometerHigh as MagnetometerHigh,
+)
+from .sensor import (
     MagnetometerHWPackage as MagnetometerHWPackage,
+)
+from .sensor import (
     MagnetometerHWTechnology as MagnetometerHWTechnology,
+)
+from .sensor import (
     OpticalFlowSensor as OpticalFlowSensor,
+)
+from .sensor import (
     OpticalFlowSensorAlgorithmic as OpticalFlowSensorAlgorithmic,
+)
+from .sensor import (
     OpticalFlowSensorHardware as OpticalFlowSensorHardware,
+)
+from .sensor import (
     OpticalFlowSensorHigh as OpticalFlowSensorHigh,
+)
+from .sensor import (
     OpticalFlowSensorHWPackage as OpticalFlowSensorHWPackage,
+)
+from .sensor import (
     OpticalFlowSensorHWTechnology as OpticalFlowSensorHWTechnology,
+)
+from .sensor import (
     Sensor as Sensor,
+)
+from .sensor import (
     SensorAlgorithmic as SensorAlgorithmic,
+)
+from .sensor import (
     SensorHigh as SensorHigh,
 )
 from .sik_radio import SikRadio as SikRadio
