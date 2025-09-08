@@ -85,9 +85,7 @@ class Lidar(Sensor):
         super().__init__(**kwargs)
 
         high_abstraction = LidarSensorHigh()
-        algo_abstraction = LidarSensorAlgorithmic(
-            has_intensity=has_intensity, enabled=enabled
-        )
+        algo_abstraction = LidarSensorAlgorithmic(has_intensity=has_intensity, enabled=enabled)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: high_abstraction,
@@ -161,8 +159,7 @@ class LidarSensorHWPackage(HardwarePackage):
         super().__init__(chip_name=sensor_name, chip_vendor=sensor_vendor, **kwargs)
         if sensor_name not in self.KNOWN_CHIP_NAMES:
             _l.warning(
-                f"Unknown LiDAR chip name: {sensor_name}. "
-                f"Please add it to LidarSensorHWPackage.KNOWN_CHIP_NAMES."
+                f"Unknown LiDAR chip name: {sensor_name}. Please add it to LidarSensorHWPackage.KNOWN_CHIP_NAMES."
             )
 
 
@@ -181,6 +178,5 @@ class LidarSensorHWTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(
-                f"Unknown LiDAR technology: {technology}. "
-                f"Please add it to LidarSensorHWTechnology.KNOWN_TECHNOLOGIES."
+                f"Unknown LiDAR technology: {technology}. Please add it to LidarSensorHWTechnology.KNOWN_TECHNOLOGIES."
             )

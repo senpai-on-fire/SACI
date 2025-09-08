@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, TypeAlias
+from typing import Any, TypeAlias, Type
 
 from saci.modeling.capability import Capability
 
@@ -88,7 +88,7 @@ class ComponentBase:
         else:
             return self.name
 
-    parameter_types: dict[str, type] = {}
+    parameter_types: dict[str, Type] = {}  # noqa: UP006
 
     def check_parameter_types(self):
         for param_name, param_value in self.parameters.items():
