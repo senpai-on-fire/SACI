@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, TypeAlias, Type
+from typing import Any, Type, TypeAlias  # noqa: UP035
 
 from saci.modeling.capability import Capability
 
