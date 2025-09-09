@@ -1,4 +1,4 @@
-from .component import CyberComponentHigh, CyberComponentBase, CyberAbstractionLevel
+from .component import CyberAbstractionLevel, CyberComponentBase, CyberComponentHigh
 
 
 class WebClientHigh(CyberComponentHigh):

@@ -1,10 +1,5 @@
-from ..component import (
-    CyberComponentBase,
-    CyberAbstractionLevel,
-    CyberComponentHigh,
-    CyberComponentAlgorithmic
-)
-from claripy import BVS
+from ..component import CyberAbstractionLevel, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentHigh
+
 
 class SensorHigh(CyberComponentHigh):
     __slots__ = CyberComponentHigh.__slots__ + ("variables",)
@@ -15,7 +10,7 @@ class SensorHigh(CyberComponentHigh):
         # very coarse information or aggregated data.
         # e.g. status, operational mode, or aggregated readings
         self.variables = {}
-        #self.variables["status"] = BVS("sensor_status", 8)  # example
+        # self.variables["status"] = BVS("sensor_status", 8)  # example
 
 
 class SensorAlgorithmic(CyberComponentAlgorithmic):
@@ -23,7 +18,7 @@ class SensorAlgorithmic(CyberComponentAlgorithmic):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
+
         # Example symbolic variables for the sensor:
         self.variables = {}
         # self.variables["reading"] = BVS("sensor_reading", 32)
@@ -36,8 +31,8 @@ class SensorAlgorithmic(CyberComponentAlgorithmic):
 
 
 class Sensor(CyberComponentBase):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: SensorHigh(),
             CyberAbstractionLevel.ALGORITHMIC: SensorAlgorithmic(),

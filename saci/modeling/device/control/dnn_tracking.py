@@ -1,25 +1,40 @@
+import logging
+
+import claripy
+
 from saci.modeling.device.component import (
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentHigh,
     CyberComponentSourceCode,
-    CyberComponentBinary
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-import claripy
-import logging
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class DNNTrackingHigh(CyberComponentHigh):
 
+class DNNTrackingHigh(CyberComponentHigh):
     __slots__ = CyberComponentHigh.__slots__ + (
-        "known_source", "known_weight", "is_trusted", "object_tracking_accuracy", "false_positive_rate", "variables"
+        "known_source",
+        "known_weight",
+        "is_trusted",
+        "object_tracking_accuracy",
+        "false_positive_rate",
+        "variables",
     )
 
-    def __init__(self, known_source=None, known_weight=None, is_trusted=True, object_tracking_accuracy=0.95, false_positive_rate=0.02, **kwargs):
+    def __init__(
+        self,
+        known_source=None,
+        known_weight=None,
+        is_trusted=True,
+        object_tracking_accuracy=0.95,
+        false_positive_rate=0.02,
+        **kwargs,
+    ):
         """
         :param known_source: Verified source of the DNN model.
         :param known_weight: Verified weights used in the DNN.
@@ -37,7 +52,9 @@ class DNNTrackingHigh(CyberComponentHigh):
         # Symbolic variables for AI security testing
         self.variables = {
             "dnn_model_integrity": claripy.BVS("dnn_model_integrity", 8),  # Model integrity status
-            "dnn_adversarial_attack_flag": claripy.BVS("dnn_adversarial_attack_flag", 8),  # Adversarial attack detection
+            "dnn_adversarial_attack_flag": claripy.BVS(
+                "dnn_adversarial_attack_flag", 8
+            ),  # Adversarial attack detection
             "dnn_bias_flag": claripy.BVS("dnn_bias_flag", 8),  # Bias detection in the model
         }
 
@@ -52,14 +69,29 @@ class DNNTrackingHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class DNNTrackingAlgorithmic(CyberComponentAlgorithmic):
 
+class DNNTrackingAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + (
-        "known_source", "known_weight", "adversarial_defense", "tracking_latency", "bounding_box_integrity",
-        "adversarial_noise_sensitivity", "backdoor_flag", "variables"
+        "known_source",
+        "known_weight",
+        "adversarial_defense",
+        "tracking_latency",
+        "bounding_box_integrity",
+        "adversarial_noise_sensitivity",
+        "backdoor_flag",
+        "variables",
     )
 
-    def __init__(self, known_source=None, known_weight=None, adversarial_defense=True, tracking_latency=30, bounding_box_integrity=0.98, adversarial_noise_sensitivity=0.1, **kwargs):
+    def __init__(
+        self,
+        known_source=None,
+        known_weight=None,
+        adversarial_defense=True,
+        tracking_latency=30,
+        bounding_box_integrity=0.98,
+        adversarial_noise_sensitivity=0.1,
+        **kwargs,
+    ):
         """
         :param known_source: Verified source of the DNN model.
         :param known_weight: Verified weights used in the DNN.
@@ -81,7 +113,9 @@ class DNNTrackingAlgorithmic(CyberComponentAlgorithmic):
             "dnn_confidence_score": claripy.BVS("dnn_confidence_score", 32),  # Model prediction confidence
             "dnn_training_data_integrity": claripy.BVS("dnn_training_data_integrity", 8),  # Data integrity flag
             "dnn_inference_latency": claripy.BVS("dnn_inference_latency", 32),  # Latency in inference
-            "dnn_adversarial_robustness": claripy.BVS("dnn_adversarial_robustness", 8),  # Robustness against adversarial attacks
+            "dnn_adversarial_robustness": claripy.BVS(
+                "dnn_adversarial_robustness", 8
+            ),  # Robustness against adversarial attacks
             "backdoor_flag": claripy.BVS("dnn_backdoor_flag", 8),  # Flags possible backdoor insertion in the model
         }
 
@@ -97,8 +131,8 @@ class DNNTrackingAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Full DNN Tracking Model Abstraction (Cyber) ===================
 
-class DNNTracking(CyberComponentBase):
 
+class DNNTracking(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "known_source", "known_weight", "adversarial_defense", "tracking_latency", "variables")
 
     def __init__(self, known_source=None, known_weight=None, adversarial_defense=True, tracking_latency=30, **kwargs):
@@ -120,7 +154,10 @@ class DNNTracking(CyberComponentBase):
                 known_source=known_source, known_weight=known_weight, is_trusted=True
             ),
             CyberAbstractionLevel.ALGORITHMIC: DNNTrackingAlgorithmic(
-                known_source=known_source, known_weight=known_weight, adversarial_defense=adversarial_defense, tracking_latency=tracking_latency
+                known_source=known_source,
+                known_weight=known_weight,
+                adversarial_defense=adversarial_defense,
+                tracking_latency=tracking_latency,
             ),
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
@@ -132,44 +169,3 @@ class DNNTracking(CyberComponentBase):
         "adversarial_defense": bool,
         "tracking_latency": int,
     }
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-# from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-
-# class DNNHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__ + ("known_source", "known_weight")
-
-#     def __init__(self, known_source=None, known_weight=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.known_source = known_source
-#         self.known_weight = known_weight
-
-
-# class DNNAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__ + ("known_source", "known_weight")
-
-#     def __init__(self, known_source=None, known_weight=None, **kwargs):
-#         super().__init__(**kwargs)
-#         self.known_source = known_source
-#         self.known_weight = known_weight
-
-
-# class DNN(CyberComponentBase):
-#     __slots__ = ("ABSTRACTIONS", "known_source", "known_weight")
-
-#     def __init__(self, known_source=None, known_weight=None, **kwargs):
-#         super().__init__(**kwargs)
-        
-#         self.known_source = known_source
-#         self.known_weight = known_weight
-
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: DNNHigh(known_source=known_source, known_weight=known_weight),
-#             CyberAbstractionLevel.ALGORITHMIC: DNNAlgorithmic(known_source=known_source, known_weight=known_weight),
-#             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
-#             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
-#         }

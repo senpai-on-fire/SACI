@@ -1,18 +1,15 @@
 import argparse
-import json
-import copy
-import string
 import dataclasses
+import json
+import string
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import TypeVar
 
 import networkx as nx
-import matplotlib.pyplot as plt
-from jinja2 import Template, Environment
+from jinja2 import Environment
 
-from saci.modeling.device import GPSReceiver, Controller
-from saci.modeling.device.sensor import CompassSensorHigh
+from saci.modeling.device.component.component_base import ComponentBase
 
 
 @dataclass(frozen=True)
@@ -23,12 +20,13 @@ class ComponentPath:
         from `module_path` import `class_name`
     should be valid.
     """
+
     module_path: str
     class_name: str
     attr_name: str
     local: bool = False
     """True when this component is being generated here."""
-    file_name: Optional[str] = None
+    file_name: str | None = None
     """Present when this component is being generated here."""
 
     @property
@@ -40,7 +38,8 @@ class ComponentPath:
         if self.local:
             return f"from .{self.module_path} import {self.class_name}"
         else:
-            return f"import {self.module_path}"
+            return f"from {self.module_path} import {self.class_name}"
+
 
 # TODO: probably have this in some more centralized location
 BUILTIN_SYSTEM_COMPONENTS: dict[str, ComponentPath] = {
@@ -50,24 +49,24 @@ BUILTIN_SYSTEM_COMPONENTS: dict[str, ComponentPath] = {
     "Drive Motor Control": ComponentPath("saci.modeling.device", "Controller", "drive_motor_control"),
 }
 
-SACI_TYPE_MAPPING: dict[str, ComponentPath] = {
-    "MOTOR": ComponentPath("saci.modeling.device.motor", "Motor", "motor"),
-    "MULTIMOTOR": ComponentPath("saci.modeling.device.motor", "MultiMotor", "multimotor"),
-    "MULTICOPTERMOTOR": ComponentPath("saci.modeling.device.motor", "MultiCopterMotor", "multicoptermotor"),
-    "SERVO": ComponentPath("saci.modeling.device.motor", "Servo", "servo"),
-    "STEERING": ComponentPath("saci.modeling.device.motor", "Steering", "steering"),
-    "CAMERA": ComponentPath("saci.modeling.device.camera", "Camera", "camera"),
-    "COMPASS": ComponentPath("saci.modeling.device.compass", "CompassSensor", "compass"),
-    "CONTROLLER": ComponentPath("saci.modeling.device.controller", "Controller", "controller"),
-    "GPS": ComponentPath("saci.modeling.device.gps", "GPSReceiver", "gps"),
-    "GYROSCOPE": ComponentPath("saci.modeling.device.gyroscope", "Gyroscope", "gyroscope"),
-    "MAVLINK": ComponentPath("saci.modeling.device.mavlink", "Mavlink", "mavlink"),
-    # TODO: oops
-    "MICROCONTROLLER": ComponentPath("saci.modeling.device.controller", "Controller", "controller"),
-    "SIKRADIO": ComponentPath("saci.modeling.device.sikradio", "SikRadio", "sikradio"),
-    "TELEMETRY": ComponentPath("saci.modeling.device.telemetry", "Telemetry", "telemetry"),
-    "WIFI": ComponentPath("saci.modeling.device.wifi", "Wifi", "wifi"),
-}
+# TODO: dedup this code with that in saci.web.data, or better yet replace with a better solution
+T = TypeVar("T")
+
+
+def _all_subclasses(c: type[T]) -> list[type[T]]:
+    return [c] + [subsubc for subc in c.__subclasses__() for subsubc in _all_subclasses(subc)]
+
+
+# TODO: janky
+saci_type_mapping: dict[str, ComponentPath] = {}
+for comp_type in _all_subclasses(ComponentBase):
+    name = comp_type.__qualname__
+    saci_type_mapping[name] = ComponentPath(
+        comp_type.__module__,
+        name,
+        name.lower(),
+    )
+
 
 def split_any(s: str, split_on: set[str]) -> list[str]:
     out = []
@@ -83,20 +82,22 @@ def split_any(s: str, split_on: set[str]) -> list[str]:
         out.append(part)
     return out
 
+
 def system_name_to_path(system_name: str, saci_type: str) -> ComponentPath:
     # if system_name in BUILTIN_SYSTEM_COMPONENTS:
     #     return BUILTIN_SYSTEM_COMPONENTS[system_name]
     if system_name[0] in string.digits:
         system_name = "N" + system_name
-    name_parts = split_any(system_name, {' ', '-', '_'})
+    name_parts = split_any(system_name, {" ", "-", "_"})
     module_name = "".join(part.lower() for part in name_parts)
     attr_name = "comp_" + "_".join(part.lower() for part in name_parts)
     class_name = "".join(name_parts)
     if any(not name.isidentifier() for name in (module_name, class_name, attr_name)):
         raise ValueError(f"Couldn't convert system name {system_name!r} to valid names")
-    if (path := SACI_TYPE_MAPPING.get(saci_type)) is not None:
+    if (path := saci_type_mapping.get(saci_type)) is not None:
         return dataclasses.replace(path, attr_name=attr_name)
     return ComponentPath(module_name, class_name, attr_name, local=True, file_name=f"{module_name}.py")
+
 
 @dataclass(frozen=True)
 class Port:
@@ -104,6 +105,7 @@ class Port:
     # TODO: refine connections type
     connections: list[dict]
     unique_instance_id: str
+
 
 @dataclass
 class System:
@@ -118,11 +120,18 @@ class System:
     def all_subsystems(self):
         return [subsub for sub in self.subsystems for subsub in [sub] + sub.all_subsystems]
 
+    @property
+    def parent_child_edges(self):
+        return [(self.name, child.name) for child in self.subsystems] + [
+            edge for child in self.subsystems for edge in child.parent_child_edges
+        ]
+
     def __repr__(self):
         return self.name
 
     def __hash__(self):
         return hash(self.id_)
+
 
 class Deserializer:
     # TODO: refine types
@@ -190,6 +199,7 @@ class Deserializer:
         # nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
         # plt.show()
 
+
 def port_name_to_attr(port_name: str) -> str:
     name_parts = port_name.split(" ")
     attr = "_".join(part.lower() for part in name_parts)
@@ -198,6 +208,7 @@ def port_name_to_attr(port_name: str) -> str:
     if not attr.isidentifier():
         raise ValueError(f"Couldn't convert port name {port_name!r} to valid attribute name")
     return attr
+
 
 jinja_env = Environment(autoescape=False)
 jinja_env.filters["port_name_to_attr"] = port_name_to_attr
@@ -216,6 +227,7 @@ class {{ component_path.class_name }}(CyberComponentBase):
         {% endfor %}
 """)
 
+
 def emit_system(base_path: Path, system: System) -> ComponentPath:
     component_path = system_name_to_path(system.name, system.saci_type)
     if component_path.file_name is None:
@@ -225,6 +237,7 @@ def emit_system(base_path: Path, system: System) -> ComponentPath:
         file.write(system_template.render(system=system, component_path=component_path))
 
     return component_path
+
 
 device_template = jinja_env.from_string("""\"""Auto-generated device for system "{{ name }}".\"""
 import os
@@ -267,13 +280,19 @@ class {{ device_path.class_name }}(saci.modeling.Device):
         )
 """)
 
-def emit_device(base_path: Path, components: dict[str, ComponentPath], connections: list[tuple[str, str]], name: str, saci_type: str):
-    device_path = system_name_to_path(name, saci_type) # TODO: we never want to find this in the builtins
+
+def emit_device(
+    base_path: Path, components: dict[str, ComponentPath], connections: list[tuple[str, str]], name: str, saci_type: str
+):
+    device_path = system_name_to_path(name, saci_type)  # TODO: we never want to find this in the builtins
     with open(base_path / "__init__.py", "w") as file:
-        file.write(device_template.render(components=components, connections=connections, name=name, device_path=device_path))
+        file.write(
+            device_template.render(components=components, connections=connections, name=name, device_path=device_path)
+        )
 
     with open(base_path / "device.lp", "w") as _:
         pass
+
 
 def just_filter_the_json(d):
     return {
@@ -283,7 +302,8 @@ def just_filter_the_json(d):
         # "interfaces": d["interfaces"],
     }
 
-def ingest(serialized: dict, output_dir: Path, render: bool=False, force: bool=False):
+
+def ingest(serialized: dict, output_dir: Path, render: bool = False, force: bool = False):
     if output_dir.exists():
         if not output_dir.is_dir():
             raise ValueError(f"Output location {output_dir} exists, but is not a directory")
@@ -308,12 +328,15 @@ def ingest(serialized: dict, output_dir: Path, render: bool=False, force: bool=F
         components[sub.name] = emit_system(output_dir, sub)
 
     # TODO: do we want to model connections to the top-level device in some better way than just filtering them out...
-    connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name]
+    connections = [(src, dst) for src, dst in deserializer.connections if src != device.name and dst != device.name] + [
+        (src, dst) for src, dst in device.parent_child_edges if src != device.name
+    ]
     emit_device(output_dir, components, connections, device.name, device.saci_type)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-r', '--render', action='store_true')
+    parser.add_argument("-r", "--render", action="store_true")
     parser.add_argument("serialized", type=Path)
     parser.add_argument("output_dir", type=Path)
     args = parser.parse_args()

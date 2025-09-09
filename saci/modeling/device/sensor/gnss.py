@@ -1,26 +1,34 @@
-from typing import Optional, List
-from claripy import BVS
 import logging
 
-from .sensor import SensorHigh, SensorAlgorithmic, Sensor
-from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
-from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
-from saci.modeling.communication import BaseCommunication, GNSSProtocol, GPSProtocol, GLONASSProtocol, GalileoProtocol, BeiDouProtocol
+from claripy import BVS
+
+from saci.modeling.communication import (
+    BaseCommunication,
+)
+from saci.modeling.device.component import (
+    CyberAbstractionLevel,
+    CyberComponentBinary,
+    CyberComponentSourceCode,
+    HardwarePackage,
+    HardwareTechnology,
+)
+
+from .sensor import Sensor, SensorAlgorithmic, SensorHigh
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class GNSSReceiverHigh(SensorHigh):
 
+class GNSSReceiverHigh(SensorHigh):
     __slots__ = SensorHigh.__slots__ + ("supported_protocols", "authenticated", "signal_strength_threshold")
 
     def __init__(
         self,
-        supported_protocols: Optional[List[type]] = None,
+        supported_protocols: list[type] | None = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
-        **kwargs
+        **kwargs,
     ):
         """
         :param supported_protocols: List of protocol classes (e.g., [GPSProtocol, GLONASSProtocol])
@@ -35,16 +43,11 @@ class GNSSReceiverHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class GNSSReceiverAlgorithmic(SensorAlgorithmic):
 
+class GNSSReceiverAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + ("supported_protocols", "signal_strength_threshold")
 
-    def __init__(
-        self,
-        supported_protocols: Optional[List[type]] = None,
-        signal_strength_threshold: int = -100,
-        **kwargs
-    ):
+    def __init__(self, supported_protocols: list[type] | None = None, signal_strength_threshold: int = -100, **kwargs):
         """
         :param supported_protocols: List of protocol classes (e.g., [GPSProtocol, GLONASSProtocol])
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
@@ -82,19 +85,20 @@ class GNSSReceiverAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class GNSSReceiver(Sensor):
 
+class GNSSReceiver(Sensor):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(
         self,
-        supported_protocols: Optional[List[type]] = None,
+        supported_protocols: list[type] | None = None,
         authenticated: bool = False,
         signal_strength_threshold: int = -100,
-        **kwargs
+        **kwargs,
     ):
         """
-        :param supported_protocols: List of supported protocol classes (e.g., [GPSProtocol, GLONASSProtocol, GalileoProtocol]).
+        :param supported_protocols: List of supported protocol classes (e.g., [GPSProtocol, GLONASSProtocol,
+        GalileoProtocol]).
         :param authenticated: Whether the GNSS receiver has authentication enabled.
         :param signal_strength_threshold: Minimum required signal strength to be considered valid.
         """
@@ -103,11 +107,10 @@ class GNSSReceiver(Sensor):
         high_abstraction = GNSSReceiverHigh(
             supported_protocols=supported_protocols,
             authenticated=authenticated,
-            signal_strength_threshold=signal_strength_threshold
+            signal_strength_threshold=signal_strength_threshold,
         )
         algo_abstraction = GNSSReceiverAlgorithmic(
-            supported_protocols=supported_protocols,
-            signal_strength_threshold=signal_strength_threshold
+            supported_protocols=supported_protocols, signal_strength_threshold=signal_strength_threshold
         )
 
         self.ABSTRACTIONS = {
@@ -120,8 +123,8 @@ class GNSSReceiver(Sensor):
 
 # =================== Hardware Abstractions ===================
 
-class GNSSReceiverHardware(Sensor):
 
+class GNSSReceiverHardware(Sensor):
     __slots__ = Sensor.__slots__
 
     def __init__(self, uart_interface="UART1", i2c_address=None, **kwargs):
@@ -140,9 +143,13 @@ class GNSSReceiverHardware(Sensor):
 
 
 class GNSSReceiverHWPackage(HardwarePackage):
-
     KNOWN_CHIP_NAMES = [
-        "Ublox_M8N", "Ublox_M9N", "Ublox_F9P", "SkyTraq_S2525F8", "Mediatek_MT3333", "Septentrio_Mosaic"
+        "Ublox_M8N",
+        "Ublox_M9N",
+        "Ublox_F9P",
+        "SkyTraq_S2525F8",
+        "Mediatek_MT3333",
+        "Septentrio_Mosaic",
     ]
 
     def __init__(self, receiver_name, receiver_vendor, **kwargs):
@@ -156,7 +163,6 @@ class GNSSReceiverHWPackage(HardwarePackage):
 
 
 class GNSSReceiverHWTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["L1 Band", "L5 Band", "Dual-Band", "RTK", "PPP"]
 
     def __init__(self, technology, **kwargs):

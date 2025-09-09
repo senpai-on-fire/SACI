@@ -1,17 +1,24 @@
-import claripy
 import logging
 
+import claripy
+
+from saci.modeling.device.component import (
+    CyberAbstractionLevel,
+    CyberComponentBinary,
+    CyberComponentSourceCode,
+    HardwarePackage,
+    HardwareTechnology,
+)
+
 # Adjust these imports based on your project structure
-from .sensor import SensorHigh, SensorAlgorithmic, Sensor
-from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
-from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
+from .sensor import Sensor, SensorAlgorithmic, SensorHigh
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class OpticalFlowSensorHigh(SensorHigh):
 
+class OpticalFlowSensorHigh(SensorHigh):
     __slots__ = SensorHigh.__slots__
 
     def __init__(self, **kwargs):
@@ -24,8 +31,8 @@ class OpticalFlowSensorHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class OpticalFlowSensorAlgorithmic(SensorAlgorithmic):
 
+class OpticalFlowSensorAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + ("uses_corner_detection", "enabled")
 
     def __init__(self, uses_corner_detection=True, enabled=True, **kwargs):
@@ -50,23 +57,15 @@ class OpticalFlowSensorAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class OpticalFlowSensor(Sensor):
 
+class OpticalFlowSensor(Sensor):
     __slots__ = ("uses_corner_detection", "enabled", "ABSTRACTIONS")
 
-    def __init__(
-        self,
-        uses_corner_detection=True,
-        enabled=True,
-        **kwargs
-    ):
+    def __init__(self, uses_corner_detection=True, enabled=True, **kwargs):
         super().__init__(**kwargs)
 
         high_abstraction = OpticalFlowSensorHigh()
-        algo_abstraction = OpticalFlowSensorAlgorithmic(
-            uses_corner_detection=uses_corner_detection,
-            enabled=enabled
-        )
+        algo_abstraction = OpticalFlowSensorAlgorithmic(uses_corner_detection=uses_corner_detection, enabled=enabled)
 
         self.ABSTRACTIONS = {
             CyberAbstractionLevel.HIGH: high_abstraction,
@@ -78,8 +77,8 @@ class OpticalFlowSensor(Sensor):
 
 # =================== Hardware Abstractions ===================
 
-class OpticalFlowSensorHardware(Sensor):
 
+class OpticalFlowSensorHardware(Sensor):
     __slots__ = Sensor.__slots__
 
     def __init__(self, i2c_address=0x42, spi_channel=0, **kwargs):
@@ -98,10 +97,7 @@ class OpticalFlowSensorHardware(Sensor):
 
 
 class OpticalFlowSensorHWPackage(HardwarePackage):
-
-    KNOWN_CHIP_NAMES = [
-        "PMW3901", "PX4FLOW", "VL53L1X", "CX-OF"
-    ]
+    KNOWN_CHIP_NAMES = ["PMW3901", "PX4FLOW", "VL53L1X", "CX-OF"]
 
     def __init__(self, sensor_name, sensor_vendor, **kwargs):
         """
@@ -110,11 +106,12 @@ class OpticalFlowSensorHWPackage(HardwarePackage):
         """
         super().__init__(chip_name=sensor_name, chip_vendor=sensor_vendor, **kwargs)
         if sensor_name not in self.KNOWN_CHIP_NAMES:
-            _l.warning(f"Unknown optical flow sensor chip name: {sensor_name}. Please add it to OpticalFlowSensorHWPackage.")
+            _l.warning(
+                f"Unknown optical flow sensor chip name: {sensor_name}. Please add it to OpticalFlowSensorHWPackage."
+            )
 
 
 class OpticalFlowSensorHWTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["Optical Flow", "Lidar-Assisted", "Time-of-Flight", "Infrared"]
 
     def __init__(self, technology, **kwargs):
@@ -123,4 +120,6 @@ class OpticalFlowSensorHWTechnology(HardwareTechnology):
         """
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
-            _l.warning(f"Unknown optical flow sensor technology: {technology}. Please add it to OpticalFlowSensorHWTechnology.")
+            _l.warning(
+                f"Unknown optical flow sensor technology: {technology}. Please add it to OpticalFlowSensorHWTechnology."
+            )

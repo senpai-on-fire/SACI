@@ -1,20 +1,23 @@
-from typing import Optional
-
-from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
-from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
-
 import claripy
 
+from saci.modeling.device.component.hardware.hardware_abstraction_level import HardwareAbstractionLevel
+from saci.modeling.device.component.hardware.hardware_component_base import HardwareComponentBase
+
+
 class HardwarePackage(HardwareComponentBase):
-    __state_slots__ = HardwareComponentBase.__state_slots__ + ("pin_state", )
-    __slots__ = HardwareComponentBase.__slots__ + ("chip_name", "chip_vendor", "pin_state",)
+    __state_slots__ = HardwareComponentBase.__state_slots__ + ("pin_state",)
+    __slots__ = HardwareComponentBase.__slots__ + (
+        "chip_name",
+        "chip_vendor",
+        "pin_state",
+    )
 
     def __init__(
         self,
         abstraction=HardwareAbstractionLevel.PACKAGE,
-        chip_name: Optional[str] = None,
-        chip_vendor: Optional[str] = None,
-        pin_state: Optional[dict[str, claripy.ast.bv.BV]] = None,
+        chip_name: str | None = None,
+        chip_vendor: str | None = None,
+        pin_state: dict[str, claripy.ast.bv.BV] | None = None,
         **kwargs,
     ):
         super().__init__(abstraction=abstraction, **kwargs)

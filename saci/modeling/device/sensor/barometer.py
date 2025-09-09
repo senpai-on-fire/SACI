@@ -1,22 +1,32 @@
 import logging
+
 import claripy
 
-from .sensor import SensorHigh, SensorAlgorithmic, Sensor
-from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
-from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
+from saci.modeling.device.component import (
+    CyberAbstractionLevel,
+    CyberComponentBinary,
+    CyberComponentSourceCode,
+    HardwareHigh,
+    HardwarePackage,
+    HardwareTechnology,
+)
+
+from .sensor import Sensor, SensorAlgorithmic, SensorHigh
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class BarometerHigh(SensorHigh):
 
+class BarometerHigh(SensorHigh):
     __slots__ = SensorHigh.__slots__ + ("is_calibrated", "error_flag")
 
     def __init__(self, is_calibrated=False, error_flag=False, **kwargs):
-        """
+        """Initialize BarometerHigh.
+
         :param is_calibrated: Whether the barometer has been calibrated.
-        :param error_flag: Flag indicating whether an anomaly or attack has been detected.
+        :param error_flag: Flag indicating whether an anomaly or attack has
+            been detected.
         """
         super().__init__(**kwargs)
         self.is_calibrated = is_calibrated
@@ -25,8 +35,8 @@ class BarometerHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class BarometerAlgorithmic(SensorAlgorithmic):
 
+class BarometerAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + (
         "precision_bits",
         "bias_drift",
@@ -34,10 +44,18 @@ class BarometerAlgorithmic(SensorAlgorithmic):
         "error_flag",
     )
 
-    def __init__(self, precision_bits=16, bias_drift=0.05, quantization_noise=0.01, **kwargs):
-        """
+    def __init__(
+        self,
+        precision_bits=16,
+        bias_drift=0.05,
+        quantization_noise=0.01,
+        **kwargs,
+    ):
+        """Initialize BarometerAlgorithmic.
+
         :param precision_bits: Bit resolution for atmospheric pressure readings.
-        :param bias_drift: Expected drift in pressure readings (useful for attack modeling).
+        :param bias_drift: Expected drift in pressure readings (useful for
+            attack modeling).
         :param quantization_noise: Noise introduced by digital resolution.
         """
         super().__init__(**kwargs)
@@ -56,12 +74,19 @@ class BarometerAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class Barometer(Sensor):
 
+class Barometer(Sensor):
     __slots__ = ("precision_bits", "bias_drift", "quantization_noise", "ABSTRACTIONS")
 
-    def __init__(self, precision_bits=16, bias_drift=0.05, quantization_noise=0.01, **kwargs):
-        """
+    def __init__(
+        self,
+        precision_bits=16,
+        bias_drift=0.05,
+        quantization_noise=0.01,
+        **kwargs,
+    ):
+        """Initialize Barometer.
+
         :param precision_bits: Bit resolution for pressure readings.
         :param bias_drift: Barometric bias drift (affects accuracy over time).
         :param quantization_noise: Noise due to digital resolution limitations.
@@ -86,20 +111,26 @@ class Barometer(Sensor):
 
 # =================== Hardware Abstractions ===================
 
-class BarometerHWHigh(HardwareHigh):
 
+class BarometerHWHigh(HardwareHigh):
     def __init__(self, **kwargs):
         super().__init__(modality="barometer", **kwargs)
 
 
 class BarometerHWPackage(HardwarePackage):
-
     KNOWN_CHIP_NAMES = [
-        "BMP180", "BMP280", "BMP388", "MS5611", "LPS22HB", "LPS25HB", "DPS310"
+        "BMP180",
+        "BMP280",
+        "BMP388",
+        "MS5611",
+        "LPS22HB",
+        "LPS25HB",
+        "DPS310",
     ]
 
     def __init__(self, baro_name, baro_vendor, **kwargs):
-        """
+        """Initialize BarometerHWPackage.
+
         :param baro_name: The name of the barometer chip.
         :param baro_vendor: The manufacturer of the barometer chip.
         """
@@ -109,11 +140,16 @@ class BarometerHWPackage(HardwarePackage):
 
 
 class BarometerHWTechnology(HardwareTechnology):
-
-    KNOWN_TECHNOLOGIES = ["MEMS", "Silicon Piezoresistive", "Capacitive", "Optical"]
+    KNOWN_TECHNOLOGIES = [
+        "MEMS",
+        "Silicon Piezoresistive",
+        "Capacitive",
+        "Optical",
+    ]
 
     def __init__(self, technology, **kwargs):
-        """
+        """Initialize BarometerHWTechnology.
+
         :param technology: Type of barometer technology used.
         """
         super().__init__(technology=technology, **kwargs)
