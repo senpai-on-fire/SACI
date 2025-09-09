@@ -88,6 +88,7 @@ class System(BaseModel):
     id: int | None = None
     name: str
     saciType: str | None  # This may be out of date per the documentation
+    saciCapabilities: list[str] = []  # List of capabilities for this system
     systems: list["System"] = []  # Recursive definition for sub-Systems
     ports: list[Port] = []
     interfaces: list[Interface] = []
@@ -131,7 +132,13 @@ class System(BaseModel):
         # this behavior and strips them if present
         saciType = self.saciType[1:-1] if self.saciType is not None and self.saciType.startswith('"') else self.saciType
         # Tag everything as an entry point when importing from excavate
-        component = db.Component(name=self.name, type_=saciType, parameters=parameters, is_entry=True)
+        component = db.Component(
+            name=self.name,
+            type_=saciType,
+            parameters=parameters,
+            is_entry=True,
+            capabilities=[db.Capability(capability=cap) for cap in self.saciCapabilities],
+        )
 
         # Create ports for this component
         component.ports = [
