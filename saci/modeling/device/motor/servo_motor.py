@@ -1,24 +1,25 @@
 import logging
+
+from claripy import BVS
+
+from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
+
 from ..component import (
-    CyberComponentHigh,
+    CyberAbstractionLevel,
     CyberComponentAlgorithmic,
     CyberComponentBase,
-    CyberComponentSourceCode,
     CyberComponentBinary,
-    CyberAbstractionLevel
+    CyberComponentHigh,
+    CyberComponentSourceCode,
 )
-from saci.modeling.device.component.hardware import HardwareHigh, HardwarePackage, HardwareTechnology
-from claripy import BVS
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class ServoHigh(CyberComponentHigh):
 
-    __slots__ = CyberComponentHigh.__slots__ + (
-        "is_operational", "fault_detection_flag", "thermal_overload_flag"
-    )
+class ServoHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__ + ("is_operational", "fault_detection_flag", "thermal_overload_flag")
 
     def __init__(self, is_operational=True, fault_detection_flag=False, thermal_overload_flag=False, **kwargs):
         """
@@ -40,16 +41,26 @@ class ServoHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class ServoAlgorithmic(CyberComponentAlgorithmic):
 
+class ServoAlgorithmic(CyberComponentAlgorithmic):
     __slots__ = CyberComponentAlgorithmic.__slots__ + (
-        "stall_torque", "holding_torque", "backlash_error",
-        "noise_sensitivity", "efficiency_drop_rate", "torque_anomaly_flag"
+        "stall_torque",
+        "holding_torque",
+        "backlash_error",
+        "noise_sensitivity",
+        "efficiency_drop_rate",
+        "torque_anomaly_flag",
     )
 
     def __init__(
-        self, stall_torque=2.5, holding_torque=2.0, backlash_error=0.05,
-        noise_sensitivity=0.1, efficiency_drop_rate=0.02, torque_anomaly_flag=False, **kwargs
+        self,
+        stall_torque=2.5,
+        holding_torque=2.0,
+        backlash_error=0.05,
+        noise_sensitivity=0.1,
+        efficiency_drop_rate=0.02,
+        torque_anomaly_flag=False,
+        **kwargs,
     ):
         """
         :param stall_torque: Maximum torque the servo can exert before stalling.
@@ -92,17 +103,21 @@ class ServoAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Hardware Abstraction (Physical Layer) ===================
 
-class ServoHardwareHigh(HardwareHigh):
 
+class ServoHardwareHigh(HardwareHigh):
     def __init__(self, **kwargs):
         super().__init__(modality="servo_motor", **kwargs)
 
 
 class ServoHardwarePackage(HardwarePackage):
-
     KNOWN_SERVO_CHIPS = [
-        "HS-645MG", "MG996R", "Dynamixel AX-12A", "Savox SC-1256TG",
-        "Futaba S3003", "TowerPro SG90", "Hitec HS-805BB"
+        "HS-645MG",
+        "MG996R",
+        "Dynamixel AX-12A",
+        "Savox SC-1256TG",
+        "Futaba S3003",
+        "TowerPro SG90",
+        "Hitec HS-805BB",
     ]
 
     def __init__(self, chip_name, chip_vendor, **kwargs):
@@ -116,7 +131,6 @@ class ServoHardwarePackage(HardwarePackage):
 
 
 class ServoHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["PWM-Controlled", "Brushless", "Coreless", "Digital", "Analog"]
 
     def __init__(self, technology, **kwargs):
@@ -130,8 +144,8 @@ class ServoHardwareTechnology(HardwareTechnology):
 
 # =================== Full Servo Component Abstraction (Cyber) ===================
 
-class Servo(CyberComponentBase):
 
+class Servo(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "variables")
 
     def __init__(self, **kwargs):
@@ -144,53 +158,3 @@ class Servo(CyberComponentBase):
             CyberAbstractionLevel.SOURCE: CyberComponentSourceCode(),
             CyberAbstractionLevel.BINARY: CyberComponentBinary(),
         }
-
-
-######################################################    OLD VERSION    ########################################################################
-
-# from ..component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberAbstractionLevel
-# from claripy import BVS
-
-# class ServoHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__
-    
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         # Define any high-level attributes or methods for the servo here if needed.
-
-# class ServoAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__
-    
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         #
-#         # Symbolic Variables for Servo Motor
-#         #
-#         # Below are some example variables often relevant in servo motor modeling and simulation
-#         #
-#         # Voltage applied to the servo
-#         self.variables["voltage"] = BVS("servo_voltage", 64)
-#         # Current flowing through the servo
-#         self.variables["current"] = BVS("servo_current", 64)
-#         # The servo’s torque output
-#         self.variables["torque"] = BVS("servo_torque", 64)
-#         # The shaft angle of the servo (or general position)
-#         self.variables["angle"] = BVS("servo_angle", 64)
-#         # The angular velocity (or speed) of the servo
-#         self.variables["speed"] = BVS("servo_speed", 64)
-#         # If more precise tracking of the servo shaft position is needed
-#         self.variables["position"] = BVS("servo_position", 64)
-#         # Temperature, if thermal effects are part of your analysis
-#         self.variables["temperature"] = BVS("servo_temperature", 64)
-#         # Mechanical or electrical power consumed/produced by the servo
-#         self.variables["power"] = BVS("servo_power", 64)
-#         # Efficiency in converting electrical power to mechanical power
-#         self.variables["efficiency"] = BVS("servo_efficiency", 64)
-
-# class Servo(CyberComponentBase):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: ServoHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: ServoAlgorithmic(),
-#         }

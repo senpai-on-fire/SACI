@@ -1,17 +1,24 @@
 import logging
+
 import claripy
 
+from saci.modeling.device.component import (
+    CyberAbstractionLevel,
+    CyberComponentBinary,
+    CyberComponentSourceCode,
+    HardwarePackage,
+    HardwareTechnology,
+)
+
 # Adjust these imports to match your project’s structure:
-from .sensor import SensorHigh, SensorAlgorithmic, Sensor
-from saci.modeling.device.component import HardwarePackage, HardwareTechnology, HardwareHigh
-from saci.modeling.device.component import CyberAbstractionLevel, CyberComponentSourceCode, CyberComponentBinary
+from .sensor import Sensor, SensorAlgorithmic, SensorHigh
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction ===================
 
-class MagnetometerHigh(SensorHigh):
 
+class MagnetometerHigh(SensorHigh):
     __slots__ = SensorHigh.__slots__ + ("is_calibrated", "error_flag")
 
     def __init__(self, is_calibrated=False, error_flag=False, **kwargs):
@@ -30,8 +37,8 @@ class MagnetometerHigh(SensorHigh):
 
 # =================== Algorithmic Abstraction ===================
 
-class MagnetometerAlgorithmic(SensorAlgorithmic):
 
+class MagnetometerAlgorithmic(SensorAlgorithmic):
     __slots__ = SensorAlgorithmic.__slots__ + ("precision_bits", "error_flag")
 
     def __init__(self, precision_bits=16, **kwargs):
@@ -54,8 +61,8 @@ class MagnetometerAlgorithmic(SensorAlgorithmic):
 
 # =================== Full Sensor Abstraction ===================
 
-class Magnetometer(Sensor):
 
+class Magnetometer(Sensor):
     __slots__ = ("precision_bits", "ABSTRACTIONS")
 
     def __init__(self, precision_bits=16, **kwargs):
@@ -63,7 +70,6 @@ class Magnetometer(Sensor):
         :param precision_bits: Bit resolution for data representation.
         """
         super().__init__(**kwargs)
-
 
         high_abstraction = MagnetometerHigh()
         algo_abstraction = MagnetometerAlgorithmic(precision_bits=precision_bits)
@@ -78,8 +84,8 @@ class Magnetometer(Sensor):
 
 # =================== Hardware Abstractions ===================
 
-class MagnetometerHardware(Sensor):
 
+class MagnetometerHardware(Sensor):
     __slots__ = Sensor.__slots__
 
     def __init__(self, i2c_address=0x1E, spi_channel=0, **kwargs):
@@ -98,10 +104,7 @@ class MagnetometerHardware(Sensor):
 
 
 class MagnetometerHWPackage(HardwarePackage):
-
-    KNOWN_CHIP_NAMES = [
-        "HMC5883L", "QMC5883L", "LSM303", "MPU9250", "AK8963", "MAG3110", "MMC5983MA"
-    ]
+    KNOWN_CHIP_NAMES = ["HMC5883L", "QMC5883L", "LSM303", "MPU9250", "AK8963", "MAG3110", "MMC5983MA"]
 
     def __init__(self, magnetometer_name, magnetometer_vendor, **kwargs):
         """
@@ -114,7 +117,6 @@ class MagnetometerHWPackage(HardwarePackage):
 
 
 class MagnetometerHWTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["MEMS", "Fluxgate", "Magnetoresistive", "Hall Effect"]
 
     def __init__(self, technology, **kwargs):

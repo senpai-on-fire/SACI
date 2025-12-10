@@ -1,15 +1,24 @@
-from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
+from saci.modeling.device.component import (
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
+)
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
-from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
 class NavigationControlLogicHigh(CyberComponentHigh):
-    __slots__ = CyberComponentHigh.__slots__ + ("navigation_algorithm", "obstacle_avoidance_enabled", "waypoint_tolerance")
+    __slots__ = CyberComponentHigh.__slots__ + (
+        "navigation_algorithm",
+        "obstacle_avoidance_enabled",
+        "waypoint_tolerance",
+    )
 
     def __init__(self, navigation_algorithm=None, obstacle_avoidance_enabled=False, waypoint_tolerance=1.0, **kwargs):
         """
-        :param navigation_algorithm: High-level description of the navigation algorithm (e.g., A*, Dijkstra, RRT, GPS-based).
+        :param navigation_algorithm: High-level description of the navigation algorithm (e.g., A*, Dijkstra, RRT,
+        GPS-based).
         :param obstacle_avoidance_enabled: Whether the navigation system includes obstacle avoidance.
         :param waypoint_tolerance: Acceptable distance from a waypoint before it is considered reached.
         """
@@ -20,14 +29,28 @@ class NavigationControlLogicHigh(CyberComponentHigh):
 
 
 class NavigationControlLogicAlgorithmic(CyberComponentAlgorithmic):
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("navigation_algorithm", "obstacle_avoidance_enabled", "waypoint_tolerance", "path_planning_parameters")
+    __slots__ = CyberComponentAlgorithmic.__slots__ + (
+        "navigation_algorithm",
+        "obstacle_avoidance_enabled",
+        "waypoint_tolerance",
+        "path_planning_parameters",
+    )
 
-    def __init__(self, navigation_algorithm=None, obstacle_avoidance_enabled=False, waypoint_tolerance=1.0, path_planning_parameters=None, **kwargs):
+    def __init__(
+        self,
+        navigation_algorithm=None,
+        obstacle_avoidance_enabled=False,
+        waypoint_tolerance=1.0,
+        path_planning_parameters=None,
+        **kwargs,
+    ):
         """
-        :param navigation_algorithm: Detailed description of the navigation algorithm (e.g., A*, Dijkstra, MPC-based navigation).
+        :param navigation_algorithm: Detailed description of the navigation algorithm (e.g., A*, Dijkstra, MPC-based
+        navigation).
         :param obstacle_avoidance_enabled: Whether obstacle avoidance is considered.
         :param waypoint_tolerance: Tolerance distance before marking a waypoint as reached.
-        :param path_planning_parameters: Algorithmic parameters for path planning (e.g., step size for RRT, grid resolution for A*).
+        :param path_planning_parameters: Algorithmic parameters for path planning (e.g., step size for RRT, grid
+        resolution for A*).
         """
         super().__init__(**kwargs)
         self.navigation_algorithm = navigation_algorithm
@@ -41,9 +64,22 @@ class NavigationControlLogicAlgorithmic(CyberComponentAlgorithmic):
 
 
 class NavigationControlLogic(CyberComponentBase):
-    __slots__ = ("ABSTRACTIONS", "navigation_algorithm", "obstacle_avoidance_enabled", "waypoint_tolerance", "path_planning_parameters")
+    __slots__ = (
+        "ABSTRACTIONS",
+        "navigation_algorithm",
+        "obstacle_avoidance_enabled",
+        "waypoint_tolerance",
+        "path_planning_parameters",
+    )
 
-    def __init__(self, navigation_algorithm=None, obstacle_avoidance_enabled=False, waypoint_tolerance=1.0, path_planning_parameters=None, **kwargs):
+    def __init__(
+        self,
+        navigation_algorithm=None,
+        obstacle_avoidance_enabled=False,
+        waypoint_tolerance=1.0,
+        path_planning_parameters=None,
+        **kwargs,
+    ):
         """
         :param navigation_algorithm: The algorithm used for navigation (e.g., A*, Dijkstra, RRT, GPS-based).
         :param obstacle_avoidance_enabled: Whether obstacle avoidance is integrated.
@@ -51,7 +87,7 @@ class NavigationControlLogic(CyberComponentBase):
         :param path_planning_parameters: Parameters for the path-planning algorithm (e.g., A* grid size, RRT step size).
         """
         super().__init__(**kwargs)
-        
+
         self.navigation_algorithm = navigation_algorithm
         self.obstacle_avoidance_enabled = obstacle_avoidance_enabled
         self.waypoint_tolerance = waypoint_tolerance

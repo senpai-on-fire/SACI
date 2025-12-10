@@ -1,26 +1,27 @@
-from saci.modeling.device.component import (
-    CyberComponentHigh,
-    CyberComponentAlgorithmic,
-    CyberComponentBase,
-    CyberComponentSourceCode,
-    CyberComponentBinary
-)
-from saci.modeling.communication import BaseCommunication
-from typing import List
-import claripy
 import logging
 
-from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase, CyberComponentSourceCode, CyberComponentBinary
-from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
+import claripy
 
+from saci.modeling.device.component import (
+    CyberComponentAlgorithmic,
+    CyberComponentBase,
+    CyberComponentBinary,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
+)
+from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class LocalizerHigh(CyberComponentHigh):
 
-    __slots__ = ("enabled", "localization_mode", "variables",)
+class LocalizerHigh(CyberComponentHigh):
+    __slots__ = (
+        "enabled",
+        "localization_mode",
+        "variables",
+    )
 
     def __init__(self, enabled=False, localization_mode="GPS", **kwargs):
         """
@@ -47,9 +48,13 @@ class LocalizerHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class LocalizerAlgorithmic(CyberComponentAlgorithmic):
 
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("sensor_fusion_enabled", "fault_tolerance", "variables",)
+class LocalizerAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__ + (
+        "sensor_fusion_enabled",
+        "fault_tolerance",
+        "variables",
+    )
 
     def __init__(self, sensor_fusion_enabled=True, fault_tolerance=True, **kwargs):
         """
@@ -68,7 +73,7 @@ class LocalizerAlgorithmic(CyberComponentAlgorithmic):
             "fault_detection_flag": claripy.BVS("fault_detection_flag", 8),  # Sensor fault detection flag
         }
 
-    def position(self, localization_components: List[CyberComponentBase]) -> bool:
+    def position(self, localization_components: list[CyberComponentBase]) -> bool:
         """
         Determines if the CPS's position can be accurately estimated.
         """
@@ -87,11 +92,13 @@ class LocalizerAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Full CPS Localizer Model Abstraction (Cyber) ===================
 
-class Localizer(CyberComponentBase):
 
+class Localizer(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS", "enabled", "localization_mode", "sensor_fusion_enabled", "fault_tolerance")
 
-    def __init__(self, enabled=False, localization_mode="GPS", sensor_fusion_enabled=True, fault_tolerance=True, **kwargs):
+    def __init__(
+        self, enabled=False, localization_mode="GPS", sensor_fusion_enabled=True, fault_tolerance=True, **kwargs
+    ):
         """
         :param enabled: Boolean flag indicating if localization is enabled.
         :param localization_mode: Primary localization method ("GPS", "Visual", "IMU").
@@ -99,16 +106,14 @@ class Localizer(CyberComponentBase):
         :param fault_tolerance: Whether the system can handle sensor failures.
         """
         super().__init__(**kwargs)
-        
+
         self.enabled = enabled
         self.localization_mode = localization_mode
         self.sensor_fusion_enabled = sensor_fusion_enabled
         self.fault_tolerance = fault_tolerance
 
         self.ABSTRACTIONS = {
-            CyberAbstractionLevel.HIGH: LocalizerHigh(
-                enabled=enabled, localization_mode=localization_mode
-            ),
+            CyberAbstractionLevel.HIGH: LocalizerHigh(enabled=enabled, localization_mode=localization_mode),
             CyberAbstractionLevel.ALGORITHMIC: LocalizerAlgorithmic(
                 sensor_fusion_enabled=sensor_fusion_enabled, fault_tolerance=fault_tolerance
             ),
@@ -122,28 +127,3 @@ class Localizer(CyberComponentBase):
         "sensor_fusion_enabled": bool,
         "fault_tolerance": bool,
     }
-
-
-######################################################    OLD VERSION    ########################################################################
-
-# from saci.modeling.device.component import CyberComponentHigh, CyberComponentAlgorithmic, CyberComponentBase
-# from saci.modeling.communication import BaseCommunication
-
-# from typing import List
-
-# class LocalizerHigh(CyberComponentHigh):
-#     __slots__ = ("enable", )
-
-#     def __init__(self, enable=False, **kwargs):
-#         super().__init__(**kwargs)
-#         self.enable = enable
-
-
-# class LocalizerAlgorithm(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-#     def position(self, localization_components: List[CyberComponentBase]) -> bool:
-#         raise NotImplementedError

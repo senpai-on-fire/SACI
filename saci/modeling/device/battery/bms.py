@@ -1,28 +1,33 @@
-import claripy
 import logging
 
+import claripy
+
 from saci.modeling.device.component import (
-    CyberComponentBase,
     CyberAbstractionLevel,
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
+    CyberComponentBase,
     CyberComponentBinary,
+    CyberComponentHigh,
     CyberComponentSourceCode,
-    HardwareComponentBase,
     HardwareAbstractionLevel,
-    HardwareHigh,
     HardwareCircuit,
+    HardwareComponentBase,
+    HardwareHigh,
+    HardwarePackage,
     HardwareTechnology,
-    HardwarePackage
 )
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class BMSHigh(CyberComponentHigh):
 
-    __slots__ = CyberComponentHigh.__slots__ + ("charging_mode", "safety_status", "variables",)
+class BMSHigh(CyberComponentHigh):
+    __slots__ = CyberComponentHigh.__slots__ + (
+        "charging_mode",
+        "safety_status",
+        "variables",
+    )
 
     def __init__(self, charging_mode="Idle", safety_status="Normal", **kwargs):
         """
@@ -43,9 +48,14 @@ class BMSHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
-class BMSAlgorithmic(CyberComponentAlgorithmic):
 
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("voltage_balance", "current_regulation", "temperature_control", "variables",)
+class BMSAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__ + (
+        "voltage_balance",
+        "current_regulation",
+        "temperature_control",
+        "variables",
+    )
 
     def __init__(self, voltage_balance=True, current_regulation=True, temperature_control=True, **kwargs):
         """
@@ -71,8 +81,8 @@ class BMSAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Full Cyber BMS Abstraction ===================
 
-class BMS(CyberComponentBase):
 
+class BMS(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, charging_mode="Idle", safety_status="Normal", **kwargs):
@@ -95,8 +105,8 @@ class BMS(CyberComponentBase):
 
 # =================== High-Level Abstraction (Hardware) ===================
 
-class BMSHardwareHigh(HardwareHigh):
 
+class BMSHardwareHigh(HardwareHigh):
     __slots__ = HardwareHigh.__slots__ + ("battery_type", "max_cells", "communication_interface")
 
     def __init__(self, battery_type="Li-ion", max_cells=6, communication_interface="I2C", **kwargs):
@@ -113,8 +123,8 @@ class BMSHardwareHigh(HardwareHigh):
 
 # =================== Circuit-Level Abstraction (Hardware) ===================
 
-class BMSHardwareCircuit(HardwareCircuit):
 
+class BMSHardwareCircuit(HardwareCircuit):
     __slots__ = HardwareCircuit.__slots__ + ("balancing_enabled", "overvoltage_protection", "short_circuit_protection")
 
     def __init__(self, balancing_enabled=True, overvoltage_protection=True, short_circuit_protection=True, **kwargs):
@@ -132,8 +142,8 @@ class BMSHardwareCircuit(HardwareCircuit):
 
 # =================== Full Hardware BMS Abstraction ===================
 
-class BMSHardware(HardwareComponentBase):
 
+class BMSHardware(HardwareComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, battery_type="Li-ion", max_cells=6, communication_interface="I2C", **kwargs):
@@ -144,7 +154,9 @@ class BMSHardware(HardwareComponentBase):
         """
         super().__init__(**kwargs)
 
-        high_abstraction = BMSHardwareHigh(battery_type=battery_type, max_cells=max_cells, communication_interface=communication_interface)
+        high_abstraction = BMSHardwareHigh(
+            battery_type=battery_type, max_cells=max_cells, communication_interface=communication_interface
+        )
         circuit_abstraction = BMSHardwareCircuit()
 
         self.ABSTRACTIONS = {
@@ -155,11 +167,9 @@ class BMSHardware(HardwareComponentBase):
 
 # =================== Hardware Package Abstraction ===================
 
-class BMSHardwarePackage(HardwarePackage):
 
-    KNOWN_BMS_TYPES = [
-        "Smart BMS", "Passive BMS", "Active BMS"
-    ]
+class BMSHardwarePackage(HardwarePackage):
+    KNOWN_BMS_TYPES = ["Smart BMS", "Passive BMS", "Active BMS"]
 
     def __init__(self, bms_type, manufacturer, **kwargs):
         """
@@ -172,7 +182,6 @@ class BMSHardwarePackage(HardwarePackage):
 
 
 class BMSHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["Passive Balancing", "Active Balancing", "Integrated BMS", "External BMS"]
 
     def __init__(self, technology, **kwargs):
@@ -182,30 +191,3 @@ class BMSHardwareTechnology(HardwareTechnology):
         super().__init__(technology=technology, **kwargs)
         if technology not in self.KNOWN_TECHNOLOGIES:
             _l.warning(f"Unknown BMS technology: {technology}. Please add it to BMSHardwareTechnology.")
-
-
-######################################################    OLD VERSION    ########################################################################
-
-
-# from saci.modeling.device.component import CyberComponentBase, CyberAbstractionLevel, CyberComponentHigh, CyberComponentAlgorithmic
-
-# class BMSHigh(CyberComponentHigh):
-#     __slots__ = CyberComponentHigh.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-
-# class BMSAlgorithmic(CyberComponentAlgorithmic):
-#     __slots__ = CyberComponentAlgorithmic.__slots__
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-
-# class BMS(CyberComponentBase):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.ABSTRACTIONS = {
-#             CyberAbstractionLevel.HIGH: BMSHigh(),
-#             CyberAbstractionLevel.ALGORITHMIC: BMSAlgorithmic(),
-#         }

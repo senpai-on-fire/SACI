@@ -1,8 +1,15 @@
-from enum import StrEnum
-from typing import Any, Optional, Tuple, List, TypeAlias, Type
 from dataclasses import dataclass
+import sys
+from enum import Enum
 
-from saci.modeling.communication.base_comm import BaseCommunication
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    class StrEnum(str, Enum):
+        pass
+from typing import Any, Type, TypeAlias  # noqa: UP035
+
+from saci.modeling.capability import Capability
 
 
 class PortDirection(StrEnum):
@@ -10,18 +17,21 @@ class PortDirection(StrEnum):
     OUT = "out"
     INOUT = "inout"
 
+
 @dataclass(frozen=True)
 class Port:
     """Description of a port on a component."""
 
-    direction: Optional[PortDirection]
+    direction: PortDirection | None
     """Dataflow direction of the port, with respect to the component this port is part of."""
 
     # TODO: abstraction level, units, etc
 
+
 Ports: TypeAlias = dict[str, Port]
 
-def union_ports(ports1: Optional[Ports], ports2: Optional[Ports]) -> Optional[Ports]:
+
+def union_ports(ports1: Ports | None, ports2: Ports | None) -> Ports | None:
     # TODO: some other strategy for duplicate keys besides rejection?
     # TODO: handle arbitrary number of dicts?
     if not ports1:
@@ -31,6 +41,7 @@ def union_ports(ports1: Optional[Ports], ports2: Optional[Ports]) -> Optional[Po
     if set(ports1.keys()) & set(ports2.keys()):
         raise ValueError("ports dictionaries have overlapping keys")
     return ports1 | ports2
+
 
 class ComponentBase:
     """A ComponentBase is the base class for all components in the system. A component, at a high-level, is any device
@@ -59,20 +70,23 @@ class ComponentBase:
      - different representations of the same ports (as in the Blueprint format), to eventually use for different
        abstraction levels/simulation types
     """
+
     __state_slots__ = ()
-    __slots__ = ("name", "type", "parameters", "ports")
+    __slots__ = ("name", "type", "parameters", "ports", "capabilities")
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            _type=None,
-            parameters: Optional[dict[str, Any]] = None,
-            ports: Optional[dict[str, Port]] = None,
+        self,
+        name: str | None = None,
+        _type=None,
+        parameters: dict[str, Any] | None = None,
+        ports: dict[str, Port] | None = None,
+        capabilities: set[tuple[Capability, str | None]] | None = None,
     ):
         self.name = name or self.__class__.__name__
         self.type = _type
         self.parameters = parameters or {}
-        self.ports = ports or {}
+        self.ports = ports or {"Default": Port(direction=None)}
+        self.capabilities = capabilities or set()
 
     def __repr__(self):
         type_name = type(self).__name__
@@ -81,7 +95,7 @@ class ComponentBase:
         else:
             return self.name
 
-    parameter_types: dict[str, Type] = {}
+    parameter_types: dict[str, Type] = {}  # noqa: UP006
 
     def check_parameter_types(self):
         for param_name, param_value in self.parameters.items():

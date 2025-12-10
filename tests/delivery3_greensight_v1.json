@@ -1,0 +1,3956 @@
+{
+    "id": 3,
+    "name": "delivery3_greensight",
+    "saciType": "cps",
+    "systems": [
+        {
+            "id": 12,
+            "name": "flight_controller_board",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 70,
+                    "name": "\"ardupilot\"",
+                    "saciType": "saci_db.devices.ardupilot_quadcopter_device.ardupilot.ArduPilotController",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 203,
+                            "name": "data",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "4a793fd5-9910-4a32-9951-14d5dfc1bbce"
+                        },
+                        {
+                            "id": 204,
+                            "name": "data",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "6f16bdb2-e97b-468a-92a9-796c2452cc2d"
+                        },
+                        {
+                            "id": 205,
+                            "name": "imu1_data",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "ea3ec107-bb38-4c52-8433-dfcee540ac4e"
+                        },
+                        {
+                            "id": 206,
+                            "name": "imu2_data",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "11d5c281-f198-4190-9585-f93ee9bc17e5"
+                        },
+                        {
+                            "id": 207,
+                            "name": "imu3_data",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "fbb74e21-421f-457a-a88a-2689384e4cfb"
+                        },
+                        {
+                            "id": 208,
+                            "name": "compass_data",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "50c6c0a2-6b43-4867-b9e5-f5d5f011615a"
+                        },
+                        {
+                            "id": 209,
+                            "name": "barometer_data",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "21e3f082-ff97-4056-b05e-56908266d9da"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 384.24109834407506,
+                            "y": 69.96811768943407
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 71,
+                    "name": "\"imu1\"",
+                    "saciType": "saci.modeling.device.sensor.accelerometer.AccelerometerHardware",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 212,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "7086593e-b9c1-40ee-8ed4-7856fc07ccee"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -19.2435479149474,
+                            "y": 269.89294241237303
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 72,
+                    "name": "\"imu2\"",
+                    "saciType": "saci.modeling.device.sensor.accelerometer.AccelerometerHardware",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 213,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "cc23494b-dfc2-474b-aef8-575b4f66a145"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -24.09021033247317,
+                            "y": 374.09618438917767
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 73,
+                    "name": "\"imu3\"",
+                    "saciType": "saci.modeling.device.sensor.accelerometer.AccelerometerHardware",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 214,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "d4410d4b-d0d3-4d13-bf06-8bd635ed93df"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -39.84186318943202,
+                            "y": 462.5477735090234
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 74,
+                    "name": "\"compass\"",
+                    "saciType": "saci.modeling.device.sensor.compass.CompassSensor",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 215,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "473da85f-1169-4bf2-828d-d07fb6274bc1"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -43.47686000257636,
+                            "y": 552.2110282332507
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 75,
+                    "name": "\"barometer\"",
+                    "saciType": "saci.modeling.device.sensor.barometer.Barometer",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 216,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "fd15bd64-2cd1-4589-ab60-9bb452f3d588"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -49.5351880244836,
+                            "y": 652.7792733969108
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 19,
+                    "name": "motor_control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "9ece1ed5-ec25-4bda-8875-707828457a74"
+                },
+                {
+                    "id": 21,
+                    "name": "bluetooth_control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "200d06eb-c59f-477a-9724-9d92ffb1c3ea"
+                },
+                {
+                    "id": 22,
+                    "name": "GNSS_control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "70f80e99-f4e9-48bc-bc07-f9824348569f"
+                },
+                {
+                    "id": 23,
+                    "name": "rf_coms_control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "8a01be21-0918-4ae0-97cf-c39bb560aee5"
+                },
+                {
+                    "id": 24,
+                    "name": "fan_control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "f0c6167f-a985-4521-a405-efbd631b0c6a"
+                },
+                {
+                    "id": 25,
+                    "name": "SO-DIMM",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "bcb29bc3-7f3a-4d5a-ae53-3be6d0ec91dd"
+                },
+                {
+                    "id": 187,
+                    "name": "ark_data",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "6b69078e-b2df-4e59-8d2f-64248082425d"
+                },
+                {
+                    "id": 188,
+                    "name": "ark_control",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "6e16b933-0f92-4911-9481-38dc05222a93"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 209,
+                    "name": "ebb5cdcc-e7b9-4a5d-a4d5-153a0364291e",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 21,
+                        "name": "bluetooth_control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "200d06eb-c59f-477a-9724-9d92ffb1c3ea"
+                    },
+                    "dest_port": {
+                        "id": 203,
+                        "name": "data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "4a793fd5-9910-4a32-9951-14d5dfc1bbce"
+                    }
+                },
+                {
+                    "id": 210,
+                    "name": "e543fc04-083d-4597-8cc7-75d645597ef3",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 22,
+                        "name": "GNSS_control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "70f80e99-f4e9-48bc-bc07-f9824348569f"
+                    },
+                    "dest_port": {
+                        "id": 203,
+                        "name": "data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "4a793fd5-9910-4a32-9951-14d5dfc1bbce"
+                    }
+                },
+                {
+                    "id": 211,
+                    "name": "5eca7ed9-32a9-42df-989c-ae70364783b6",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 23,
+                        "name": "rf_coms_control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "8a01be21-0918-4ae0-97cf-c39bb560aee5"
+                    },
+                    "dest_port": {
+                        "id": 203,
+                        "name": "data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "4a793fd5-9910-4a32-9951-14d5dfc1bbce"
+                    }
+                },
+                {
+                    "id": 212,
+                    "name": "4fd4b08a-41f4-472f-a702-db68b8085bff",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 25,
+                        "name": "SO-DIMM",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "bcb29bc3-7f3a-4d5a-ae53-3be6d0ec91dd"
+                    },
+                    "dest_port": {
+                        "id": 203,
+                        "name": "data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "4a793fd5-9910-4a32-9951-14d5dfc1bbce"
+                    }
+                },
+                {
+                    "id": 213,
+                    "name": "feb1c19c-f634-4e9c-b6ea-e121aac4e1f9",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 187,
+                        "name": "ark_data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "6b69078e-b2df-4e59-8d2f-64248082425d"
+                    },
+                    "dest_port": {
+                        "id": 203,
+                        "name": "data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "4a793fd5-9910-4a32-9951-14d5dfc1bbce"
+                    }
+                },
+                {
+                    "id": 218,
+                    "name": "7e99b1e9-cfe2-4fa4-a2d8-90a293c3d481",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 204,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "6f16bdb2-e97b-468a-92a9-796c2452cc2d"
+                    },
+                    "dest_port": {
+                        "id": 188,
+                        "name": "ark_control",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "6e16b933-0f92-4911-9481-38dc05222a93"
+                    }
+                },
+                {
+                    "id": 217,
+                    "name": "f8393071-2852-4b45-9914-8d9ab019dc80",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 204,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "6f16bdb2-e97b-468a-92a9-796c2452cc2d"
+                    },
+                    "dest_port": {
+                        "id": 25,
+                        "name": "SO-DIMM",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "bcb29bc3-7f3a-4d5a-ae53-3be6d0ec91dd"
+                    }
+                },
+                {
+                    "id": 216,
+                    "name": "c92e5b01-ef99-4963-88a7-778bbb1acfc7",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 204,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "6f16bdb2-e97b-468a-92a9-796c2452cc2d"
+                    },
+                    "dest_port": {
+                        "id": 23,
+                        "name": "rf_coms_control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "8a01be21-0918-4ae0-97cf-c39bb560aee5"
+                    }
+                },
+                {
+                    "id": 215,
+                    "name": "8150fc1f-5030-4bcb-8277-690e2b68d214",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 204,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "6f16bdb2-e97b-468a-92a9-796c2452cc2d"
+                    },
+                    "dest_port": {
+                        "id": 22,
+                        "name": "GNSS_control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "70f80e99-f4e9-48bc-bc07-f9824348569f"
+                    }
+                },
+                {
+                    "id": 214,
+                    "name": "df7e9beb-8eb2-474d-adf9-632a32e881db",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 204,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "6f16bdb2-e97b-468a-92a9-796c2452cc2d"
+                    },
+                    "dest_port": {
+                        "id": 21,
+                        "name": "bluetooth_control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "200d06eb-c59f-477a-9724-9d92ffb1c3ea"
+                    }
+                },
+                {
+                    "id": 219,
+                    "name": "d84f1d55-f629-491d-a0c7-d02c35421f1b",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 212,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "7086593e-b9c1-40ee-8ed4-7856fc07ccee"
+                    },
+                    "dest_port": {
+                        "id": 205,
+                        "name": "imu1_data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "ea3ec107-bb38-4c52-8433-dfcee540ac4e"
+                    }
+                },
+                {
+                    "id": 220,
+                    "name": "e9debb81-bd03-44bf-a9d2-701198b367ed",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 213,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "cc23494b-dfc2-474b-aef8-575b4f66a145"
+                    },
+                    "dest_port": {
+                        "id": 206,
+                        "name": "imu2_data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "11d5c281-f198-4190-9585-f93ee9bc17e5"
+                    }
+                },
+                {
+                    "id": 221,
+                    "name": "e46f2ce1-bdf6-423d-aaa0-920dddae3f3d",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 214,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "d4410d4b-d0d3-4d13-bf06-8bd635ed93df"
+                    },
+                    "dest_port": {
+                        "id": 207,
+                        "name": "imu3_data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "fbb74e21-421f-457a-a88a-2689384e4cfb"
+                    }
+                },
+                {
+                    "id": 222,
+                    "name": "ef2c1b4a-6e3d-4404-850b-74750e19a1b1",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 215,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "473da85f-1169-4bf2-828d-d07fb6274bc1"
+                    },
+                    "dest_port": {
+                        "id": 208,
+                        "name": "compass_data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "50c6c0a2-6b43-4867-b9e5-f5d5f011615a"
+                    }
+                },
+                {
+                    "id": 223,
+                    "name": "6c6e2d3f-e171-48b5-b63d-955274cd07d1",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 216,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "fd15bd64-2cd1-4589-ab60-9bb452f3d588"
+                    },
+                    "dest_port": {
+                        "id": 209,
+                        "name": "barometer_data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "21e3f082-ff97-4056-b05e-56908266d9da"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 20,
+                    "name": "img_bottom",
+                    "path": "system/flight_controller_board/Greensight_Green_Board_Bottom.jpg",
+                    "fileName": "Greensight_Green_Board_Bottom.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 21,
+                    "name": "img_top",
+                    "path": "system/flight_controller_board/Greensight_Board_Without_Label_Better_Lighting.jpg",
+                    "fileName": "Greensight_Board_Without_Label_Better_Lighting.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 22,
+                    "name": "stm32_flight_controller",
+                    "path": "system/flight_controller_board/stm32_flight_controller.hex",
+                    "fileName": "stm32_flight_controller.hex",
+                    "filetype": "hex",
+                    "content": "firmware",
+                    "comments": ""
+                },
+                {
+                    "id": 23,
+                    "name": "SD_card_dump",
+                    "path": "system/flight_controller_board/FC_board_APSD_sdFiles.zip",
+                    "fileName": "FC_board_APSD_sdFiles.zip",
+                    "filetype": "zip",
+                    "content": "data dump of SD card on board",
+                    "comments": ""
+                },
+                {
+                    "id": 24,
+                    "name": "memdump_20000000",
+                    "path": "system/flight_controller_board/FC_stm32_memDump_20000000.bin",
+                    "fileName": "FC_stm32_memDump_20000000.bin",
+                    "filetype": "bin",
+                    "content": "memory dump at address 20000000 from stm32",
+                    "comments": ""
+                },
+                {
+                    "id": 25,
+                    "name": "memdump_30000000",
+                    "path": "system/flight_controller_board/FC_stm32_memDump_30000000.bin",
+                    "fileName": "FC_stm32_memDump_30000000.bin",
+                    "filetype": "bin",
+                    "content": "membery dump from address 30000000 of stm32",
+                    "comments": ""
+                },
+                {
+                    "id": 26,
+                    "name": "memdump_40000000",
+                    "path": "system/flight_controller_board/FC_stm32_memDump_40000000.bin",
+                    "fileName": "FC_stm32_memDump_40000000.bin",
+                    "filetype": "bin",
+                    "content": "memory dump from address 40000000 from stm32",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 95.06507114286057,
+                    "y": 216.9690896739255
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 7,
+            "name": "top_fan",
+            "saciType": "OTHER",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 4,
+                    "name": "lead",
+                    "direction": "in",
+                    "signal": null,
+                    "unique_instance_id": "2ee075c9-cefa-4a34-a017-74f2fee4f92c"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 1,
+                    "name": "datasheet",
+                    "path": "system/top_fan/cbm-40c.pdf",
+                    "fileName": "cbm-40c.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 689.6271440760598,
+                    "y": 362.3245918843586
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 30,
+            "name": "\"MotorBlade4\"",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 20,
+                    "name": "motor4",
+                    "saciType": "saci.modeling.device.motor.dc_motor.DCMotor",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 92,
+                            "name": "power_port",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "77822446-bffc-4a6d-a81a-e8db02f1723e"
+                        },
+                        {
+                            "id": 93,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "6438a70f-5280-4849-b279-411ad2a1b115"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 52.54098260117004,
+                            "y": -12.430477897803696
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 24,
+                    "name": "blade4",
+                    "saciType": "OTHER",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 94,
+                            "name": "input",
+                            "direction": "input",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "64f92011-6a9f-418e-b0c1-34c08b9e965c"
+                        },
+                        {
+                            "id": 95,
+                            "name": "thrust",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "dfc733cb-0527-4124-b30c-3fc3cd29ed00"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [
+                        {
+                            "id": 23,
+                            "name": "blade_diameter",
+                            "value": 381,
+                            "units": "mm",
+                            "comments": "15 in × 25.4"
+                        },
+                        {
+                            "id": 24,
+                            "name": "blade_radius",
+                            "value": 190.5,
+                            "units": "mm",
+                            "comments": ""
+                        },
+                        {
+                            "id": 25,
+                            "name": "blade_pitch",
+                            "value": 5.5,
+                            "units": "in/rev",
+                            "comments": "given"
+                        },
+                        {
+                            "id": 26,
+                            "name": "blade_disk_area",
+                            "value": 0.114009,
+                            "units": "m^2",
+                            "comments": "derived"
+                        }
+                    ],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 376.9690896739254,
+                            "y": -5.540268736644073
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 96,
+                    "name": "power_port",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "6c377d6e-25e4-40be-ae6c-73df7c376dcb"
+                },
+                {
+                    "id": 97,
+                    "name": "thrust",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "182436e1-33fb-4a39-9d40-ea1385b360aa"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 119,
+                    "name": "c3888898-f0cd-4f63-a78d-70644875df79",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 93,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "6438a70f-5280-4849-b279-411ad2a1b115"
+                    },
+                    "dest_port": {
+                        "id": 94,
+                        "name": "input",
+                        "direction": "input",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "64f92011-6a9f-418e-b0c1-34c08b9e965c"
+                    }
+                },
+                {
+                    "id": 120,
+                    "name": "75331da8-82a3-4476-990a-525c70fc24b5",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 95,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "dfc733cb-0527-4124-b30c-3fc3cd29ed00"
+                    },
+                    "dest_port": {
+                        "id": 97,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "182436e1-33fb-4a39-9d40-ea1385b360aa"
+                    }
+                },
+                {
+                    "id": 118,
+                    "name": "8916b310-aaa3-4811-90b2-8ac6eec0c115",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 96,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "6c377d6e-25e4-40be-ae6c-73df7c376dcb"
+                    },
+                    "dest_port": {
+                        "id": 92,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "77822446-bffc-4a6d-a81a-e8db02f1723e"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 1019.8867517737582,
+                    "y": 847.2225005661174
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 8,
+            "name": "front_fan",
+            "saciType": "OTHER",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 5,
+                    "name": "lead",
+                    "direction": "in",
+                    "signal": null,
+                    "unique_instance_id": "670104ef-c87b-4ec1-acbd-66af81e11de0"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 2,
+                    "name": "datasheet",
+                    "path": "system/front_fan/BFB0312HHA-C.pdf",
+                    "fileName": "BFB0312HHA-C.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 461.8026541741881,
+                    "y": 1077.261298875191
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 9,
+            "name": "power_board",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 76,
+                    "name": "\"bms\"",
+                    "saciType": "saci.modeling.device.battery.bms.BMS",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 217,
+                            "name": "power",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "81a88fba-35c9-4dbd-ac14-eb5011b5424a"
+                        },
+                        {
+                            "id": 218,
+                            "name": "control",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "c3b002f4-746d-4650-a692-a3c7ceca1fc3"
+                        },
+                        {
+                            "id": 219,
+                            "name": "status",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "ac75caef-b46d-4fe7-b4e2-0f1d2b12189c"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 156.3351625409564,
+                            "y": -7.587567326305583
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 77,
+                    "name": "\"fets\"",
+                    "saciType": "saci.modeling.device.component.hardware.component_hw_circuit.HardwareCircuit",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 220,
+                            "name": "power_in",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "d0a5bb36-fd69-44e1-9cdc-b711f3d20abd"
+                        },
+                        {
+                            "id": 221,
+                            "name": "power_out",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "04c0f80d-42a5-47d3-8124-ee29b1d88032"
+                        },
+                        {
+                            "id": 222,
+                            "name": "control",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "e331cd8b-35a6-4c84-bbf3-f947b56aa6bd"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 444.44568785876413,
+                            "y": 132.98809961619972
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 9,
+                    "name": "system_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "30063580-51ae-48a8-9271-42c7168a0fc2"
+                },
+                {
+                    "id": 11,
+                    "name": "button_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "4078f7fc-cfc0-4c79-a5ed-afe207ec7a33"
+                },
+                {
+                    "id": 98,
+                    "name": "battery_pos",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "80387856-3d40-4f1f-9def-6e2aa0d6d52d"
+                },
+                {
+                    "id": 99,
+                    "name": "battery_neg",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "7c214049-5356-4e21-836b-1372ca1613de"
+                },
+                {
+                    "id": 100,
+                    "name": "fan_port",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "fa21c95d-5bb6-498b-ab1b-d351552a5968"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 225,
+                    "name": "394392d7-ab7d-460b-9d4c-6f12469ba6c1",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 11,
+                        "name": "button_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "4078f7fc-cfc0-4c79-a5ed-afe207ec7a33"
+                    },
+                    "dest_port": {
+                        "id": 217,
+                        "name": "power",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "81a88fba-35c9-4dbd-ac14-eb5011b5424a"
+                    }
+                },
+                {
+                    "id": 228,
+                    "name": "bffedc4f-757d-4f7e-8aee-99447accc3fb",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 98,
+                        "name": "battery_pos",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "80387856-3d40-4f1f-9def-6e2aa0d6d52d"
+                    },
+                    "dest_port": {
+                        "id": 220,
+                        "name": "power_in",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "d0a5bb36-fd69-44e1-9cdc-b711f3d20abd"
+                    }
+                },
+                {
+                    "id": 224,
+                    "name": "4db4a8f9-196f-439f-9099-263165bc2f98",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 98,
+                        "name": "battery_pos",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "80387856-3d40-4f1f-9def-6e2aa0d6d52d"
+                    },
+                    "dest_port": {
+                        "id": 217,
+                        "name": "power",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "81a88fba-35c9-4dbd-ac14-eb5011b5424a"
+                    }
+                },
+                {
+                    "id": 227,
+                    "name": "5f6fe876-e071-46f7-94eb-d7858b3cb674",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 218,
+                        "name": "control",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "c3b002f4-746d-4650-a692-a3c7ceca1fc3"
+                    },
+                    "dest_port": {
+                        "id": 222,
+                        "name": "control",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "e331cd8b-35a6-4c84-bbf3-f947b56aa6bd"
+                    }
+                },
+                {
+                    "id": 230,
+                    "name": "92e41a90-40f0-4ea3-a3a8-ed23c0dfb875",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 218,
+                        "name": "control",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "c3b002f4-746d-4650-a692-a3c7ceca1fc3"
+                    },
+                    "dest_port": {
+                        "id": 100,
+                        "name": "fan_port",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "fa21c95d-5bb6-498b-ab1b-d351552a5968"
+                    }
+                },
+                {
+                    "id": 226,
+                    "name": "dfd2d3b7-bcee-4178-ac11-69bd67494fe5",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 219,
+                        "name": "status",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "ac75caef-b46d-4fe7-b4e2-0f1d2b12189c"
+                    },
+                    "dest_port": {
+                        "id": 9,
+                        "name": "system_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "30063580-51ae-48a8-9271-42c7168a0fc2"
+                    }
+                },
+                {
+                    "id": 229,
+                    "name": "b3365146-5c62-4400-a05f-fb03d3800396",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 221,
+                        "name": "power_out",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "04c0f80d-42a5-47d3-8124-ee29b1d88032"
+                    },
+                    "dest_port": {
+                        "id": 99,
+                        "name": "battery_neg",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "7c214049-5356-4e21-836b-1372ca1613de"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 3,
+                    "name": "img_bottom",
+                    "path": "system/power_board/Greensight_Power_Board-Bottom.jpg",
+                    "fileName": "Greensight_Power_Board-Bottom.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 4,
+                    "name": "img_top",
+                    "path": "system/power_board/Greensight_Power_Battery_Board_Top.jpg",
+                    "fileName": "Greensight_Power_Battery_Board_Top.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 97.92704087414037,
+                    "y": 935.5937971768385
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 6,
+            "name": "red_button",
+            "saciType": "OTHER",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 101,
+                    "name": "lead",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "56114c06-35b1-4cd8-bc5e-1f395498272c"
+                },
+                {
+                    "id": 102,
+                    "name": "lead2",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "1826a3db-011c-437c-befe-82b937b7c51a"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 459.966211881041,
+                    "y": 961.6218297100286
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 26,
+            "name": "\"batteries\"",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 4,
+                    "name": "battery1",
+                    "saciType": "saci.modeling.device.battery.battery.Battery",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 52,
+                            "name": "neg",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "80d1195d-7361-4948-8953-b40947dafa71"
+                        },
+                        {
+                            "id": 53,
+                            "name": "pos",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "0cfb126d-2fb0-4fcb-93bf-9665f5cde630"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [
+                        {
+                            "id": 8,
+                            "name": "nominal_voltage",
+                            "value": 14.4,
+                            "units": "V",
+                            "comments": "when combined with battery2"
+                        },
+                        {
+                            "id": 9,
+                            "name": "nominal_Ah",
+                            "value": 13.8,
+                            "units": "Ah",
+                            "comments": "when combined with battery2"
+                        },
+                        {
+                            "id": 10,
+                            "name": "nominal_Wh",
+                            "value": 198.72,
+                            "units": "Wh",
+                            "comments": "when combined with battery2"
+                        }
+                    ],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 200.56489361702137,
+                            "y": -39.86382978723416
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 5,
+                    "name": "battery2",
+                    "saciType": "saci.modeling.device.battery.battery.Battery",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 54,
+                            "name": "neg",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "c610c73c-95b2-4942-b885-1490a2a7865c"
+                        },
+                        {
+                            "id": 55,
+                            "name": "pos",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "156e6691-3c2e-479a-9dd0-0f01fae2f170"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 206.36489361702127,
+                            "y": 94.6765957446809
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 56,
+                    "name": "neg",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "bbccaa6d-bc7b-420a-a941-d31260acf73d"
+                },
+                {
+                    "id": 57,
+                    "name": "pos",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "939a00ad-b33e-4c23-97ac-042e99960699"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 83,
+                    "name": "f7332fca-32d0-48ae-80e1-0d9151d38100",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 53,
+                        "name": "pos",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "0cfb126d-2fb0-4fcb-93bf-9665f5cde630"
+                    },
+                    "dest_port": {
+                        "id": 57,
+                        "name": "pos",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "939a00ad-b33e-4c23-97ac-042e99960699"
+                    }
+                },
+                {
+                    "id": 84,
+                    "name": "73021ff9-9834-4da6-b1b1-ff8cf59e5f6f",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 55,
+                        "name": "pos",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "156e6691-3c2e-479a-9dd0-0f01fae2f170"
+                    },
+                    "dest_port": {
+                        "id": 57,
+                        "name": "pos",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "939a00ad-b33e-4c23-97ac-042e99960699"
+                    }
+                },
+                {
+                    "id": 82,
+                    "name": "55644df5-2cdd-40cf-812a-df2762e2df0c",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 56,
+                        "name": "neg",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "bbccaa6d-bc7b-420a-a941-d31260acf73d"
+                    },
+                    "dest_port": {
+                        "id": 54,
+                        "name": "neg",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "c610c73c-95b2-4942-b885-1490a2a7865c"
+                    }
+                },
+                {
+                    "id": 81,
+                    "name": "fd726908-cd97-40b1-b911-c2edae92efda",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 56,
+                        "name": "neg",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "bbccaa6d-bc7b-420a-a941-d31260acf73d"
+                    },
+                    "dest_port": {
+                        "id": 52,
+                        "name": "neg",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "80d1195d-7361-4948-8953-b40947dafa71"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 105.08196520234007,
+                    "y": 1367.830686707378
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 10,
+            "name": "NVIDIA_board",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 69,
+                    "name": "\"jetson\"",
+                    "saciType": "saci.modeling.device.control.controller.Controller",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 201,
+                            "name": "data",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "502eec74-f746-45b9-8303-dcc5849445df"
+                        },
+                        {
+                            "id": 202,
+                            "name": "data",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "7ac57cd9-8d7f-49a4-8a0d-f2b717e604bf"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 123.73299340206356,
+                            "y": -6.366815386597187
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 12,
+                    "name": "SO-DIMM",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "a0ea4e12-e302-4db8-8608-f731807cb9ee"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 207,
+                    "name": "d594c111-cfa3-4d34-a4e6-6b632a8abfea",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 12,
+                        "name": "SO-DIMM",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "a0ea4e12-e302-4db8-8608-f731807cb9ee"
+                    },
+                    "dest_port": {
+                        "id": 201,
+                        "name": "data",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "502eec74-f746-45b9-8303-dcc5849445df"
+                    }
+                },
+                {
+                    "id": 208,
+                    "name": "2cbbe74b-a34b-4ca8-8a50-3ccd23327087",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 202,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "7ac57cd9-8d7f-49a4-8a0d-f2b717e604bf"
+                    },
+                    "dest_port": {
+                        "id": 12,
+                        "name": "SO-DIMM",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "a0ea4e12-e302-4db8-8608-f731807cb9ee"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 5,
+                    "name": "img_top",
+                    "path": "system/NVIDIA_board/NVIDIA_Model_P3448.jpg",
+                    "fileName": "NVIDIA_Model_P3448.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 6,
+                    "name": "img_bottom",
+                    "path": "system/NVIDIA_board/Heat_Sink_Board_Bottom.jpg",
+                    "fileName": "Heat_Sink_Board_Bottom.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 7,
+                    "name": "datasheet",
+                    "path": "system/NVIDIA_board/NVIDIA_JetsonNano_DataSheet_v0.7.pdf",
+                    "fileName": "NVIDIA_JetsonNano_DataSheet_v0.7.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                },
+                {
+                    "id": 8,
+                    "name": "thermal_guide",
+                    "path": "system/NVIDIA_board/Jetson_Nano_Thermal_Design_Guide.pdf",
+                    "fileName": "Jetson_Nano_Thermal_Design_Guide.pdf",
+                    "filetype": "pdf",
+                    "content": "thermal guide",
+                    "comments": ""
+                },
+                {
+                    "id": 9,
+                    "name": "design_guide",
+                    "path": "system/NVIDIA_board/Jetson_Nano_Product_Design_Guide_DG-09502-001_v2.4.pdf",
+                    "fileName": "Jetson_Nano_Product_Design_Guide_DG-09502-001_v2.4.pdf",
+                    "filetype": "pdf",
+                    "content": "Design guide",
+                    "comments": ""
+                },
+                {
+                    "id": 10,
+                    "name": "pinmux_config",
+                    "path": "system/NVIDIA_board/Jetson_Nano_DeveloperKit_Users_Pinmux_Configuration.xlsm",
+                    "fileName": "Jetson_Nano_DeveloperKit_Users_Pinmux_Configuration.xlsm",
+                    "filetype": "xlsm",
+                    "content": "Pin configuration & lookup",
+                    "comments": ""
+                },
+                {
+                    "id": 11,
+                    "name": "reference_design",
+                    "path": "system/NVIDIA_board/Jetson_Nano_Carrier_Board_Reference_Design_Schematics.zip",
+                    "fileName": "Jetson_Nano_Carrier_Board_Reference_Design_Schematics.zip",
+                    "filetype": "zip",
+                    "content": "Manufacturers reference designs for custom boards",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": -342.42192157965997,
+                    "y": 64.29344559840712
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 25,
+            "name": "radio_master",
+            "saciType": "OTHER",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 169,
+                    "name": "rf_in",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "bd772195-858c-4e6d-87fd-51c24ff26708"
+                },
+                {
+                    "id": 170,
+                    "name": "wifi_in",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "9d06f169-9f6e-4b08-918c-e1ed7796f30e"
+                },
+                {
+                    "id": 171,
+                    "name": "controls",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "a825e3b1-8b70-4572-a9a2-243de78cca53"
+                },
+                {
+                    "id": 172,
+                    "name": "rf_out",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "c2e7bd9f-e4f5-429b-b258-ba0fe5496039"
+                },
+                {
+                    "id": 173,
+                    "name": "wifi_out",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "6a6bd2c1-1823-4bc1-a709-c54871a06487"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 49,
+                    "name": "stm32_firmware",
+                    "path": "system/radio_master/stm32_rcController.bin",
+                    "fileName": "stm32_rcController.bin",
+                    "filetype": "bin",
+                    "content": "firmware",
+                    "comments": ""
+                },
+                {
+                    "id": 50,
+                    "name": "sd_card_dump",
+                    "path": "system/radio_master/rcController_sdCardFiles.zip",
+                    "fileName": "rcController_sdCardFiles.zip",
+                    "filetype": "zip",
+                    "content": "sd card contents",
+                    "comments": ""
+                },
+                {
+                    "id": 51,
+                    "name": "stdm32_datadump",
+                    "path": "system/radio_master/outfile_esp32_rcController_400000.bin",
+                    "fileName": "outfile_esp32_rcController_400000.bin",
+                    "filetype": "bin",
+                    "content": "data dump",
+                    "comments": ""
+                },
+                {
+                    "id": 52,
+                    "name": "esp8285_datadump",
+                    "path": "system/radio_master/outfile_esp8285_rcController_200000.bin",
+                    "fileName": "outfile_esp8285_rcController_200000.bin",
+                    "filetype": "bin",
+                    "content": "data dump",
+                    "comments": ""
+                },
+                {
+                    "id": 53,
+                    "name": "img_top",
+                    "path": "system/radio_master/Radio_Master_Controller_Top.jpg",
+                    "fileName": "Radio_Master_Controller_Top.jpg",
+                    "filetype": "jpg",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 54,
+                    "name": "controller_frame",
+                    "path": "system/radio_master/Radio_Master_Controller_Bottom.jpg",
+                    "fileName": "Radio_Master_Controller_Bottom.jpg",
+                    "filetype": "jpg",
+                    "content": "board capture",
+                    "comments": ""
+                },
+                {
+                    "id": 55,
+                    "name": "ELRS_subboard",
+                    "path": "system/radio_master/RadioMaster_ELRS_Controller_Board.jpg",
+                    "fileName": "RadioMaster_ELRS_Controller_Board.jpg",
+                    "filetype": "jpg",
+                    "content": "board capture",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 497.6965193907714,
+                    "y": -357.94829427339084
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 28,
+            "name": "\"MotorBlade2\"",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 22,
+                    "name": "blade2",
+                    "saciType": "OTHER",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 74,
+                            "name": "input",
+                            "direction": "input",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "75d33ce3-4491-438e-a31e-e5052f10f70c"
+                        },
+                        {
+                            "id": 75,
+                            "name": "thrust",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "834ab7d4-83d8-45ef-bb31-883cbff8c9e1"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [
+                        {
+                            "id": 15,
+                            "name": "blade_diameter",
+                            "value": 381,
+                            "units": "mm",
+                            "comments": "15 in × 25.4"
+                        },
+                        {
+                            "id": 16,
+                            "name": "blade_radius",
+                            "value": 190.5,
+                            "units": "mm",
+                            "comments": ""
+                        },
+                        {
+                            "id": 17,
+                            "name": "blade_pitch",
+                            "value": 5.5,
+                            "units": "in/rev",
+                            "comments": "given"
+                        },
+                        {
+                            "id": 18,
+                            "name": "blade_disk_area",
+                            "value": 0.114009,
+                            "units": "m^2",
+                            "comments": "derived"
+                        }
+                    ],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 432.15742942325693,
+                            "y": 5.533094618171123
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 18,
+                    "name": "motor2",
+                    "saciType": "saci.modeling.device.motor.dc_motor.DCMotor",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 72,
+                            "name": "power_port",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "034f05c5-5b02-4ee7-93be-b2486a71af5f"
+                        },
+                        {
+                            "id": 73,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "0a4d70e6-fe82-483e-bf9e-32ff6bad28fb"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 20.653858129584364,
+                            "y": 1.7807499245941187
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 76,
+                    "name": "power_port",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "0621c00d-f6b8-44bb-ad6e-f40abcf9f040"
+                },
+                {
+                    "id": 77,
+                    "name": "thrust",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "b8beddaa-92fc-490b-9ae3-188919cc6fd7"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 101,
+                    "name": "9f3f544d-ab02-41b1-aabf-cf725827ccce",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 73,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "0a4d70e6-fe82-483e-bf9e-32ff6bad28fb"
+                    },
+                    "dest_port": {
+                        "id": 74,
+                        "name": "input",
+                        "direction": "input",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "75d33ce3-4491-438e-a31e-e5052f10f70c"
+                    }
+                },
+                {
+                    "id": 102,
+                    "name": "c7000c9f-f8d4-4ac1-ae77-30f3499cfbc1",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 75,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "834ab7d4-83d8-45ef-bb31-883cbff8c9e1"
+                    },
+                    "dest_port": {
+                        "id": 77,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "b8beddaa-92fc-490b-9ae3-188919cc6fd7"
+                    }
+                },
+                {
+                    "id": 100,
+                    "name": "c3b4df03-c62e-4d33-b246-2b8aa951b44b",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 76,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "0621c00d-f6b8-44bb-ad6e-f40abcf9f040"
+                    },
+                    "dest_port": {
+                        "id": 72,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "034f05c5-5b02-4ee7-93be-b2486a71af5f"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 1012.7318274455586,
+                    "y": 569.6114366319723
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 27,
+            "name": "\"MotorBlade1\"",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 17,
+                    "name": "motor1",
+                    "saciType": "saci.modeling.device.motor.dc_motor.DCMotor",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 62,
+                            "name": "power_port",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "d7b59067-353d-4104-a8da-876b840fda4a"
+                        },
+                        {
+                            "id": 63,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "9b7b89ef-fa72-4620-8bc2-c804908cc0f4"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 59.112338213241074,
+                            "y": 0.6968019259443565
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 21,
+                    "name": "blade1",
+                    "saciType": "OTHER",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 64,
+                            "name": "input",
+                            "direction": "input",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "2155b646-188c-4a4c-ae37-474664a1f29d"
+                        },
+                        {
+                            "id": 65,
+                            "name": "thrust",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "b4d90362-0443-416d-abb9-e62fbbd83a80"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [
+                        {
+                            "id": 11,
+                            "name": "blade_diameter",
+                            "value": 381,
+                            "units": "mm",
+                            "comments": "15 in × 25.4"
+                        },
+                        {
+                            "id": 12,
+                            "name": "blade_radius",
+                            "value": 190.5,
+                            "units": "mm",
+                            "comments": ""
+                        },
+                        {
+                            "id": 13,
+                            "name": "blade_pitch",
+                            "value": 5.5,
+                            "units": "in/rev",
+                            "comments": "given"
+                        },
+                        {
+                            "id": 14,
+                            "name": "blade_disk_area",
+                            "value": 0.114009,
+                            "units": "m^2",
+                            "comments": "derived"
+                        }
+                    ],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 407.12164507770575,
+                            "y": -1.7177779945996257
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 66,
+                    "name": "power_port",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "0dfaecc5-dfe7-4807-972c-73b593e21d7b"
+                },
+                {
+                    "id": 67,
+                    "name": "thrust",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "0ea13fe5-0a0a-41a1-ab7c-16c89d30bab5"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 91,
+                    "name": "a68790fa-1543-4296-95bd-0a597c3e87a5",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 63,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "9b7b89ef-fa72-4620-8bc2-c804908cc0f4"
+                    },
+                    "dest_port": {
+                        "id": 64,
+                        "name": "input",
+                        "direction": "input",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "2155b646-188c-4a4c-ae37-474664a1f29d"
+                    }
+                },
+                {
+                    "id": 93,
+                    "name": "d6af8b38-f692-4189-af33-57474e896762",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 65,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "b4d90362-0443-416d-abb9-e62fbbd83a80"
+                    },
+                    "dest_port": {
+                        "id": 67,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "0ea13fe5-0a0a-41a1-ab7c-16c89d30bab5"
+                    }
+                },
+                {
+                    "id": 92,
+                    "name": "90cd849f-b900-41d9-a03c-7553bf60a8b8",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 66,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "0dfaecc5-dfe7-4807-972c-73b593e21d7b"
+                    },
+                    "dest_port": {
+                        "id": 62,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "d7b59067-353d-4104-a8da-876b840fda4a"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 1001.1500000000001,
+                    "y": 426.8212765957447
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 13,
+            "name": "bluetooth_board",
+            "saciType": "OTHER",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 26,
+                    "name": "control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "37f1f7d1-60a9-491f-9c70-55e79b4ea5bd"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 27,
+                    "name": "img_top",
+                    "path": "system/bluetooth_board/BlueTooth-Greensight-Board-Top.jpg",
+                    "fileName": "BlueTooth-Greensight-Board-Top.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 28,
+                    "name": "datasheet",
+                    "path": "system/bluetooth_board/ANNA-B402_DataSheet_UBX-20032372.pdf",
+                    "fileName": "ANNA-B402_DataSheet_UBX-20032372.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                },
+                {
+                    "id": 29,
+                    "name": "product_guide",
+                    "path": "system/bluetooth_board/ANNA-B402_ProductSummary_UBX-20017979.pdf",
+                    "fileName": "ANNA-B402_ProductSummary_UBX-20017979.pdf",
+                    "filetype": "pdf",
+                    "content": "product guide",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": -89.41810219546977,
+                    "y": -69.15230706234497
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 16,
+            "name": "ARK_board",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 62,
+                    "name": "\"optical_flow\"",
+                    "saciType": "saci.modeling.device.sensor.optical_flow.OpticalFlowSensor",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 184,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "ed969104-636e-4e56-ad05-2f2b4e9f1ebd"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -190.91951225038156,
+                            "y": 184.6875685706975
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 63,
+                    "name": "\"tof_distance\"",
+                    "saciType": "saci.modeling.device.sensor.depth_camera.DepthCamera",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 185,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "cda59faf-6250-410a-9797-2ca986d1c545"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -201.52797014951972,
+                            "y": 333.20597915863175
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 61,
+                    "name": "\"controller\"",
+                    "saciType": "OTHER",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 177,
+                            "name": "control",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "d53dd98f-f5b2-4a0c-961c-9815a5bc0314"
+                        },
+                        {
+                            "id": 178,
+                            "name": "data",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "9d5e25b5-670f-4ae7-9383-aadf6114f372"
+                        },
+                        {
+                            "id": 179,
+                            "name": "optical_flow",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "f54f9c60-3bd8-40e3-a4cc-2ce169b96d13"
+                        },
+                        {
+                            "id": 180,
+                            "name": "distance",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "d69c989f-0ac5-4431-b053-0837adcfc0f4"
+                        },
+                        {
+                            "id": 181,
+                            "name": "imu",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "e7e2e77f-ac57-4cb2-b4e2-dcc28b3a8635"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 199.235994929033,
+                            "y": 62.10094395843429
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 64,
+                    "name": "\"imu\"",
+                    "saciType": "saci.modeling.device.sensor.accelerometer.AccelerometerHardware",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 186,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "ce61d4dd-b9d2-4d11-8865-9cc16754af5b"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": -203.88540523821712,
+                            "y": 471.1159318474279
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 182,
+                    "name": "control",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "c54a60ee-5c3c-49b1-813a-35e117eb04a8"
+                },
+                {
+                    "id": 183,
+                    "name": "data",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "63786603-96e0-43f1-a9ea-b1187d3cf527"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 189,
+                    "name": "6fb04d4e-fef5-41d6-951d-f4fd0041b050",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 178,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "9d5e25b5-670f-4ae7-9383-aadf6114f372"
+                    },
+                    "dest_port": {
+                        "id": 183,
+                        "name": "data",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "63786603-96e0-43f1-a9ea-b1187d3cf527"
+                    }
+                },
+                {
+                    "id": 188,
+                    "name": "0c0dd89a-daa9-499c-b0b4-1529b6dd2e64",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 182,
+                        "name": "control",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "c54a60ee-5c3c-49b1-813a-35e117eb04a8"
+                    },
+                    "dest_port": {
+                        "id": 177,
+                        "name": "control",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "d53dd98f-f5b2-4a0c-961c-9815a5bc0314"
+                    }
+                },
+                {
+                    "id": 190,
+                    "name": "e51c4647-c6a6-4d9f-ba58-470315cb0b68",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 184,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "ed969104-636e-4e56-ad05-2f2b4e9f1ebd"
+                    },
+                    "dest_port": {
+                        "id": 179,
+                        "name": "optical_flow",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "f54f9c60-3bd8-40e3-a4cc-2ce169b96d13"
+                    }
+                },
+                {
+                    "id": 191,
+                    "name": "d0ec4595-e1d5-4dba-8c67-09d124a457a9",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 185,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "cda59faf-6250-410a-9797-2ca986d1c545"
+                    },
+                    "dest_port": {
+                        "id": 180,
+                        "name": "distance",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "d69c989f-0ac5-4431-b053-0837adcfc0f4"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 40,
+                    "name": "img_top",
+                    "path": "system/ARK_board/Ark_Electronics_Board_Top.jpg",
+                    "fileName": "Ark_Electronics_Board_Top.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 41,
+                    "name": "img_bottom",
+                    "path": "system/ARK_board/Ark_Electronics_Bottom.jpg",
+                    "fileName": "Ark_Electronics_Bottom.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 42,
+                    "name": "AFBR-S50-RD-AN100",
+                    "path": "system/ARK_board/AFBR-S50-RD-AN100.pdf",
+                    "fileName": "AFBR-S50-RD-AN100.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                },
+                {
+                    "id": 43,
+                    "name": "AFBR-S50LX85D-DS100",
+                    "path": "system/ARK_board/AFBR-S50LX85D-DS100.pdf",
+                    "fileName": "AFBR-S50LX85D-DS100.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                },
+                {
+                    "id": 44,
+                    "name": "ARK_Flow_MR_Site_Info",
+                    "path": "system/ARK_board/ARK Flow MR Site Info.docx",
+                    "fileName": "ARK Flow MR Site Info.docx",
+                    "filetype": "docx",
+                    "content": "website export",
+                    "comments": ""
+                },
+                {
+                    "id": 45,
+                    "name": "DS-000529-IIM-42653-v1.1",
+                    "path": "system/ARK_board/DS-000529-IIM-42653-v1.1.pdf",
+                    "fileName": "DS-000529-IIM-42653-v1.1.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                },
+                {
+                    "id": 46,
+                    "name": "PAA5160",
+                    "path": "system/ARK_board/PAA5160_Datasheet_General.pdf",
+                    "fileName": "PAA5160_Datasheet_General.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet",
+                    "comments": ""
+                },
+                {
+                    "id": 47,
+                    "name": "WebsiteBinaryFile1",
+                    "path": "system/ARK_board/88-1.16.afb2c08b.uavcan.bin",
+                    "fileName": "88-1.16.afb2c08b.uavcan.bin",
+                    "filetype": "bin",
+                    "content": "firmware",
+                    "comments": "Pulled from the website and not TA"
+                },
+                {
+                    "id": 48,
+                    "name": "WebsiteBinaryFile2",
+                    "path": "system/ARK_board/ark_can-flow-mr_canbootloader.bin",
+                    "fileName": "ark_can-flow-mr_canbootloader.bin",
+                    "filetype": "bin",
+                    "content": "firmware",
+                    "comments": "Pulled from the website and not TA"
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 905.9114892140356,
+                    "y": 24.999191261983338
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 29,
+            "name": "\"MotorBlade3\"",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 23,
+                    "name": "blade3",
+                    "saciType": "OTHER",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 85,
+                            "name": "thrust",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "ca16b9de-01cb-46bd-af58-b7cecc899c87"
+                        },
+                        {
+                            "id": 84,
+                            "name": "input",
+                            "direction": "input",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "3a5129f6-6cf6-4cad-ad19-37cc7674ae31"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [
+                        {
+                            "id": 19,
+                            "name": "blade_diameter",
+                            "value": 381,
+                            "units": "mm",
+                            "comments": "15 in × 25.4"
+                        },
+                        {
+                            "id": 20,
+                            "name": "blade_radius",
+                            "value": 190.5,
+                            "units": "mm",
+                            "comments": ""
+                        },
+                        {
+                            "id": 21,
+                            "name": "blade_pitch",
+                            "value": 5.5,
+                            "units": "in/rev",
+                            "comments": "given"
+                        },
+                        {
+                            "id": 22,
+                            "name": "blade_disk_area",
+                            "value": 0.114009,
+                            "units": "m^2",
+                            "comments": "derived"
+                        }
+                    ],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 424.59704766755027,
+                            "y": -0.19084484438864635
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 19,
+                    "name": "motor3",
+                    "saciType": "saci.modeling.device.motor.dc_motor.DCMotor",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 82,
+                            "name": "power_port",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "c42e248d-c76f-43b0-89e9-87ad8708620b"
+                        },
+                        {
+                            "id": 83,
+                            "name": "output",
+                            "direction": "output",
+                            "signal": "rotational-velocity",
+                            "unique_instance_id": "6cdc9f4e-f93c-469b-99a4-438a8d193699"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 60.10136435687694,
+                            "y": 0.07946010728289465
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 86,
+                    "name": "power_port",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "56684a04-55e9-4a2b-a555-8b5618f7da1a"
+                },
+                {
+                    "id": 87,
+                    "name": "thrust",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "3ce6d6e7-a5b5-4637-bd5e-058cf9b5ff3b"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 111,
+                    "name": "6c830482-4533-4fcb-8214-14c23f9afb9e",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 85,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "ca16b9de-01cb-46bd-af58-b7cecc899c87"
+                    },
+                    "dest_port": {
+                        "id": 87,
+                        "name": "thrust",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "3ce6d6e7-a5b5-4637-bd5e-058cf9b5ff3b"
+                    }
+                },
+                {
+                    "id": 109,
+                    "name": "341e2e74-f023-40d4-9d67-8376edcaa6ba",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 86,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "56684a04-55e9-4a2b-a555-8b5618f7da1a"
+                    },
+                    "dest_port": {
+                        "id": 82,
+                        "name": "power_port",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "c42e248d-c76f-43b0-89e9-87ad8708620b"
+                    }
+                },
+                {
+                    "id": 110,
+                    "name": "7177074a-2638-4431-a741-eed215358f78",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 83,
+                        "name": "output",
+                        "direction": "output",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "6cdc9f4e-f93c-469b-99a4-438a8d193699"
+                    },
+                    "dest_port": {
+                        "id": 84,
+                        "name": "input",
+                        "direction": "input",
+                        "signal": "rotational-velocity",
+                        "unique_instance_id": "3a5129f6-6cf6-4cad-ad19-37cc7674ae31"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 1015.1883397493315,
+                    "y": 715.5718929272446
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 14,
+            "name": "GNSS_board",
+            "saciType": "saci.modeling.device.sensor.gnss.GNSSReceiver",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 27,
+                    "name": "control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "d7e8acab-76fc-45c7-a6a7-f6af1b0d02ef"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [
+                {
+                    "id": 30,
+                    "name": "img_bottom",
+                    "path": "system/GNSS_board/TAOGLAS_Board_Bottom.jpg",
+                    "fileName": "TAOGLAS_Board_Bottom.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 31,
+                    "name": "img_top",
+                    "path": "system/GNSS_board/TAOGLAS_Board_Top.jpg",
+                    "fileName": "TAOGLAS_Board_Top.jpg",
+                    "filetype": "JPEG",
+                    "content": "board image",
+                    "comments": ""
+                },
+                {
+                    "id": 32,
+                    "name": "datasheet_antenna",
+                    "path": "system/GNSS_board/GVLB258.A.pdf",
+                    "fileName": "GVLB258.A.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet for antenna on board",
+                    "comments": ""
+                },
+                {
+                    "id": 33,
+                    "name": "datasheet_ublock",
+                    "path": "system/GNSS_board/NEO-F10N_DataSheet_UBX-23002117.pdf",
+                    "fileName": "NEO-F10N_DataSheet_UBX-23002117.pdf",
+                    "filetype": "pdf",
+                    "content": "datasheet of ublock device on board",
+                    "comments": ""
+                }
+            ],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 202.5697792701755,
+                    "y": -98.49224275717316
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 58,
+            "name": "motor_controller_board",
+            "saciType": "OTHER",
+            "systems": [
+                {
+                    "id": 65,
+                    "name": "\"esc1\"",
+                    "saciType": "saci.modeling.device.esc.ESC",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 189,
+                            "name": "throttle",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "6c6aba5a-7890-4e65-bb93-b2d78d5e6def"
+                        },
+                        {
+                            "id": 190,
+                            "name": "motor_power",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "c67f8bf3-7fc1-4def-b86d-25b4075f235b"
+                        },
+                        {
+                            "id": 191,
+                            "name": "power",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "734f9fb7-5ce5-4e59-9abe-4447c879b3fc"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 137.88496245432816,
+                            "y": -40.98352967413646
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 66,
+                    "name": "\"esc2\"",
+                    "saciType": "saci.modeling.device.esc.ESC",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 192,
+                            "name": "throttle",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "7bb6219c-42b1-4934-8954-a7e89b010827"
+                        },
+                        {
+                            "id": 193,
+                            "name": "power",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "752e1015-f047-47fd-b228-ea668d6661a1"
+                        },
+                        {
+                            "id": 194,
+                            "name": "motor_power",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "d72a6a63-eecd-4c26-80ba-2858552b7d77"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 135.77533010548655,
+                            "y": 97.1973891749895
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 67,
+                    "name": "\"esc3\"",
+                    "saciType": "saci.modeling.device.esc.ESC",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 195,
+                            "name": "throttle",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "e5d22f21-9705-43e7-8bb9-c9742b56ffc3"
+                        },
+                        {
+                            "id": 196,
+                            "name": "power",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "1c411a00-86bd-453b-b1be-cc9b3d78b9c6"
+                        },
+                        {
+                            "id": 197,
+                            "name": "motor_power",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "8a648a6f-fdda-46fe-9338-7922ad385e49"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 126.28198453569925,
+                            "y": 240.65238889621946
+                        },
+                        "isSaved": true
+                    }
+                },
+                {
+                    "id": 68,
+                    "name": "\"esc4\"",
+                    "saciType": "saci.modeling.device.esc.ESC",
+                    "systems": [],
+                    "ports": [
+                        {
+                            "id": 198,
+                            "name": "throttle",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "0666a52d-71a2-43be-a681-ad9ddd06d0d4"
+                        },
+                        {
+                            "id": 199,
+                            "name": "power",
+                            "direction": "input",
+                            "signal": "generic",
+                            "unique_instance_id": "f4af4084-7753-42cb-bda1-65199c438c39"
+                        },
+                        {
+                            "id": 200,
+                            "name": "motor_power",
+                            "direction": "output",
+                            "signal": "generic",
+                            "unique_instance_id": "16b801b6-85fd-4678-a7ad-e97b6ed000e1"
+                        }
+                    ],
+                    "interfaces": [],
+                    "actions": {},
+                    "properties": {},
+                    "artifacts": [],
+                    "specifications": [],
+                    "vulnerabilities": [],
+                    "node_data": {
+                        "position": {
+                            "x": 126.28198453569925,
+                            "y": 390.43628566397433
+                        },
+                        "isSaved": true
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": 159,
+                    "name": "control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "0e89ff97-908f-43a9-a51f-13d747ac017c"
+                },
+                {
+                    "id": 160,
+                    "name": "power_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+                },
+                {
+                    "id": 161,
+                    "name": "motor1_port",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "d643eb44-a9a5-49b5-957d-b21578331993"
+                },
+                {
+                    "id": 162,
+                    "name": "motor2_port",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "ae9479a5-72c3-4c00-88b7-694b440b76fd"
+                },
+                {
+                    "id": 163,
+                    "name": "motor3_port",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "608019cb-de4b-465f-b7dc-fac8e40d3a75"
+                },
+                {
+                    "id": 164,
+                    "name": "motor4_port",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "e9629f51-8425-4733-8f44-0c9b0492e579"
+                }
+            ],
+            "interfaces": [
+                {
+                    "id": 203,
+                    "name": "100e936b-d7f4-401e-ad4a-c583f059df47",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 159,
+                        "name": "control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0e89ff97-908f-43a9-a51f-13d747ac017c"
+                    },
+                    "dest_port": {
+                        "id": 198,
+                        "name": "throttle",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "0666a52d-71a2-43be-a681-ad9ddd06d0d4"
+                    }
+                },
+                {
+                    "id": 200,
+                    "name": "6124f694-4e63-4a18-8fca-224e125e809b",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 159,
+                        "name": "control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0e89ff97-908f-43a9-a51f-13d747ac017c"
+                    },
+                    "dest_port": {
+                        "id": 195,
+                        "name": "throttle",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "e5d22f21-9705-43e7-8bb9-c9742b56ffc3"
+                    }
+                },
+                {
+                    "id": 198,
+                    "name": "0d6d3a61-91a8-4857-8bfa-94af81d12a39",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 159,
+                        "name": "control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0e89ff97-908f-43a9-a51f-13d747ac017c"
+                    },
+                    "dest_port": {
+                        "id": 192,
+                        "name": "throttle",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "7bb6219c-42b1-4934-8954-a7e89b010827"
+                    }
+                },
+                {
+                    "id": 194,
+                    "name": "e8e9a578-8cb4-483d-99ae-d14b04cd012a",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 159,
+                        "name": "control_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0e89ff97-908f-43a9-a51f-13d747ac017c"
+                    },
+                    "dest_port": {
+                        "id": 189,
+                        "name": "throttle",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "6c6aba5a-7890-4e65-bb93-b2d78d5e6def"
+                    }
+                },
+                {
+                    "id": 204,
+                    "name": "ec3e9f23-f964-4ff7-9534-c0d5eefc4d07",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 160,
+                        "name": "power_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+                    },
+                    "dest_port": {
+                        "id": 199,
+                        "name": "power",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "f4af4084-7753-42cb-bda1-65199c438c39"
+                    }
+                },
+                {
+                    "id": 201,
+                    "name": "f704e08a-68fb-41f1-b0b2-2c5c9232d61e",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 160,
+                        "name": "power_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+                    },
+                    "dest_port": {
+                        "id": 196,
+                        "name": "power",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "1c411a00-86bd-453b-b1be-cc9b3d78b9c6"
+                    }
+                },
+                {
+                    "id": 199,
+                    "name": "0075ffec-fda2-4f5d-bd64-01feb9aa1d22",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 160,
+                        "name": "power_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+                    },
+                    "dest_port": {
+                        "id": 193,
+                        "name": "power",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "752e1015-f047-47fd-b228-ea668d6661a1"
+                    }
+                },
+                {
+                    "id": 195,
+                    "name": "b5d408b1-664b-44de-9789-dc198860709e",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 160,
+                        "name": "power_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+                    },
+                    "dest_port": {
+                        "id": 191,
+                        "name": "power",
+                        "direction": "input",
+                        "signal": "generic",
+                        "unique_instance_id": "734f9fb7-5ce5-4e59-9abe-4447c879b3fc"
+                    }
+                },
+                {
+                    "id": 206,
+                    "name": "c9182bb6-22c2-48f2-b366-661f6d0545cf",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 160,
+                        "name": "power_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+                    },
+                    "dest_port": {
+                        "id": 160,
+                        "name": "power_port",
+                        "direction": "inout",
+                        "signal": null,
+                        "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+                    }
+                },
+                {
+                    "id": 196,
+                    "name": "db5b3db9-e6ca-4297-80f3-5234df5773d0",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 190,
+                        "name": "motor_power",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "c67f8bf3-7fc1-4def-b86d-25b4075f235b"
+                    },
+                    "dest_port": {
+                        "id": 161,
+                        "name": "motor1_port",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "d643eb44-a9a5-49b5-957d-b21578331993"
+                    }
+                },
+                {
+                    "id": 197,
+                    "name": "20ef43c7-03f5-4bb5-bff1-5497202e5c06",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 194,
+                        "name": "motor_power",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "d72a6a63-eecd-4c26-80ba-2858552b7d77"
+                    },
+                    "dest_port": {
+                        "id": 162,
+                        "name": "motor2_port",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "ae9479a5-72c3-4c00-88b7-694b440b76fd"
+                    }
+                },
+                {
+                    "id": 202,
+                    "name": "101d4363-b331-46f8-9a4f-231c6557b1c4",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 197,
+                        "name": "motor_power",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "8a648a6f-fdda-46fe-9338-7922ad385e49"
+                    },
+                    "dest_port": {
+                        "id": 163,
+                        "name": "motor3_port",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "608019cb-de4b-465f-b7dc-fac8e40d3a75"
+                    }
+                },
+                {
+                    "id": 205,
+                    "name": "32a668ff-8fca-4909-9808-a85da9dce8dd",
+                    "signal": "generic",
+                    "src_port": {
+                        "id": 200,
+                        "name": "motor_power",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "16b801b6-85fd-4678-a7ad-e97b6ed000e1"
+                    },
+                    "dest_port": {
+                        "id": 164,
+                        "name": "motor4_port",
+                        "direction": "output",
+                        "signal": "generic",
+                        "unique_instance_id": "e9629f51-8425-4733-8f44-0c9b0492e579"
+                    }
+                }
+            ],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 113.83922570208077,
+                    "y": 581.5264640206765
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 59,
+            "name": "rf_coms_board",
+            "saciType": "OTHER",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 166,
+                    "name": "control_port",
+                    "direction": "inout",
+                    "signal": null,
+                    "unique_instance_id": "cafc94b6-aea7-450c-a3b5-92731227f1ca"
+                },
+                {
+                    "id": 167,
+                    "name": "rf_in",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "141e62c9-f47b-4558-a7de-980be44c4b4a"
+                },
+                {
+                    "id": 168,
+                    "name": "rf_out",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "a3b716f7-cc07-4a92-afff-4294b028ba2e"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 484.28732485605815,
+                    "y": -60.01661996567908
+                },
+                "isSaved": true
+            }
+        },
+        {
+            "id": 60,
+            "name": "\"GCS\"",
+            "saciType": "saci.modeling.device.gcs.GCS",
+            "systems": [],
+            "ports": [
+                {
+                    "id": 174,
+                    "name": "wifi_in",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "c7608108-289a-4e36-9dfb-30c4ef57cd59"
+                },
+                {
+                    "id": 175,
+                    "name": "wifi_out",
+                    "direction": "output",
+                    "signal": "generic",
+                    "unique_instance_id": "82ee7e9e-99e5-4189-a233-e4dcccb9a230"
+                },
+                {
+                    "id": 176,
+                    "name": "user_input",
+                    "direction": "input",
+                    "signal": "generic",
+                    "unique_instance_id": "968d86c7-fadf-4487-ad61-f8abf4eceb51"
+                }
+            ],
+            "interfaces": [],
+            "actions": {},
+            "properties": {},
+            "artifacts": [],
+            "specifications": [],
+            "vulnerabilities": [],
+            "node_data": {
+                "position": {
+                    "x": 503.34512137099364,
+                    "y": -540.2237212037436
+                },
+                "isSaved": true
+            }
+        }
+    ],
+    "ports": [
+        {
+            "id": 165,
+            "name": "physical_state",
+            "direction": "output",
+            "signal": "generic",
+            "unique_instance_id": "09774f4b-5a67-40e2-aee3-0bb9638fbb39"
+        }
+    ],
+    "interfaces": [
+        {
+            "id": 171,
+            "name": "8fd5a67a-1fff-463d-9618-1676866f7983",
+            "signal": "generic",
+            "src_port": {
+                "id": 9,
+                "name": "system_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "30063580-51ae-48a8-9271-42c7168a0fc2"
+            },
+            "dest_port": {
+                "id": 160,
+                "name": "power_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+            }
+        },
+        {
+            "id": 124,
+            "name": "b7793225-393a-4c8b-9373-497949d9b563",
+            "signal": "generic",
+            "src_port": {
+                "id": 11,
+                "name": "button_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "4078f7fc-cfc0-4c79-a5ed-afe207ec7a33"
+            },
+            "dest_port": {
+                "id": 101,
+                "name": "lead",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "56114c06-35b1-4cd8-bc5e-1f395498272c"
+            }
+        },
+        {
+            "id": 51,
+            "name": null,
+            "signal": null,
+            "src_port": {
+                "id": 12,
+                "name": "SO-DIMM",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "a0ea4e12-e302-4db8-8608-f731807cb9ee"
+            },
+            "dest_port": {
+                "id": 25,
+                "name": "SO-DIMM",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "bcb29bc3-7f3a-4d5a-ae53-3be6d0ec91dd"
+            }
+        },
+        {
+            "id": 180,
+            "name": "a27db022-1ccc-423f-bc61-2411e64b5420",
+            "signal": "generic",
+            "src_port": {
+                "id": 19,
+                "name": "motor_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "9ece1ed5-ec25-4bda-8875-707828457a74"
+            },
+            "dest_port": {
+                "id": 159,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "0e89ff97-908f-43a9-a51f-13d747ac017c"
+            }
+        },
+        {
+            "id": 53,
+            "name": null,
+            "signal": null,
+            "src_port": {
+                "id": 21,
+                "name": "bluetooth_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "200d06eb-c59f-477a-9724-9d92ffb1c3ea"
+            },
+            "dest_port": {
+                "id": 26,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "37f1f7d1-60a9-491f-9c70-55e79b4ea5bd"
+            }
+        },
+        {
+            "id": 54,
+            "name": null,
+            "signal": null,
+            "src_port": {
+                "id": 22,
+                "name": "GNSS_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "70f80e99-f4e9-48bc-bc07-f9824348569f"
+            },
+            "dest_port": {
+                "id": 27,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "d7e8acab-76fc-45c7-a6a7-f6af1b0d02ef"
+            }
+        },
+        {
+            "id": 182,
+            "name": "5aac57ce-3466-4a20-8b71-145c7862b4f2",
+            "signal": "generic",
+            "src_port": {
+                "id": 23,
+                "name": "rf_coms_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "8a01be21-0918-4ae0-97cf-c39bb560aee5"
+            },
+            "dest_port": {
+                "id": 166,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "cafc94b6-aea7-450c-a3b5-92731227f1ca"
+            }
+        },
+        {
+            "id": 39,
+            "name": null,
+            "signal": null,
+            "src_port": {
+                "id": 24,
+                "name": "fan_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "f0c6167f-a985-4521-a405-efbd631b0c6a"
+            },
+            "dest_port": {
+                "id": 4,
+                "name": "lead",
+                "direction": "in",
+                "signal": null,
+                "unique_instance_id": "2ee075c9-cefa-4a34-a017-74f2fee4f92c"
+            }
+        },
+        {
+            "id": 50,
+            "name": null,
+            "signal": null,
+            "src_port": {
+                "id": 25,
+                "name": "SO-DIMM",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "bcb29bc3-7f3a-4d5a-ae53-3be6d0ec91dd"
+            },
+            "dest_port": {
+                "id": 12,
+                "name": "SO-DIMM",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "a0ea4e12-e302-4db8-8608-f731807cb9ee"
+            }
+        },
+        {
+            "id": 52,
+            "name": null,
+            "signal": null,
+            "src_port": {
+                "id": 26,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "37f1f7d1-60a9-491f-9c70-55e79b4ea5bd"
+            },
+            "dest_port": {
+                "id": 21,
+                "name": "bluetooth_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "200d06eb-c59f-477a-9724-9d92ffb1c3ea"
+            }
+        },
+        {
+            "id": 55,
+            "name": null,
+            "signal": null,
+            "src_port": {
+                "id": 27,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "d7e8acab-76fc-45c7-a6a7-f6af1b0d02ef"
+            },
+            "dest_port": {
+                "id": 22,
+                "name": "GNSS_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "70f80e99-f4e9-48bc-bc07-f9824348569f"
+            }
+        },
+        {
+            "id": 178,
+            "name": "04725115-cd09-4ac0-96e2-08395f33e359",
+            "signal": "generic",
+            "src_port": {
+                "id": 87,
+                "name": "thrust",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "3ce6d6e7-a5b5-4637-bd5e-058cf9b5ff3b"
+            },
+            "dest_port": {
+                "id": 165,
+                "name": "physical_state",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "09774f4b-5a67-40e2-aee3-0bb9638fbb39"
+            }
+        },
+        {
+            "id": 122,
+            "name": "89197053-b802-4039-b83c-4e39512ce6a3",
+            "signal": "generic",
+            "src_port": {
+                "id": 57,
+                "name": "pos",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "939a00ad-b33e-4c23-97ac-042e99960699"
+            },
+            "dest_port": {
+                "id": 98,
+                "name": "battery_pos",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "80387856-3d40-4f1f-9def-6e2aa0d6d52d"
+            }
+        },
+        {
+            "id": 176,
+            "name": "b7ef40a9-53de-4edf-b54d-41ce2b1b3fef",
+            "signal": "generic",
+            "src_port": {
+                "id": 67,
+                "name": "thrust",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "0ea13fe5-0a0a-41a1-ab7c-16c89d30bab5"
+            },
+            "dest_port": {
+                "id": 165,
+                "name": "physical_state",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "09774f4b-5a67-40e2-aee3-0bb9638fbb39"
+            }
+        },
+        {
+            "id": 179,
+            "name": "3ccb7710-00d9-4cd9-80ba-a54c65a861d1",
+            "signal": "generic",
+            "src_port": {
+                "id": 97,
+                "name": "thrust",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "182436e1-33fb-4a39-9d40-ea1385b360aa"
+            },
+            "dest_port": {
+                "id": 165,
+                "name": "physical_state",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "09774f4b-5a67-40e2-aee3-0bb9638fbb39"
+            }
+        },
+        {
+            "id": 177,
+            "name": "9d03bf22-a512-4b84-bfa3-400066ebef6a",
+            "signal": "generic",
+            "src_port": {
+                "id": 77,
+                "name": "thrust",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "b8beddaa-92fc-490b-9ae3-188919cc6fd7"
+            },
+            "dest_port": {
+                "id": 165,
+                "name": "physical_state",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "09774f4b-5a67-40e2-aee3-0bb9638fbb39"
+            }
+        },
+        {
+            "id": 121,
+            "name": "f3b2a782-c03d-4b0d-8522-c21c3c24a5e9",
+            "signal": "generic",
+            "src_port": {
+                "id": 99,
+                "name": "battery_neg",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "7c214049-5356-4e21-836b-1372ca1613de"
+            },
+            "dest_port": {
+                "id": 56,
+                "name": "neg",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "bbccaa6d-bc7b-420a-a941-d31260acf73d"
+            }
+        },
+        {
+            "id": 123,
+            "name": "c42c5d12-180c-460e-bf96-d9580df58be5",
+            "signal": "generic",
+            "src_port": {
+                "id": 100,
+                "name": "fan_port",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "fa21c95d-5bb6-498b-ab1b-d351552a5968"
+            },
+            "dest_port": {
+                "id": 5,
+                "name": "lead",
+                "direction": "in",
+                "signal": null,
+                "unique_instance_id": "670104ef-c87b-4ec1-acbd-66af81e11de0"
+            }
+        },
+        {
+            "id": 125,
+            "name": "c551c4f8-4801-487c-8352-51a671314e8a",
+            "signal": "generic",
+            "src_port": {
+                "id": 102,
+                "name": "lead2",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "1826a3db-011c-437c-befe-82b937b7c51a"
+            },
+            "dest_port": {
+                "id": 11,
+                "name": "button_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "4078f7fc-cfc0-4c79-a5ed-afe207ec7a33"
+            }
+        },
+        {
+            "id": 181,
+            "name": "77168f95-199d-4529-8650-a4ce5d646085",
+            "signal": "generic",
+            "src_port": {
+                "id": 159,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "0e89ff97-908f-43a9-a51f-13d747ac017c"
+            },
+            "dest_port": {
+                "id": 19,
+                "name": "motor_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "9ece1ed5-ec25-4bda-8875-707828457a74"
+            }
+        },
+        {
+            "id": 170,
+            "name": "c21a7153-4b63-4252-a0bc-4829dc86daae",
+            "signal": "generic",
+            "src_port": {
+                "id": 160,
+                "name": "power_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "0ad7171a-9fb7-4f72-bef0-15a075f1e7af"
+            },
+            "dest_port": {
+                "id": 9,
+                "name": "system_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "30063580-51ae-48a8-9271-42c7168a0fc2"
+            }
+        },
+        {
+            "id": 172,
+            "name": "5e6508ec-629d-44f5-ad5f-d529b703f72d",
+            "signal": "generic",
+            "src_port": {
+                "id": 161,
+                "name": "motor1_port",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "d643eb44-a9a5-49b5-957d-b21578331993"
+            },
+            "dest_port": {
+                "id": 66,
+                "name": "power_port",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "0dfaecc5-dfe7-4807-972c-73b593e21d7b"
+            }
+        },
+        {
+            "id": 173,
+            "name": "1ace00b6-e141-4cfc-a4d7-43794fc36ecc",
+            "signal": "generic",
+            "src_port": {
+                "id": 162,
+                "name": "motor2_port",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "ae9479a5-72c3-4c00-88b7-694b440b76fd"
+            },
+            "dest_port": {
+                "id": 76,
+                "name": "power_port",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "0621c00d-f6b8-44bb-ad6e-f40abcf9f040"
+            }
+        },
+        {
+            "id": 174,
+            "name": "075e0953-0017-496f-93f1-a2c926ddcb86",
+            "signal": "generic",
+            "src_port": {
+                "id": 163,
+                "name": "motor3_port",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "608019cb-de4b-465f-b7dc-fac8e40d3a75"
+            },
+            "dest_port": {
+                "id": 86,
+                "name": "power_port",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "56684a04-55e9-4a2b-a555-8b5618f7da1a"
+            }
+        },
+        {
+            "id": 175,
+            "name": "8784bc13-a693-4179-9fce-d39dc415c778",
+            "signal": "generic",
+            "src_port": {
+                "id": 164,
+                "name": "motor4_port",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "e9629f51-8425-4733-8f44-0c9b0492e579"
+            },
+            "dest_port": {
+                "id": 96,
+                "name": "power_port",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "6c377d6e-25e4-40be-ae6c-73df7c376dcb"
+            }
+        },
+        {
+            "id": 183,
+            "name": "9eab4995-8d62-4dff-bf5b-4e4a9c5d3d3d",
+            "signal": "generic",
+            "src_port": {
+                "id": 166,
+                "name": "control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "cafc94b6-aea7-450c-a3b5-92731227f1ca"
+            },
+            "dest_port": {
+                "id": 23,
+                "name": "rf_coms_control_port",
+                "direction": "inout",
+                "signal": null,
+                "unique_instance_id": "8a01be21-0918-4ae0-97cf-c39bb560aee5"
+            }
+        },
+        {
+            "id": 184,
+            "name": "31d02fd8-5dac-4694-a690-809b82906990",
+            "signal": "generic",
+            "src_port": {
+                "id": 168,
+                "name": "rf_out",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "a3b716f7-cc07-4a92-afff-4294b028ba2e"
+            },
+            "dest_port": {
+                "id": 169,
+                "name": "rf_in",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "bd772195-858c-4e6d-87fd-51c24ff26708"
+            }
+        },
+        {
+            "id": 185,
+            "name": "1fa2d93b-6d42-459e-82b9-c850a4153e55",
+            "signal": "generic",
+            "src_port": {
+                "id": 172,
+                "name": "rf_out",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "c2e7bd9f-e4f5-429b-b258-ba0fe5496039"
+            },
+            "dest_port": {
+                "id": 167,
+                "name": "rf_in",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "141e62c9-f47b-4558-a7de-980be44c4b4a"
+            }
+        },
+        {
+            "id": 186,
+            "name": "5680eb36-0a5c-47a4-a6e5-6ed882543b64",
+            "signal": "generic",
+            "src_port": {
+                "id": 173,
+                "name": "wifi_out",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "6a6bd2c1-1823-4bc1-a709-c54871a06487"
+            },
+            "dest_port": {
+                "id": 174,
+                "name": "wifi_in",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "c7608108-289a-4e36-9dfb-30c4ef57cd59"
+            }
+        },
+        {
+            "id": 187,
+            "name": "9eb6f008-9fb2-4e8d-9cf9-b5f1ac3a737d",
+            "signal": "generic",
+            "src_port": {
+                "id": 175,
+                "name": "wifi_out",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "82ee7e9e-99e5-4189-a233-e4dcccb9a230"
+            },
+            "dest_port": {
+                "id": 170,
+                "name": "wifi_in",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "9d06f169-9f6e-4b08-918c-e1ed7796f30e"
+            }
+        },
+        {
+            "id": 192,
+            "name": "6f448d03-4372-487f-ac0c-b74b879d198e",
+            "signal": "generic",
+            "src_port": {
+                "id": 183,
+                "name": "data",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "63786603-96e0-43f1-a9ea-b1187d3cf527"
+            },
+            "dest_port": {
+                "id": 187,
+                "name": "ark_data",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "6b69078e-b2df-4e59-8d2f-64248082425d"
+            }
+        },
+        {
+            "id": 193,
+            "name": "ff990464-db59-47c9-b12c-aad888493a60",
+            "signal": "generic",
+            "src_port": {
+                "id": 188,
+                "name": "ark_control",
+                "direction": "output",
+                "signal": "generic",
+                "unique_instance_id": "6e16b933-0f92-4911-9481-38dc05222a93"
+            },
+            "dest_port": {
+                "id": 182,
+                "name": "control",
+                "direction": "input",
+                "signal": "generic",
+                "unique_instance_id": "c54a60ee-5c3c-49b1-813a-35e117eb04a8"
+            }
+        }
+    ],
+    "artifacts": [],
+    "vulnerabilities": [],
+    "node_data": null
+}

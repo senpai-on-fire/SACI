@@ -1,32 +1,48 @@
-from typing import Optional
+import logging
+
+import claripy
+
+from saci.modeling.communication import BaseCommunication
 from saci.modeling.communication.protocol import WifiBProtocol, WifiGProtocol, WifiNProtocol
 from saci.modeling.device.component import (
-    CyberComponentHigh,
     CyberComponentAlgorithmic,
     CyberComponentBase,
-    CyberComponentSourceCode,
     CyberComponentBinary,
-    HardwareComponentBase,
+    CyberComponentHigh,
+    CyberComponentSourceCode,
     HardwareAbstractionLevel,
-    HardwareHigh,
     HardwareCircuit,
+    HardwareComponentBase,
+    HardwareHigh,
+    HardwarePackage,
     HardwareTechnology,
-    HardwarePackage
 )
 from saci.modeling.device.component.cyber.cyber_abstraction_level import CyberAbstractionLevel
-from saci.modeling.communication import BaseCommunication
-import claripy
-import logging
 
 _l = logging.getLogger(__name__)
 
 # =================== High-Level Abstraction (Cyber) ===================
 
-class WifiHigh(CyberComponentHigh):
- 
-    __slots__ = ("supported_protocols", "protection", "communication", "encryption_type", "signal_strength", "variables",)
 
-    def __init__(self, supported_protocols=None, communication=None, protection=None, encryption_type=None, signal_strength=-50, **kwargs):
+class WifiHigh(CyberComponentHigh):
+    __slots__ = (
+        "supported_protocols",
+        "protection",
+        "communication",
+        "encryption_type",
+        "signal_strength",
+        "variables",
+    )
+
+    def __init__(
+        self,
+        supported_protocols=None,
+        communication=None,
+        protection=None,
+        encryption_type=None,
+        signal_strength=-50,
+        **kwargs,
+    ):
         """
         :param supported_protocols: List of WiFi protocols supported (e.g., "802.11a/b/g/n/ac").
         :param communication: Active communication instance.
@@ -51,11 +67,17 @@ class WifiHigh(CyberComponentHigh):
 
 # =================== Algorithmic Abstraction (Cyber) ===================
 
+
 class WifiAlgorithmic(CyberComponentAlgorithmic):
+    __slots__ = CyberComponentAlgorithmic.__slots__ + (
+        "supported_protocols",
+        "interference_level",
+        "variables",
+    )
 
-    __slots__ = CyberComponentAlgorithmic.__slots__ + ("supported_protocols", "interference_level", "variables",)
-
-    def __init__(self, supported_protocols: Optional[list[type[BaseCommunication]]]=None, interference_level=0, **kwargs):
+    def __init__(
+        self, supported_protocols: list[type[BaseCommunication]] | None = None, interference_level=0, **kwargs
+    ):
         """
         :param supported_protocols: List of supported WiFi protocols.
         :param interference_level: Simulated interference level (0 = no interference, 100 = max interference).
@@ -82,8 +104,8 @@ class WifiAlgorithmic(CyberComponentAlgorithmic):
 
 # =================== Full WiFi Abstraction (Cyber) ===================
 
-class Wifi(CyberComponentBase):
 
+class Wifi(CyberComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, supported_protocols=None, protection=None, encryption_type=None, **kwargs):
@@ -101,8 +123,8 @@ class Wifi(CyberComponentBase):
 
 # =================== High-Level Abstraction (Hardware) ===================
 
-class WifiHardwareHigh(HardwareHigh):
 
+class WifiHardwareHigh(HardwareHigh):
     __slots__ = HardwareHigh.__slots__ + ("max_bandwidth", "frequency_band", "antenna_count")
 
     def __init__(self, max_bandwidth=100, frequency_band="2.4GHz", antenna_count=2, **kwargs):
@@ -119,8 +141,8 @@ class WifiHardwareHigh(HardwareHigh):
 
 # =================== Circuit-Level Abstraction (Hardware) ===================
 
-class WifiHardwareCircuit(HardwareCircuit):
 
+class WifiHardwareCircuit(HardwareCircuit):
     __slots__ = HardwareCircuit.__slots__ + ("rf_gain", "noise_figure", "signal_amplifier")
 
     def __init__(self, rf_gain=15, noise_figure=5, signal_amplifier=True, **kwargs):
@@ -137,8 +159,8 @@ class WifiHardwareCircuit(HardwareCircuit):
 
 # =================== Full WiFi Abstraction (Hardware) ===================
 
-class WifiHardware(HardwareComponentBase):
 
+class WifiHardware(HardwareComponentBase):
     __slots__ = ("ABSTRACTIONS",)
 
     def __init__(self, max_bandwidth=100, frequency_band="2.4GHz", antenna_count=2, **kwargs):
@@ -157,11 +179,9 @@ class WifiHardware(HardwareComponentBase):
 
 # =================== Hardware Package Abstraction ===================
 
-class WifiHardwarePackage(HardwarePackage):
 
-    KNOWN_WIFI_CHIPSETS = [
-        "ESP8266", "ESP32", "Atheros_AR9271", "Broadcom_BCM4331", "Intel_AX200"
-    ]
+class WifiHardwarePackage(HardwarePackage):
+    KNOWN_WIFI_CHIPSETS = ["ESP8266", "ESP32", "Atheros_AR9271", "Broadcom_BCM4331", "Intel_AX200"]
 
     def __init__(self, chipset_name, manufacturer, **kwargs):
         """
@@ -174,7 +194,6 @@ class WifiHardwarePackage(HardwarePackage):
 
 
 class WifiHardwareTechnology(HardwareTechnology):
-
     KNOWN_TECHNOLOGIES = ["802.11a", "802.11b", "802.11g", "802.11n", "802.11ac", "802.11ax"]
 
     def __init__(self, technology, **kwargs):

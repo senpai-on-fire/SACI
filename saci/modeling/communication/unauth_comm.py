@@ -6,4 +6,3 @@ class UnauthenticatedCommunication(BaseCommunication):
         super().__init__(**kwargs)
         self.identifier = identifier
         self.seq = seq
-
